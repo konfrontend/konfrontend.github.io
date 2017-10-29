@@ -1,0 +1,24 @@
+//include vendor libraries
+// @import "~node-normalize-scss/normalize";
+
+//include global settings(colors, fonts, ect.)
+@import "variables";
+
+//include globally used mixins and functions
+@import "mixins";
+
+//include styling for bare HTML elements (h1, a, p, etc.)
+@import "elements";
+
+//class-based selectors which define undecorated design patterns
+@import "objects/grid";
+
+//include specific UI components
+@import "components/header";
+@import "components/footer";
+@import "components/buttons";
+@import "components/titles";
+
+
+//utilities and helper classes with ability to override anything which goes before
+@import "helpers";

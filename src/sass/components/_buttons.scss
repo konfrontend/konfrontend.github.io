@@ -1,0 +1,23 @@
+.c-btn {
+	border: 2px solid;
+	padding: 12px;
+	text-transform: uppercase;
+	display: inline-block;
+	font-size: 14px;
+	font-weight: 800;
+	@include media($m) {
+		font-size: 13px;
+	}
+	&_red, .mark-red & {
+		border-color: $red;
+		color: $red;
+	}
+	&_cyan, .mark-cyan &  {
+		border-color: $cyan;
+		color: $cyan;
+	}
+	&_green, .mark-green & {
+		border-color: $green;
+		color: $green;
+	}
+}
