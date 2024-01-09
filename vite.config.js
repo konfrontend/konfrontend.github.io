@@ -4,6 +4,7 @@ import glsl from 'vite-plugin-glsl';
 import { defineConfig } from 'vite';
 
 // https://vitejs.dev/guide/build.html#multi-page-app
+// https://vitejs.dev/guide/static-deploy.html#github-pages
 export default defineConfig({
   plugins: [glsl()],
   resolve: {
