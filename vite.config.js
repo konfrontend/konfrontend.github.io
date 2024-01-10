@@ -6,6 +6,7 @@ import { defineConfig } from 'vite';
 // https://vitejs.dev/guide/build.html#multi-page-app
 // https://vitejs.dev/guide/static-deploy.html#github-pages
 export default defineConfig({
+  assetsInclude: ['**/*.frag, **/*.vert', '**/*.vs', '**/*.fs'],
   plugins: [glsl()],
   resolve: {
     alias: {
@@ -17,7 +18,8 @@ export default defineConfig({
     rollupOptions: {
       input: {
         index: resolve(__dirname, 'index.html'),
-        gem: resolve(__dirname, 'gem/index.html')
+        gem: resolve(__dirname, 'gem/index.html'),
+        mdn: resolve(__dirname, 'mdn/index.html'),
       }
     }
   }
