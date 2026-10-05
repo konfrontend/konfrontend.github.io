@@ -1,0 +1,1 @@
+[📄 CV (PDF)](https://konfrontend.github.io/CV_Konstantin_Dolbilov.pdf)
