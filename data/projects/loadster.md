@@ -21,7 +21,7 @@
 
 **Engineering workflow**
 
-- Prompt-engineered a deterministic Claude Code workflow: layered instruction files, per-module glossaries, path-scoped conventions, a documentation skill, and build, CI, runtime, and design docs; merged pull requests rose from 22.5 to 31.5 a month (12-month averages).
+- Designed the team's Claude Code workflow as engineering infrastructure: layered instruction files, per-module glossaries, path-scoped conventions, a documentation skill, and build, CI, runtime, and design docs; merged pull requests rose from 22.5 to 31.5 a month (12-month averages).
 - Introduced Vitest to the dashboard and Node.js runtimes and wrote 101 of its 207 test cases on a 2-person team, plus 376 JUnit test cases across the Java backend.
 - Designed the dashboard architecture: a cross-product common layer, a composables layer, separate live and report views, Vue Router nested routes with route-level layouts, and npm workspaces with the Node.js runtimes.
 - Migrated the Vue.js dashboard from Vue 2 to Vue 3 and from webpack to Vite, cutting builds from minutes to seconds, moved it to the Composition API, and introduced TypeScript incrementally.

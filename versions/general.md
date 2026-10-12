@@ -28,7 +28,7 @@ Full Stack Web Developer (Contract) | Mar 2019 – Present
 - Built 314 of the 332 components in the Vue.js design system on a Tailwind CSS theme, shared by 2 product dashboards and the Hugo marketing site, and made the dashboard mobile-responsive.
 - Shipped user-requested Playwright scripting for load tests end to end: the Spring Boot API, the Node.js runtime, a Monaco Editor with custom IntelliSense, and live traces of a running test.
 - Built an MCP server in Spring Boot: 23 tools under RBAC that let AI agents call the private REST API.
-- Prompt-engineered a deterministic Claude Code workflow: layered instruction files, per-module glossaries and path-scoped conventions; merged pull requests rose 40%, 22.5 to 31.5 a month (12-month averages).
+- Designed the Claude Code workflow as engineering infrastructure: instruction files, per-module glossaries and path-scoped conventions; merged pull requests rose 40%, 22.5 to 31.5 a month (12-month averages).
 - Introduced Vitest, writing 101 of its 207 test cases, plus 376 JUnit test cases across the Java backend.
 - Rewrote the recorder extension in TypeScript on the WebExtension API and Chrome DevTools Protocol: one codebase generates Playwright Test code live in Chrome and Firefox.
 - Tuned frontend performance: rendered 100,000-row trace reports in parallel pages, virtualized editors of thousands of rows with IntersectionObserver, and built custom Canvas charts for real-time metrics.

@@ -10,6 +10,8 @@ Konstantin Dolbilov • Web Developer • Gijon, Spain (UTC+2) • [cossamedia@g
 
 **General.** 10+ years shipping web products end to end in TypeScript and Java: React and Vue.js frontends, 3D graphics in WebGL, Node.js and Spring Boot REST APIs, Electron apps, and workflows for AI coding agents.
 
+**Frontend.** 10+ years building web frontends in TypeScript: React and Vue.js apps and design systems, 3D graphics in WebGL, Core Web Vitals and accessibility, plus Node.js REST APIs and workflows for AI coding agents.
+
 ## All skills
 
 ### Technical skills
@@ -17,7 +19,7 @@ Konstantin Dolbilov • Web Developer • Gijon, Spain (UTC+2) • [cossamedia@g
 - Languages: TypeScript, JavaScript, Java, SQL, HTML, CSS
 - Frontend: React, Vue.js, Nuxt, Vue Router, Vuex, Redux, Zustand, TanStack Query, TanStack Router, TanStack Table, Tailwind CSS, shadcn/ui, GSAP, Design Systems, Responsive Design, PWA, SSG, i18n, SEO, Core Web Vitals, Lighthouse, Accessibility (WCAG), Google Maps API, PDF.js, pdf-lib, Monaco Editor, Hugo
 - Web APIs: SVG, Canvas API, Service Workers, SharedWorker, IndexedDB, Web Workers, OffscreenCanvas, WebSockets, Shadow DOM, IntersectionObserver
-- Graphics: three.js, React Three Fiber, drei, WebGL, GLSL, Constructive Solid Geometry (CSG), Computational Geometry, Bounding Volume Hierarchy (BVH)
+- Graphics: three.js, React Three Fiber, drei, WebGL, GLSL, Constructive Solid Geometry (CSG), Bounding Volume Hierarchy (BVH)
 - Platforms: Electron, IPC, WebExtension API, Manifest V3, Chrome DevTools Protocol, Cloudflare Workers
 - Backend: Node.js, Hono, Spring Boot, REST API, OpenAPI, Model Context Protocol (MCP), Jackson, Pusher
 - Data: PostgreSQL, SQLite, MariaDB, InfluxDB, Sanity, GROQ, Drizzle ORM, Flyway, Zod, JSON Schema, Ajv

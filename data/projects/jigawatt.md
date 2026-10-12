@@ -42,4 +42,4 @@
 - Wrote the 3D designer's AI coding agent guide, domain glossary, coding standards, and 11 architecture decision records.
 - Authored 47% of the 3D designer's commits and 37 of its 84 merged PRs among 8 contributors.
 
-**Keywords this experience covers:** TypeScript, React, Vue.js, three.js, React Three Fiber, drei, Vite, Zustand, Redux, Vuex, Tailwind CSS, shadcn/ui, GSAP, Vitest, Google Maps API, PDF.js, WebGL, GLSL, SVG, CSG, Computational Geometry, Web Workers, OffscreenCanvas, PWA, Service Workers, IndexedDB, Code Quality
+**Keywords this experience covers:** TypeScript, React, Vue.js, three.js, React Three Fiber, drei, Vite, Zustand, Redux, Vuex, Tailwind CSS, shadcn/ui, GSAP, Vitest, Google Maps API, PDF.js, WebGL, GLSL, SVG, CSG, Web Workers, OffscreenCanvas, PWA, Service Workers, IndexedDB, Code Quality
