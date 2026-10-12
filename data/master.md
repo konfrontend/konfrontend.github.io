@@ -30,19 +30,19 @@ Konstantin Dolbilov • Web Developer • Gijon, Spain (UTC+2) • [cossamedia@g
 
 ## Professional experience
 
-### [Loadster](https://loadster.com) | Full-stack Web Developer (Contract) | Mar 2019 – Present
+### [Loadster](https://loadster.com) | Full Stack Web Developer (Contract) | Mar 2019 – Present
 
 Cloud SaaS for load testing and uptime monitoring of websites and APIs.
 
 [projects/loadster.md](projects/loadster.md)
 
-### [Jigawatt Solar](https://jigawatt.solar) | Senior Front-end Developer (Contract) | Oct 2019 – Jul 2026
+### [Jigawatt Solar](https://jigawatt.solar) | Senior Frontend Developer (Contract) | Oct 2019 – Jul 2026
 
 Software suite for solar installers: interactive 3D design and energy modeling.
 
 [projects/jigawatt.md](projects/jigawatt.md)
 
-### [Nataliia Musikhina Website](https://nataliiamusikhina.com) | Freelance Full-stack Developer | Jun 2026 – Aug 2026
+### [Nataliia Musikhina Website](https://nataliiamusikhina.com) | Freelance Full Stack Developer | Jun 2026 – Aug 2026
 
 Portfolio website for a tattoo artist.
 
@@ -56,7 +56,7 @@ Claude Code plugin that triages a freelance job posting and writes the proposal 
 
 [projects/autotriage.md](projects/autotriage.md)
 
-### [timestop](https://github.com/konfrontend/timestop) | Author & Sole Full-stack Developer | Aug 2026 – Present
+### [timestop](https://github.com/konfrontend/timestop) | Author & Sole Full Stack Developer | Aug 2026 – Present
 
 Local-first time tracker app with an optional self-hosted sync server.
 

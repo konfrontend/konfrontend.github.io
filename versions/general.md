@@ -1,6 +1,6 @@
 # Konstantin Dolbilov
 
-Full-stack Web Developer
+Full Stack Developer
 
 Gijon, Spain (UTC+2) • [cossamedia@gmail.com](mailto:cossamedia@gmail.com) • [github.com/konfrontend](https://github.com/konfrontend) • [linkedin.com/in/konstantin-dolbilov-94720b361](https://www.linkedin.com/in/konstantin-dolbilov-94720b361)
 
@@ -23,7 +23,7 @@ Gijon, Spain (UTC+2) • [cossamedia@gmail.com](mailto:cossamedia@gmail.com) •
 
 Cloud SaaS for load testing and uptime monitoring of websites and APIs.
 
-Full-stack Web Developer (Contract) | Mar 2019 – Present
+Full Stack Web Developer (Contract) | Mar 2019 – Present
 
 - Built 314 of the 332 components in the Vue.js design system on a Tailwind CSS theme, shared by 2 product dashboards and the Hugo marketing site, and made the dashboard mobile-responsive.
 - Shipped user-requested Playwright scripting for load tests end to end: the Spring Boot API, the Node.js runtime, a Monaco Editor with custom IntelliSense, and live traces of a running test.
@@ -37,7 +37,7 @@ Full-stack Web Developer (Contract) | Mar 2019 – Present
 
 Software suite for solar installers: interactive 3D design and energy modeling.
 
-Senior Front-end Developer (Contract) | Oct 2019 – Jul 2026
+Senior Frontend Developer (Contract) | Oct 2019 – Jul 2026
 
 - Authored the 3D designer's roof modeling engine in React Three Fiber, WebGL and GLSL, 34 components tested by 64 Vitest test cases: procedural roof volumes, DCEL convex decomposition, and real-time editing.
 - Built the shade simulation in a Web Worker: BVH raycasting computes each roof surface's yearly shade from 2,600 sun positions in under 15 s without blocking the editor, rendered as OffscreenCanvas heatmaps.
@@ -48,7 +48,7 @@ Senior Front-end Developer (Contract) | Oct 2019 – Jul 2026
 
 Portfolio website for a tattoo artist.
 
-Freelance Full-stack Developer | Jun 2026 – Aug 2026
+Freelance Full Stack Developer | Jun 2026 – Aug 2026
 
 - Built the site in Nuxt 4 on Sanity CMS, prerendered in English and French on Cloudflare Workers instead of per-request SSR, cut LCP from 3.6 s to 1.1 s, and reached WCAG AA contrast at Lighthouse accessibility 100.
 
@@ -58,7 +58,7 @@ Freelance Full-stack Developer | Jun 2026 – Aug 2026
 
 Local-first time tracker app with an optional self-hosted sync server.
 
-Author & Sole Full-stack Developer | Aug 2026 – Present
+Author & Sole Full Stack Developer | Aug 2026 – Present
 
 - Built the Electron app in React, TanStack Query and shadcn/ui, a Turborepo monorepo with one shared Zod entity package: 70 pull requests in 5 weeks with AI coding agents, 2 public macOS and Windows releases.
 - Designed the local-first model, SQLite as source of truth with an append-only change log, and chose it over PGlite in an ADR on resident memory: about 52 MB against 576 MB to 1.3 GB, under a 150 MB budget.
