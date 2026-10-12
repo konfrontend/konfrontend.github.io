@@ -6,4 +6,4 @@ Rules for a rendered Version: `versions/general.md` and the tailored files under
 - Contact line: location with UTC offset, email, GitHub, LinkedIn. No phone, no photo, no street address.
 - Dates: one format throughout a version.
 - Characters: no emoji; no symbols beyond `•`, `–` and `|`. Bold and italic sparingly.
-- Tailored file name: `Dolbilov_<Role>_<Company>_<MonYYYY>.md`, role as the posting's title in CamelCase; the PDF inherits the name. The general version keeps `CV_Konstantin_Dolbilov.pdf`.
+- Tailored file name: `Dolbilov_<Role>_<Company>_<MonYYYY>.md`, role as the posting's title in CamelCase; the PDF inherits the name. The general version keeps `Konstantin_Dolbilov_Resume.pdf`.

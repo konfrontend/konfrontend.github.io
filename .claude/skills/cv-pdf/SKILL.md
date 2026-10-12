@@ -1,10 +1,10 @@
 ---
 name: cv-pdf
-description: Render a version to PDF and check it fits one A4 page with a clean text layer. Takes the version's path as its argument; without one, renders versions/general.md to the public CV_Konstantin_Dolbilov.pdf.
+description: Render a version to PDF and check it fits one A4 page with a clean text layer. Takes the version's path as its argument; without one, renders versions/general.md to the public Konstantin_Dolbilov_Resume.pdf.
 disable-model-invocation: true
 ---
 
-A **render** turns one version into a PDF through `build/render.mjs`: Markdown to HTML with `build/cv.css`, printed by headless Chrome, then checked with Poppler. The script takes the input path as its first argument, relative to the repo root. The default, `versions/general.md`, writes `CV_Konstantin_Dolbilov.pdf` at the repo root, the public CV. Any other input, such as a tailored version under `applications/<company>-<role>/`, writes a PDF of the same base name next to itself and leaves the root PDF alone. The script replaces the target PDF only when every check passes. A render reads the version and never edits it.
+A **render** turns one version into a PDF through `build/render.mjs`: Markdown to HTML with `build/cv.css`, printed by headless Chrome, then checked with Poppler. The script takes the input path as its first argument, relative to the repo root. The default, `versions/general.md`, writes `Konstantin_Dolbilov_Resume.pdf` at the repo root, the public CV. Any other input, such as a tailored version under `applications/<company>-<role>/`, writes a PDF of the same base name next to itself and leaves the root PDF alone. The script replaces the target PDF only when every check passes. A render reads the version and never edits it.
 
 ## Steps
 
@@ -20,4 +20,10 @@ A **render** turns one version into a PDF through `build/render.mjs`: Markdown t
 | pages | The version is longer than one page. | Cut the oldest and least relevant bullets. The font size and margins in `cv.css` stay fixed. |
 | fonts intended | Chrome substituted a missing font. | Install Georgia or Helvetica Neue on the build machine. |
 | text layer, role lines | The PDF text differs from the version, or a role title lost its dates. | Check the version's markup, then `build/out/cv.html` in a browser. |
+| reading order | The default pdftotext mode, like a parser, reads stacked role rows as a column of titles and a column of dates. | Keep one role row per project: give each further role its own entry. |
+| first line | Something shares the name's line. | Read `git diff build/`. |
+| bullets | A list lost its glyphs, or the version's text holds a stray `•` beyond the contact line. | Remove the stray `•` from the version, else read `git diff build/`. |
+| hyphens | A spaced hyphen in the version wrapped at the line end. | Write it as an en dash, or rewrite the bullet. |
+| dates | A role row's dates stray from `Mon YYYY – Mon YYYY` or `Mon YYYY – Present`. | Fix the role row in the version. |
+| characters | The version holds a character outside the whitelist: an emoji, a curly quote, a symbol. | Replace it in the version; `docs/format-rules.md` names the allowed ones. |
 | page size, title, images, file size | The stylesheet or the script changed. | Read `git diff build/`. |

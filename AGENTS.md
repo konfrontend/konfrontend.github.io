@@ -1,24 +1,25 @@
 # CV workspace
 
-The CV source for Konstantin Dolbilov. Facts are gathered per project into a pool, ported into the draft, and rendered to a one-page PDF.
+The CV source for Konstantin Dolbilov, web developer. The master holds every bullet; a version picks the ones that fit one application. `cv-pdf` renders a version through `build/` to a one-page A4 PDF. The resumeskills skills in `.agents/skills/` do the tailoring: installed and updated by the `skills` CLI (`npx skills add`, `npx skills update`), tracked in `skills-lock.json`, symlinked from `.claude/skills/<name>`. `GLOSSARY.md` names the terms: use them in chat, tickets and files.
 
 ## Files
 
-- `draft.md`: the CV itself.
-- `projects/<project>/highlights-pool.md`: the highlights pool for one project, the only durable record of a scan.
-- `CV_Konstantin_Dolbilov.pdf`: the rendered CV. `index.html` redirects GitHub Pages to it.
-- `build/`: the PDF pipeline that `cv-pdf` runs, and `lint.mjs`, which checks the draft and every pool against the guidelines' mechanical rules. The pre-commit hook in `.githooks/` runs it; wire it once per clone with `git config core.hooksPath .githooks`.
-- `docs/cv-guidelines.md`: every rule for facts, highlights, bullets, keywords, and the pool and draft structure. Read it before writing to a pool or to the draft.
-- `docs/cv-review.md`: the brief for the reviewer subagent that `cv-scan` and `cv-port` dispatch before the user sees a candidate.
-- `GLOSSARY.md`: the domain terms. Use them in chat, tickets and files.
+- `data/master.md`: the master: contact, summary versions, skills, one entry per project linking its project file. Never rendered.
+- `data/projects/<project>.md`: the project file: the project's bullets by theme, closed by its keywords line.
+- `versions/general.md`: the general version behind the public `Konstantin_Dolbilov_Resume.pdf`; `index.html` redirects GitHub Pages to it.
+- `docs/format-rules.md`: the rules a rendered version follows, including the tailored file's name and place.
 
-## Skills
+## Workflow for an application
 
-Project skills in `.claude/skills/cv-*/`. Each skill is one stage; a stage never runs another as a side effect.
+Each step is one skill call on the previous step's output.
 
-- `cv-scan`: reads one repository and writes approved highlights to its pool, in gather or deepen mode.
-- `cv-port`: rewrites hand-picked highlights from one pool into bullets in `draft.md`.
-- `cv-pdf`: renders `draft.md` to `CV_Konstantin_Dolbilov.pdf` and checks it fits one A4 page.
+1. `job-description-analyzer` on the posting: match score and gaps.
+2. Create the tailored version from the master, named as `docs/format-rules.md` says: contact, the fitting summary, skills, one entry per project.
+3. `resume-tailor` against the analysis: pick each project's bullets from its project file.
+4. `resume-bullet-writer`, then `resume-quantifier`, on the picked bullets; `tech-resume-optimizer` for role fit.
+5. `resume-ats-optimizer`: keyword match against the posting.
+6. `cv-pdf <path to the version>`: every check PASS, one A4 page.
+7. `cover-letter-generator` from the tailored version and the posting.
 
 ## Agent skills
 

@@ -1,6 +1,6 @@
 // Renders a version to PDF: Markdown to HTML with cv.css, printed by headless Chrome, then checked.
 // The input path is the first argument, relative to the repo root. The default, versions/general.md, writes
-// CV_Konstantin_Dolbilov.pdf at the root; any other input writes a PDF of the same base name next to itself.
+// Konstantin_Dolbilov_Resume.pdf at the root; any other input writes a PDF of the same base name next to itself.
 // The target PDF is replaced only when every check passes. Work files go to build/out/.
 // Run: npm --prefix build run build -- [input]   (override the browser with CHROME=/path/to/chrome)
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, statSync } from 'node:fs'
@@ -13,7 +13,7 @@ const here = new URL('.', import.meta.url).pathname
 const out = here + 'out/'
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 const GENERAL = 'versions/general.md'
-const PDF_NAME = 'CV_Konstantin_Dolbilov.pdf'
+const PDF_NAME = 'Konstantin_Dolbilov_Resume.pdf'
 const MAX_BYTES = 2.5 * 1024 * 1024 // Greenhouse upload limit
 const A4 = [595.28, 841.89] // pt
 
@@ -21,9 +21,14 @@ const A4 = [595.28, 841.89] // pt
 const HEADER = ['headline', 'contact', 'summary']
 const ROLE = /^(.+?) \| (.+)$/
 
+// Wraps every hyphenated token in text nodes, never in tags or attributes, in a nowrap span.
+const nowrapHyphens = html => html.replace(/<[^>]*>|[^<]+/g, m => m[0] === '<' ? m : m.replace(/\S+-\S+/g, '<span class="nb">$&</span>'))
+
 // Positions in the version carry the parts Markdown has no element for:
 // the paragraphs after `#` are headline, contact line and summary; the paragraph right after `###` is the
-// project description; a paragraph whose every line is `Title | dates` is a block of role rows.
+// project description, set off by an en dash so the text layer separates it from the name; a paragraph whose
+// every line is `Title | dates` is a block of role rows. Hyphenated tokens in text nodes get a nowrap span, so a
+// word such as DCEL-based never breaks at its hyphen and de-hyphenates in the text layer.
 function toHtml(md) {
   const html = []
   const roles = []
@@ -34,7 +39,7 @@ function toHtml(md) {
     if (t.type === 'space') continue
     if (project !== null) {
       const desc = t.type === 'paragraph' && !t.text.includes('\n') && !ROLE.test(t.text)
-      html.push(`<h3>${project}${desc ? ` <span class="desc">${marked.parseInline(t.text)}</span>` : ''}</h3>`)
+      html.push(`<h3>${project}${desc ? ` <span class="desc">– ${marked.parseInline(t.text)}</span>` : ''}</h3>`)
       project = null
       if (desc) continue
     }
@@ -62,7 +67,7 @@ function toHtml(md) {
     html.push(marked.parser([t]))
   }
   if (project !== null) html.push(`<h3>${project}</h3>`)
-  return { title, body: html.join('\n'), roles }
+  return { title, body: nowrapHyphens(html.join('\n')), roles }
 }
 
 const page = (title, body, css) => `<!doctype html>
@@ -75,8 +80,13 @@ ${body}
 const run = (cmd, args) => execFileSync(cmd, args, { encoding: 'utf8' })
 
 const decode = s => s.replace(/&(amp|lt|gt|quot|#39);/g, (_, e) => ({ amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'" })[e])
-// Text compared without whitespace, case or bullet glyphs: line breaks, text-transform and list markers differ by design.
-const flat = s => s.replace(/[\s•]/g, '').toLowerCase()
+// Tag-free, entity-decoded text of an HTML fragment.
+const text = html => decode(html.replace(/<[^>]+>/g, ''))
+// Text compared without whitespace or case: line breaks and text-transform differ by design.
+const flat = s => s.replace(/\s/g, '').toLowerCase()
+const DATES = /^[A-Z][a-z]{2} \d{4} – ([A-Z][a-z]{2} \d{4}|Present)$/
+// The format-rules whitelist: letters, digits, ASCII punctuation, •, – and |.
+const FOREIGN = /[^\x20-\x7E\s\p{L}\p{N}•–]/gu
 
 function firstDiff(expected, actual) {
   let i = 0
@@ -124,14 +134,33 @@ check('fonts embedded', fonts.every(f => f.emb && f.uni), names)
 check('fonts intended', fonts.some(f => f.name.startsWith('Georgia')) && fonts.some(f => !f.name.startsWith('Georgia')) && !stray.length,
   stray.length ? `substituted: ${stray.map(f => f.name).join(', ')}` : 'Georgia and the heading sans')
 
-// -raw reads the content stream, which Chrome writes in DOM order. The default mode groups stacked right-aligned
-// dates into a column of their own, so -layout confirms instead that each role title shares a line with its dates.
-const expected = flat(decode(body.replace(/<[^>]+>/g, ' ')))
+// -raw reads the content stream, which Chrome writes in DOM order. The default mode orders by geometry, as a parser
+// does, and groups stacked right-aligned dates into a column of their own; -layout confirms that each role title
+// shares a line with its dates.
+// The list bullets are ::before content, so the body gets one per item: a glyph the PDF sets apart from its line fails.
+const expected = flat(decode(body.replace(/<li>/g, '<li>• ').replace(/<[^>]+>/g, ' ')))
 const diff = firstDiff(expected, flat(run('pdftotext', ['-raw', '-enc', 'UTF-8', pdf, '-'])))
 check('text layer', diff === null, diff ?? 'every word in reading order, no header or footer')
+const plain = run('pdftotext', ['-enc', 'UTF-8', pdf, '-'])
+const order = firstDiff(expected, flat(plain))
+check('reading order', order === null, order ?? 'the default pdftotext mode reads the same text')
+const h1 = text(body.match(/<h1>(.*?)<\/h1>/)[1])
+const firstLine = plain.split('\n')[0]
+check('first line', firstLine === h1, `"${firstLine}"`)
+const bullets = (plain.match(/•/g) ?? []).length
+const wanted = (body.match(/<li>/g) ?? []).length + (text(body.match(/<p class="contact">(.*?)<\/p>/)?.[1] ?? '').match(/•/g) ?? []).length
+check('bullets', bullets === wanted, `${bullets} of ${wanted}: one per list item plus the contact separators`)
 const layout = run('pdftotext', ['-layout', '-enc', 'UTF-8', pdf, '-']).split('\n')
 const split = roles.filter(([role, dates]) => !layout.some(line => line.includes(decode(role.replace(/<[^>]+>/g, ''))) && line.includes(dates)))
 check('role lines', !split.length, split.length ? `split from dates: ${split.map(([role]) => role).join(', ')}` : 'each title on one line with its dates')
+const broken = layout.filter(line => /-\s*$/.test(line))
+check('hyphens', !broken.length, broken.length ? `line ends with a hyphen: "${broken[0].trim()}"` : 'no word broken at its hyphen')
+const odd = roles.filter(([, dates]) => !DATES.test(dates))
+check('dates', !odd.length, odd.length ? `off format: ${odd.map(([, dates]) => dates).join(', ')}` : 'Mon YYYY – Mon YYYY or Present throughout')
+const foreign = [...new Set(text(body).match(FOREIGN) ?? [])]
+check('characters', !foreign.length, foreign.length
+  ? `outside the whitelist: ${foreign.map(c => `${c} U+${c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')}`).join(', ')}`
+  : 'letters, digits, punctuation, •, – and |')
 
 run('pdftoppm', ['-png', '-r', '110', '-f', '1', '-l', '1', '-singlefile', pdf, out + 'cv'])
 

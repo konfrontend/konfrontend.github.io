@@ -1,6 +1,18 @@
 {
   "version": 1,
   "skills": {
+    "application-form-filler": {
+      "source": "paramchoudhary/resumeskills",
+      "sourceType": "github",
+      "skillPath": "skills/application-form-filler/SKILL.md",
+      "computedHash": "65d16042daefd3c84b6ea02a7a689e6889289902af5b6b3cd1a5d120d78911a5"
+    },
+    "cold-email-writer": {
+      "source": "paramchoudhary/resumeskills",
+      "sourceType": "github",
+      "skillPath": "skills/cold-email-writer/SKILL.md",
+      "computedHash": "719e80c87fdf3a5c063bf99f534ce02fc56474f04d7d176adbe242d350e3a729"
+    },
     "cover-letter-generator": {
       "source": "paramchoudhary/resumeskills",
       "sourceType": "github",
@@ -42,6 +54,12 @@
       "sourceType": "github",
       "skillPath": "skills/resume-quantifier/SKILL.md",
       "computedHash": "d251f6c2f23684fe5bd270397a4cdb33e71575686dd3e44036536ddba645ad2c"
+    },
+    "resume-section-builder": {
+      "source": "paramchoudhary/resumeskills",
+      "sourceType": "github",
+      "skillPath": "skills/resume-section-builder/SKILL.md",
+      "computedHash": "05ab3de39b14b41c93521536c77ea71793b21480381f1bfb01b032191b80ffac"
     },
     "resume-tailor": {
       "source": "paramchoudhary/resumeskills",
