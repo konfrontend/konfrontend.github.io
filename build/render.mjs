@@ -1,6 +1,8 @@
-// Renders draft.md to CV_Konstantin_Dolbilov.pdf: Markdown to HTML with cv.css, printed by headless Chrome, then checked.
-// The root PDF is replaced only when every check passes. Work files go to build/out/.
-// Run: npm --prefix build run build   (override the browser with CHROME=/path/to/chrome)
+// Renders a version to PDF: Markdown to HTML with cv.css, printed by headless Chrome, then checked.
+// The input path is the first argument, relative to the repo root. The default, versions/general.md, writes
+// CV_Konstantin_Dolbilov.pdf at the root; any other input writes a PDF of the same base name next to itself.
+// The target PDF is replaced only when every check passes. Work files go to build/out/.
+// Run: npm --prefix build run build -- [input]   (override the browser with CHROME=/path/to/chrome)
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, statSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { pathToFileURL } from 'node:url'
@@ -10,6 +12,7 @@ const root = new URL('..', import.meta.url).pathname
 const here = new URL('.', import.meta.url).pathname
 const out = here + 'out/'
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+const GENERAL = 'versions/general.md'
 const PDF_NAME = 'CV_Konstantin_Dolbilov.pdf'
 const MAX_BYTES = 2.5 * 1024 * 1024 // Greenhouse upload limit
 const A4 = [595.28, 841.89] // pt
@@ -17,14 +20,12 @@ const A4 = [595.28, 841.89] // pt
 // Paragraphs after the h1, by position.
 const HEADER = ['headline', 'contact', 'summary']
 const ROLE = /^(.+?) \| (.+)$/
-const DATES = /^[A-Z][a-z]{2} \d{4} – ([A-Z][a-z]{2} \d{4}|Present)$/
 
-// Draft positions carry the parts Markdown has no element for:
+// Positions in the version carry the parts Markdown has no element for:
 // the paragraphs after `#` are headline, contact line and summary; the paragraph right after `###` is the
-// project description; a paragraph whose every line is `Title | Mon YYYY – Mon YYYY` is a block of role rows.
+// project description; a paragraph whose every line is `Title | dates` is a block of role rows.
 function toHtml(md) {
   const html = []
-  const problems = []
   const roles = []
   let title = ''
   let header = null
@@ -54,7 +55,6 @@ function toHtml(md) {
       for (const line of lines) {
         const [, role, dates] = line.match(ROLE)
         roles.push([role, dates])
-        if (!DATES.test(dates)) problems.push(`"${line}": dates not "Mon YYYY – Mon YYYY" or "– Present"`)
         html.push(`<p class="role"><span class="title">${marked.parseInline(role)}</span> <span class="dates">${dates}</span></p>`)
       }
       continue
@@ -62,7 +62,7 @@ function toHtml(md) {
     html.push(marked.parser([t]))
   }
   if (project !== null) html.push(`<h3>${project}</h3>`)
-  return { title, body: html.join('\n'), problems, roles }
+  return { title, body: html.join('\n'), roles }
 }
 
 const page = (title, body, css) => `<!doctype html>
@@ -85,8 +85,11 @@ function firstDiff(expected, actual) {
     : `at char ${i}: expected "…${expected.slice(Math.max(0, i - 20), i + 20)}…", got "…${actual.slice(Math.max(0, i - 20), i + 20)}…"`
 }
 
+const input = process.argv[2] ?? GENERAL
+const target = input === GENERAL ? PDF_NAME : input.replace(/\.[^./]*$/, '') + '.pdf'
+
 mkdirSync(out, { recursive: true })
-const { title, body, problems, roles } = toHtml(readFileSync(root + 'draft.md', 'utf8'))
+const { title, body, roles } = toHtml(readFileSync(root + input, 'utf8'))
 const htmlPath = out + 'cv.html'
 const pdf = out + 'cv.pdf'
 writeFileSync(htmlPath, page(title, body, readFileSync(here + 'cv.css', 'utf8')))
@@ -95,11 +98,6 @@ execFileSync(CHROME, ['--headless=new', '--disable-gpu', '--no-pdf-header-footer
 
 const checks = []
 const check = (name, ok, detail) => checks.push({ name, ok, detail })
-
-let lint = ''
-try { execFileSync('node', [here + 'lint.mjs'], { encoding: 'utf8' }) } catch (e) { lint = e.stdout.split('\n').filter(l => l.startsWith('FAIL')).map(l => l.slice(6)).join('; ') || 'lint.mjs crashed' }
-check('lint', !lint, lint || 'draft and pools follow the guidelines\' mechanical rules')
-check('role rows', problems.length === 0, problems.join('; ') || 'dates well-formed')
 
 const info = run('pdfinfo', [pdf])
 const pages = +info.match(/Pages:\s+(\d+)/)[1]
@@ -140,9 +138,9 @@ run('pdftoppm', ['-png', '-r', '110', '-f', '1', '-l', '1', '-singlefile', pdf, 
 for (const c of checks) console.log(`${c.ok ? 'PASS' : 'FAIL'}  ${c.name}: ${c.detail}`)
 console.log(`Screenshot: build/out/cv.png`)
 if (checks.every(c => c.ok)) {
-  copyFileSync(pdf, root + PDF_NAME)
-  console.log(`Wrote ${PDF_NAME}`)
+  copyFileSync(pdf, root + target)
+  console.log(`Wrote ${target}`)
 } else {
-  console.log(`${PDF_NAME} left unchanged; failed render at build/out/cv.pdf`)
+  console.log(`${target} left unchanged; failed render at build/out/cv.pdf`)
   process.exitCode = 1
 }

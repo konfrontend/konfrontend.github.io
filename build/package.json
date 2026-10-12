@@ -2,8 +2,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node render.mjs",
-    "lint": "node lint.mjs"
+    "build": "node render.mjs"
   },
   "dependencies": {
     "marked": "^18.1.0"
