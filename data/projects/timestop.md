@@ -1,43 +1,45 @@
 **Product and stack**
 
-- Owned the product end to end as sole author: research, a glossary and data rules before code, a UX prototype of three shell layouts, then the shipped Electron app, sync server, and release pipeline, through two tagged public releases under MIT.
-- Decided the stack in an ADR and built it: TypeScript throughout, React with shadcn/ui in Electron, one domain package of Zod entities shared by desktop and server, Drizzle ORM over SQLite and PostgreSQL, Hono on Node.js, in a Turborepo monorepo.
-- Designed a contract-first API: each method is a descriptor with its Zod input schema and output type, and one mapped type derives the interface, so IPC handlers, preload bridge, SQLite implementation, and test harness all walk the same object.
-- Built a deterministic agentic workflow on a glossary, rules and decisions settled before code: 70 pull requests in five weeks solo with AI agents.
-- Decoupled the brand from the implementation: the product name lives in one source the main process, renderer and end-to-end tests import, with a lint script that fails on the name anywhere outside an allowlist that doubles as the rename checklist.
-- Designed the local-first model: SQLite on the desktop is the source of truth, every write stores its entity row and an append-only change log entry in one transaction, and the server mirrors one way.
-- Decided that money is derived, in an ADR: a record stores no rate, so rate and amount come from its project and workspace on read, and the exported CSV stays the frozen record of what was billed.
-- Built a Toggl Track CSV import that maps clients, projects, and entries onto the app's entities, infers the hourly rate, and imports the same file twice without duplicates.
-- Kept design tokens as CSS variables with data-slot hooks on the app's own components, for a later skin engine.
+- Took the product from research and a UX prototype of 3 app-shell layouts to 2 public MIT-licensed releases of the Electron app and sync server.
+- Chose the stack in an Architecture Decision Record (ADR) and built a TypeScript Turborepo monorepo where one package of Zod domain entities serves the Electron app and the Hono server.
+- Built the monorepo tooling: a Turborepo task graph with cached outputs, and shared TypeScript and lint config packages.
+- Designed a contract-first desktop API: one descriptor per method holds its Zod input schema, a mapped type derives the interface, and every layer from IPC handlers to test harness iterates the descriptors, so each call is validated.
+- Shipped 70 pull requests in 5 weeks solo with AI coding agents, working from a glossary, data rules, and decisions settled before code, under agent rules, skills, and Husky pre-commit hooks.
+- Centralized the product name ahead of a planned rename: one source that both Electron processes and the end-to-end tests import, and a lint script that fails on the name outside an allowlist.
+- Designed the local-first model: desktop SQLite is the source of truth, each write commits its entity row and an append-only change log entry in one transaction, and the server mirrors the desktop one way.
+- Decided in an ADR that time entries store no rate: amounts come from the project's rate and the workspace's currency when read, and the exported CSV is the frozen copy of what was billed.
 
 **Desktop app**
 
-- Built the cross-platform Electron desktop app in React with TanStack Router and TanStack Query, shipping a macOS Apple Silicon disk image and a Windows per-user installer, with an always-on-top Tracker, Dashboard, and Settings in one window.
-- Built the shell integration that keeps the timer reachable with the window closed: a system tray with live elapsed time, a global hotkey, a Dock badge and taskbar overlay, a single-instance lock, and a stop written on quit, logoff, or shutdown.
-- Isolated the renderer from the shell: the main process owns SQLite and the domain and exposes it over Zod-validated IPC with context isolation and the sandbox on.
-- Made upgrades safe for the user's data: migrations on open, a newer-version database refused and left untouched, a whole-file backup before any migration with the three newest kept, and an update check against GitHub Releases on launch.
-- Built the Dashboard on TanStack Table: filters, batch selection, inline edits, live rounding, view state in the URL, totals per currency, and a CSV export with a byte order mark and CRLF so Excel on Windows reads it.
-- Tested the desktop app at its seams: Vitest over a harness built from the API contract with a real in-memory SQLite, Playwright driving Electron end to end in a headless mode, and a smoke test of the packaged Windows executable.
+- Built the Electron app in React, shadcn/ui, TanStack Router, and TanStack Query: one always-on-top window with Tracker, Dashboard, and Settings tabs, shipped as an Apple Silicon macOS disk image and a per-user Windows installer.
+- Surfaced the running timer outside the closed window: a system tray icon with live elapsed time, a global hotkey, a macOS Dock badge, and a Windows taskbar overlay.
+- Saved the running timer as stopped on quit, logoff, or shutdown, and held a single-instance lock so no second process writes the same SQLite file.
+- Locked down the renderer: the main process owns SQLite and the domain package, and the renderer reaches them only through Zod-validated IPC, with context isolation and the sandbox on.
+- Protected user data across upgrades: migrations run on open after a whole-file backup (newest 3 kept), and a database from a newer app version is refused and left untouched.
+- Built the Dashboard on TanStack Table with filters, batch selection, inline edits, view state in the URL, live rounding of durations, totals per currency, and a CSV export that Excel reads as UTF-8.
+- Built a Toggl Track CSV import of clients, projects, and time entries that infers each project's hourly rate from the imported project data and re-imports the same file without duplicates.
+- Defined design tokens as CSS variables in the Tailwind CSS theme and added data-slot attributes to the app's own components, so a planned skin engine can restyle them.
+- Tested the desktop app at 3 levels: 452 Vitest unit tests with a harness built from the API contract over in-memory SQLite, 11 Playwright end-to-end tests, and a smoke test of the packaged Windows executable.
 
 **Self-hosted server and sync**
 
-- Built the optional self-hosted sync server in Hono on Node.js with PostgreSQL: one authenticated REST endpoint ingests change log batches, stores each once by id, and materializes entities in the same transaction, so a replay changes nothing.
-- Designed the push protocol on both ends: batches in insertion order after every commit, exponential backoff from one second to five minutes on network errors, and a halt on a rejected token while changes keep queueing locally.
-- Shipped the server as a multi-arch Docker image on GitHub Container Registry with a Compose stack of PostgreSQL and a Cloudflare Tunnel so the VPS publishes no ports, ran it on Hetzner, and wrote the self-hosting guide.
-- Designed token authentication without accounts or sessions: a CLI mints a token stored only as its SHA-256 hash, the first push binds it to that install under a row lock, and rotation is a mint and a revoke.
-- Tested the server against a real PostgreSQL in CI and Testcontainers locally, including an integration test that drives the real desktop pusher against the real Hono app in-process.
+- Built the one-way sync server in Hono on Node.js with PostgreSQL: one authenticated REST endpoint stores each change once by id and updates entity tables in one transaction, so replays are no-ops.
+- Designed the push protocol: the desktop sends changes in insertion order after every commit, backing off exponentially from 1 second to 5 minutes and halting on a rejected token, and the server applies last-writer-wins.
+- Shipped the server as a GitHub Container Registry image with a Docker Compose stack of PostgreSQL and Cloudflare Tunnel that publishes no ports, ran it on a Hetzner VPS, and wrote the self-hosting guide.
+- Designed token authentication without accounts or sessions: a CLI mints tokens stored only as SHA-256 hashes, a token's first push binds it to the pushing install under a row lock, and rotation is mint then revoke.
+- Tested the server against real PostgreSQL, as a CI service container and with Testcontainers locally, plus an in-process integration test of the desktop push client against the Hono app, neither mocked.
 
 **Database architecture**
 
-- Designed the two-dialect database layer in Drizzle ORM and Zod with two drift catchers: each table's row type asserted equal to its Zod entity at compile time, and a test that diffs the two dialects' drizzle-kit snapshots against a reasoned allowlist.
-- Decided on the desktop database at about 52 MB of memory over PGlite at about 1.3 GB, under a 150 MB budget for an app that sits in the tray all day, with every option recorded in an ADR.
-- Stored timestamps as fixed-width ISO 8601 UTC text so range queries stay string comparisons, left foreign keys out of PostgreSQL because the server materializes a replay log, and stamped change ids as UUIDv7.
+- Designed the Drizzle ORM layer for SQLite and PostgreSQL with 2 drift checks: a compile-time assertion that each row type equals its Zod entity, and a test diffing both dialects' drizzle-kit snapshots against a reasoned allowlist.
+- Chose SQLite over PGlite for the desktop on measured resident memory, about 52 MB against 576 MB to 1.3 GB, under a 150 MB budget for an all-day tray app, recorded in an ADR.
+- Enforced foreign keys in SQLite, where writes originate, and left them out of PostgreSQL, where changes arrive in push order, not dependency order, and a rejected batch would retry forever.
+- Stored timestamps as fixed-width ISO 8601 UTC text so range queries are string comparisons, and stamped every id as a UUIDv7.
 
 **CI and releases**
 
-- Built the GitHub Actions CI: formatting, lint, typecheck, and Vitest across the monorepo with a PostgreSQL service container, a migrations-match-schema check, an electron-builder dry run, and a Windows job that builds and tests the desktop app.
-- Shipped releases from one git tag: a preflight on version shape and reachability, macOS arm64 and Windows x64 builds with a Playwright smoke launch, a multi-arch Docker push, and the GitHub Release only once every artifact exists.
-- Ran Playwright end-to-end tests of the Electron app on pull requests under xvfb on Linux and on Windows, reporting without blocking, while the packaged smoke test gates the tag.
-- Wired the developer loop: a Turborepo task graph with cached outputs, shared TypeScript and lint config packages, a pre-commit hook that formats staged files, and the brand-name lint.
+- Built GitHub Actions CI that, beyond formatting, lint, typecheck, and Vitest, checks that migrations match the schema, dry-runs electron-builder, and builds and tests the desktop app on Windows.
+- Shipped each release from one git tag: a preflight requiring a commit on master and a higher version, both desktop builds, a multi-arch Docker push, and the GitHub Release only once every artifact exists.
+- Ran Playwright end-to-end tests on pull requests as a non-blocking report, since the UI changed faster than its selectors, and gated each release on the packaged Windows smoke test instead.
 
-**Keywords this experience covers:** TypeScript, React, Electron, Node.js, Hono, PostgreSQL, SQLite, Drizzle ORM, Zod, Tailwind CSS, shadcn/ui, TanStack Query, Playwright, Vitest, Docker, GitHub Actions, Cloudflare Tunnel, Turborepo, REST API, IPC, Local-first, CI
+**Keywords this experience covers:** TypeScript, React, Electron, Node.js, Hono, PostgreSQL, SQLite, Drizzle ORM, Zod, Tailwind CSS, shadcn/ui, TanStack Query, Playwright, Vitest, Testcontainers, Docker, GitHub Actions, Cloudflare Tunnel, Turborepo, REST API, IPC, Local-first, CI

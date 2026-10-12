@@ -1,27 +1,33 @@
 **Product and stack**
 
-- Built the site alone: Nuxt 4 and Vue 3 in TypeScript, Tailwind CSS v4, a Sanity Studio, and a prerendered Cloudflare Worker in two locales.
-- Ran a deterministic agentic workflow on a 15-term glossary: 44 commits and 10 pull requests solo.
-- Met WCAG AA contrast over photographic backgrounds with a brightness ceiling and a uniform veil; Lighthouse accessibility 100.
+- Built the site in Nuxt 4, Vue 3, TypeScript, Tailwind CSS v4 and a Sanity Studio, prerendered in English and French and served by a Cloudflare Worker.
+- Delivered the site in 9 weeks with AI coding agents: 42 Linear issues, each triaged for an agent or a human and written against a 16-term glossary and 3 Architecture Decision Records (ADRs), merged in 10 pull requests.
 
 **CMS**
 
-- Modeled the content in 14 Sanity schema types: 5 singletons pinned to fixed ids, and a project page builder of slider, gallery and text blocks.
-- Localized en and fr document-level for projects and field-level on singletons, resolved in GROQ with an English fallback, every query typed by Sanity TypeGen.
+- Modeled the content in 14 Sanity schema types: 5 singletons pinned to fixed ids and a page builder for projects with slider, gallery and text blocks, so the artist edits every page and its background without a developer.
+- Localized content in English and French, document-level for projects and field-level for singletons, with an English fallback resolved in GROQ and every query typed by Sanity TypeGen.
 
 **Deployment**
 
-- Deployed through Workers Builds: a Sanity publish webhook triggers a rebuild, live in about 1 to 3 minutes, with no runtime CMS requests.
-- Gated pull requests in GitHub Actions with typecheck and 72 Vitest cases; branch previews set noindex, cased URLs redirect to lowercase.
+- Moved the site from per-request SSR to full prerender, decided in an ADR: a Sanity publish webhook triggers a Cloudflare Workers Builds rebuild, so edits go live in 1 to 3 minutes and no page queries the CMS at request time.
+- Gated pull requests in GitHub Actions on a typecheck and 72 Vitest cases covering the image module, SEO metadata, the prerender route list and URL redirects.
+
+**Accessibility**
+
+- Reached Lighthouse accessibility 100 and WCAG AA 4.5:1 contrast for all text over background photographs: one light text color, a uniform 40% black overlay, and a 74% grey brightness limit on the photographs.
 
 **Performance optimization**
 
-- Lighthouse 99 performance on desktop and mobile with zero layout shift: inlined critical CSS, immutable cache headers, a 650 KB layered backdrop replaced by one CMS image.
-- Built one image component: AVIF and WebP from the Sanity CDN, srcset clamped to native width, LQIP blur-up, and preload with fetchpriority for the LCP image only.
-- Cut font-face declarations from about 37 to 13 with explicit families, weights and subsets, preloaded only the heading face; PhotoSwipe and the booking form load on demand.
+- Raised Lighthouse mobile performance on the home page from 85 to 99 and cut its LCP from 3.6 s to 1.1 s with zero layout shift: traced the LCP to the heading, not the background image, then preloaded its font face and inlined the critical CSS.
+- Replaced a 650 KB layered CSS backdrop with one background image from Sanity, served as a 42 KB AVIF on mobile.
+- Built one shared image component that cut a project page's 1.1 MB GIF to a 54 KB animated WebP: AVIF and WebP from the Sanity CDN, srcset clamped to native width, low-quality image placeholders (LQIP), and a high-priority preload for the first visible image only.
+- Cut the body font's @font-face declarations from 37 to 6 by declaring only the weights, styles and subset the site uses.
+- Loaded PhotoSwipe and the 15 KB Tally form script only when a visitor opens them, with the form link still working if the script fails.
 
 **SEO**
 
-- Lighthouse SEO 100: hreflang and canonicals per locale, per-locale sitemaps, schema.org Person, share images cropped from Sanity, and no trailing-slash redirect for Googlebot.
+- Closed the gaps a baseline SEO audit found: project pages added to the per-locale sitemaps, hreflang links, per-page meta descriptions, schema.org Person data, and share images cropped from Sanity.
+- Served one canonical URL per page: fixed project canonicals that returned 404, dropped the trailing-slash redirect hop, redirected mixed-case paths to lowercase, and set noindex on branch previews.
 
 **Keywords this experience covers:** TypeScript, Vue.js, Nuxt, Tailwind CSS, Sanity, GROQ, Cloudflare Workers, GitHub Actions, Vitest, SSG, i18n, SEO, Core Web Vitals, Accessibility, Architecture Decision Records, CI

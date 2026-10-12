@@ -1,19 +1,19 @@
 **Agent workflow design**
 
-- Authored a public Claude Code plugin, alone, that takes a freelance job posting through a fixed route, one skill per state, to a proposal letter ready to paste.
-- Split judgment from arithmetic: the model detects risk flags with verbatim quotes and scores fit; a Node.js script computes the alert level and verdict, and the proposal guard refuses a job file that disagrees.
-- Kept the prompts thin and the rules in data: skill files only sequence steps, while flags, families, letter slots, voice rules, and checks live in catalogue files with YAML frontmatter that scripts and model both read.
+- Built a public Claude Code plugin that triages a freelance job posting and writes a ready-to-paste proposal letter in 1–2 minutes instead of 30–60; 17 postings triaged, 11 letters written.
+- Split judgment from arithmetic: the model flags risks and scores fit, a Node.js script computes the verdict, and the proposal step refuses a stored verdict the script cannot reproduce.
+- Moved the rules out of prompts into catalogue files with YAML frontmatter, one source that scripts and the model both read; skill files only sequence steps.
+- Designed the rule catalogue: 23 risk flags on a 5-level scale, 4 engagement types, 13 letter sections with size caps, and 40 checks with 6 fix kinds.
 
 **Deterministic rails**
 
-- Enforced the workflow with hooks that deny an out-of-order step and tell the model why, and validate every data write against its JSON Schema with Ajv.
-- Built the verify script: it segments a plain-text letter into slots from structure alone, runs 28 script checks, and prints findings with line numbers and fix kind, with 18 tests on the Node.js test runner.
-- Built the skill ledger as a Markdown file of YAML rows, chosen over SQLite in an ADR, appended only after the human confirms, with derived gaps so no stored status drifts.
+- Enforced the workflow with Claude Code hooks: they deny an out-of-order step and tell the model why, and validate every data write against its JSON Schema with Ajv.
+- Built a Node.js letter checker that splits plain text into sections by blank lines and headers and runs 28 scripted checks, with 18 tests on node:test.
+- Designed a skills ledger that logs each posting's required skills and surfaces a gap once 3 postings ask for it; updates need user confirmation, and an ADR justifies YAML over SQLite.
 
 **Letter generation and verification**
 
-- Designed the catalogue the route runs on: 23 risk flags on a five-level scale, 4 engagement families, 13 letter slots with size caps, voice rules, and 40 checks with six fix kinds.
-- Made every claim in a letter traceable: each fact must trace to a past job, a profile field, the job text, or arithmetic, and an unsourced fact is put to the human before the slot regenerates.
-- Designed verify as a code review that applies its own fixes: findings graded fail or warn, the letter file after verify is the corrected letter, and the run ends as pass or stopped with one question.
+- Required the model to trace each letter fact to a past job, profile field, posting line, or calculation; it asks the user about any unsourced fact and saves confirmed ones to the profile.
+- Built letter verification that applies its own fixes in place: 12 model-judged checks run only after 28 scripted checks pass, and each run ends passed or stopped on one user question.
 
 **Keywords this experience covers:** Claude Code, Node.js, JSON Schema, Agentic Workflows, Prompt Engineering, Domain Modeling, Architecture Decision Records

@@ -14,7 +14,7 @@ The CV source for Konstantin Dolbilov, web developer. The master holds every bul
 Each step is one skill call on the previous step's output.
 
 1. `job-description-analyzer` on the posting: match score and gaps.
-2. Create the tailored version from the master, named as `docs/format-rules.md` says: contact, the fitting summary, skills, one entry per project.
+2. Create the tailored version from the master, named and with its skills picked as `docs/format-rules.md` says: contact, the fitting summary, skills, one entry per project.
 3. `resume-tailor` against the analysis: pick each project's bullets from its project file.
 4. `resume-bullet-writer`, then `resume-quantifier`, on the picked bullets; `tech-resume-optimizer` for role fit.
 5. `resume-ats-optimizer`: keyword match against the posting.

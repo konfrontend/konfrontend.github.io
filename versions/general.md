@@ -4,16 +4,18 @@ Full-stack Web Developer
 
 Gijon, Spain (UTC+2) • [cossamedia@gmail.com](mailto:cossamedia@gmail.com) • [github.com/konfrontend](https://github.com/konfrontend) • [linkedin.com/in/konstantin-dolbilov-94720b361](https://www.linkedin.com/in/konstantin-dolbilov-94720b361)
 
-Full-stack web developer with 7+ years shipping TypeScript products from UX to database: Vue.js and React dashboards, Spring Boot and Node.js REST APIs, and 3D tools in WebGL. Open to contract or permanent roles.
+10+ years shipping web products end to end in TypeScript and Java: React and Vue.js frontends, 3D graphics in WebGL, Node.js and Spring Boot REST APIs, Electron apps, and workflows for AI coding agents.
 
 ## Skills
 
 - Languages: TypeScript, JavaScript, Java, SQL, HTML, CSS
-- Frontend: React, Vue.js, Zustand, TanStack Query, Tailwind CSS, shadcn/ui, SVG, Electron
-- Graphics and Web APIs: three.js, React Three Fiber, WebGL, GLSL, Canvas API, Web Workers, WebSockets
-- Backend and data: Node.js, Hono, Spring Boot, REST API, PostgreSQL, SQLite, MariaDB, Drizzle ORM, Zod
+- Frontend: React, Vue.js, Nuxt, Zustand, TanStack Query, Tailwind CSS, shadcn/ui, Electron
+- Web platform: Core Web Vitals, Accessibility (WCAG), SEO, SSG, i18n, PWA, Web Workers, WebSockets
+- Graphics: three.js, React Three Fiber, WebGL, GLSL, SVG, Canvas API
+- Backend and data: Node.js, Hono, Spring Boot, REST API, RBAC, PostgreSQL, SQLite, Drizzle ORM, Zod
 - Testing, build and DevOps: Vitest, Playwright, JUnit, Vite, Turborepo, GitHub Actions, CI/CD, Docker
 - AI tooling: Claude Code, Model Context Protocol (MCP), Agentic Workflows, Prompt Engineering
+- Methodologies: Agile/Scrum, OOP, Domain Modeling, Architecture Decision Records (ADRs)
 
 ## Professional Experience
 
@@ -21,44 +23,44 @@ Full-stack web developer with 7+ years shipping TypeScript products from UX to d
 
 Cloud SaaS for load testing and uptime monitoring of websites and APIs.
 
-Full-stack Web Developer | Mar 2019 – Present
+Full-stack Web Developer (Contract) | Mar 2019 – Present
 
-- Shipped Playwright scripting end to end, from the Spring Boot REST API and runtime to live traces of a running load test and a Monaco Editor with custom IntelliSense.
-- Rewrote the Loadster Recorder extension in TypeScript on the WebExtension API and Chrome DevTools Protocol, generating Playwright Test code live in Chrome and Firefox; authored about half of its commits.
-- Built the Loadster MCP server in Spring Boot: 23 tools that let AI agents drive the whole product, with 376 of the package's 419 JUnit test cases.
-- Built monitoring full stack, from Flyway migrations on MariaDB to the Vue.js dashboard: notification policies across timezones, period graphs, monitor state over WebSockets, and public status pages.
-- Optimized Vue.js dashboard performance at scale: custom HTML5 Canvas charts for real-time metrics, virtualized editors holding thousands of rows, and 100,000-row trace reports loaded in parallel pages.
-- Rebuilt the engineering environment for AI agents and introduced Vitest to the dashboard and Node.js runtimes: merged pull requests rose from about 30 to 55 a month, team test cases from about 500 to 1,900.
+- Built 314 of the 332 components in the Vue.js design system on a Tailwind CSS theme, shared by 2 product dashboards and the Hugo marketing site, and made the dashboard mobile-responsive.
+- Shipped user-requested Playwright scripting for load tests end to end: the Spring Boot API, the Node.js runtime, a Monaco Editor with custom IntelliSense, and live traces of a running test.
+- Built an MCP server in Spring Boot: 23 tools under RBAC that let AI agents call the private REST API.
+- Prompt-engineered a deterministic Claude Code workflow: layered instruction files, per-module glossaries and path-scoped conventions; merged pull requests rose 40%, 22.5 to 31.5 a month (12-month averages).
+- Introduced Vitest, writing 101 of its 207 test cases, plus 376 JUnit test cases across the Java backend.
+- Rewrote the recorder extension in TypeScript on the WebExtension API and Chrome DevTools Protocol: one codebase generates Playwright Test code live in Chrome and Firefox.
+- Tuned frontend performance: rendered 100,000-row trace reports in parallel pages, virtualized editors of thousands of rows with IntersectionObserver, and built custom Canvas charts for real-time metrics.
 
 ### [Jigawatt Solar](https://jigawatt.solar)
 
 Software suite for solar installers: interactive 3D design and energy modeling.
 
-Senior Front-end Developer | Oct 2019 – Jul 2026
+Senior Front-end Developer (Contract) | Oct 2019 – Jul 2026
 
-- Authored the 3D roof modeling engine in React Three Fiber and WebGL: procedural volume generation, DCEL-based partitioning and realtime editing on a persisted topology graph, covered by 64 Vitest cases.
-- Built the shade-loss simulation in Web Workers with OffscreenCanvas: sun-path raycasting over BVH trees measures how much energy each roof loses to shade while the editor stays responsive.
-- Decided the production frontend stack alone: React, TypeScript, Vite, Vitest, Zustand and three.js; authored 47% of the 3D designer's commits, all 17 test files (140 cases) and 11 ADRs.
-- Built in-browser proposal and contract signing on PDF.js and pdf-lib: AcroForm fields prefilled by shortcodes, locked per party on submit, and flattened with embedded signatures into the signed file.
+- Authored the 3D designer's roof modeling engine in React Three Fiber, WebGL and GLSL, 34 components tested by 64 Vitest test cases: procedural roof volumes, DCEL convex decomposition, and real-time editing.
+- Built the shade simulation in a Web Worker: BVH raycasting computes each roof surface's yearly shade from 2,600 sun positions in under 15 s without blocking the editor, rendered as OffscreenCanvas heatmaps.
+- Chose the 3D designer's stack alone (React, TypeScript, Vite, Zustand, three.js); authored 47% of its commits, 37 of 84 merged pull requests among 8 contributors, all 17 test files (140 test cases), and 11 ADRs.
+- Extended the solar estimator's drawing engine into a photovoltaic (PV) array layout tool in the Vue.js PWA, an SVG editor over Google Maps imagery, writing 93% of its vector geometry core over 231 commits.
+
+### [Nataliia Musikhina Website](https://nataliiamusikhina.com)
+
+Portfolio website for a tattoo artist.
+
+Freelance Full-stack Developer | Jun 2026 – Aug 2026
+
+- Built the site in Nuxt 4 on Sanity CMS, prerendered in English and French on Cloudflare Workers instead of per-request SSR, cut LCP from 3.6 s to 1.1 s, and reached WCAG AA contrast at Lighthouse accessibility 100.
 
 ## Projects
 
-### [autotriage](https://github.com/konfrontend/autotriage)
-
-Claude Code plugin that triages a freelance job posting and writes the proposal letter.
-
-Author & Sole Developer | Sep 2026 – Present
-
-- Authored a public Claude Code plugin that takes a freelance job posting through an agentic workflow, one skill per state, to a proposal letter ready to paste, on a catalogue of 23 risk flags and 40 checks.
-- Enforced the workflow with hooks that deny an out-of-order step and validate every data write against its JSON Schema with Ajv, plus a verify script of 28 checks covered by 18 tests on the Node.js test runner.
-
-### [Time Stop](https://github.com/konfrontend/timestop)
+### [timestop](https://github.com/konfrontend/timestop)
 
 Local-first time tracker app with an optional self-hosted sync server.
 
 Author & Sole Full-stack Developer | Aug 2026 – Present
 
-- Authored the Electron desktop app in React, TanStack Query and shadcn/ui, 70 pull requests in five weeks solo with AI agents, shipped for macOS and Windows in two public releases under MIT.
-- Designed the local-first model, SQLite as the source of truth with an append-only change log, and built the Hono on Node.js sync server with PostgreSQL that mirrors it one way, idempotent on replay.
-- Designed the two-dialect database layer in Drizzle ORM and Zod with compile-time and snapshot drift checks, and chose SQLite at about 52 MB of memory over PGlite at about 1.3 GB in an ADR.
-- Built GitHub Actions CI and releases: Vitest against a PostgreSQL service container, Playwright end-to-end tests of the Electron app, and one git tag shipping both desktop builds and a multi-arch Docker image.
+- Built the Electron app in React, TanStack Query and shadcn/ui, a Turborepo monorepo with one shared Zod entity package: 70 pull requests in 5 weeks with AI coding agents, 2 public macOS and Windows releases.
+- Designed the local-first model, SQLite as source of truth with an append-only change log, and chose it over PGlite in an ADR on resident memory: about 52 MB against 576 MB to 1.3 GB, under a 150 MB budget.
+- Built the idempotent sync server in Hono on Node.js and PostgreSQL over a Drizzle ORM layer shared with SQLite, storing each change once so replays are no-ops, shipped as a Docker image with Docker Compose.
+- Tested the app with 452 Vitest unit test cases and 11 Playwright end-to-end test cases in GitHub Actions CI.
