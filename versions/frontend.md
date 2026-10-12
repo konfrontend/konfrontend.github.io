@@ -9,7 +9,7 @@ Gijon, Spain (UTC+2) • [cossamedia@gmail.com](mailto:cossamedia@gmail.com) •
 ## Skills
 
 - Languages: TypeScript, JavaScript, HTML, CSS
-- Frontend: React, Vue.js, Nuxt, Zustand, TanStack Query, Tailwind CSS, shadcn/ui, Design Systems, Electron
+- Frontend: React, Vue.js, Nuxt, Zustand, TanStack Query, Tailwind CSS, shadcn/ui, GSAP, Design Systems, Electron
 - Web platform: Core Web Vitals, Accessibility (WCAG), SEO, SSG, i18n, PWA, Web Workers, WebSockets
 - Graphics: three.js, React Three Fiber, WebGL, GLSL, SVG, Canvas API
 - Backend and data: Node.js, REST API, Spring Boot, PostgreSQL, Zod
@@ -28,7 +28,7 @@ Full Stack Web Developer (Contract) | Mar 2019 – Present
 - Built 314 of the 332 components in the Vue.js design system on a Tailwind CSS theme, shared by 2 product dashboards and the Hugo marketing site, and made the dashboard mobile-responsive.
 - Designed the dashboard architecture: a cross-product common layer, a composables layer, separate live and report views, and Vue Router nested routes with route-level layouts.
 - Rewrote the recorder extension in TypeScript on the WebExtension API and Chrome DevTools Protocol: one codebase generates Playwright Test code live in Chrome and Firefox.
-- Built the recorder overlay in Vue.js inside a closed Shadow DOM root, isolated from the page's CSS and scripts, injected into every frame and kept alive across cross-origin navigation by the background worker.
+- Built the recorder overlay in Vue.js inside a closed Shadow DOM root, isolated from the page's CSS and scripts, and kept alive across cross-origin navigation by the background worker.
 - Tuned frontend performance: rendered 100,000-row trace reports in parallel pages, virtualized editors of thousands of rows with IntersectionObserver, and built custom Canvas charts for real-time metrics.
 - Cut WebSocket connections to one per origin by moving the Pusher client into a SharedWorker used by all tabs, and switched presence to Pusher presence channels.
 
