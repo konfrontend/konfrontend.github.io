@@ -1,1 +1,6 @@
 /.idea/
+/interview/
+/.claude/worktrees/
+/build/node_modules/
+/build/out/
+.DS_Store

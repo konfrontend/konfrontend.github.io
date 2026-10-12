@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node render.mjs",
+    "lint": "node lint.mjs"
+  },
+  "dependencies": {
+    "marked": "^18.1.0"
+  }
+}
