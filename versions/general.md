@@ -9,7 +9,7 @@ Gijon, Spain (UTC+2) • [cossamedia@gmail.com](mailto:cossamedia@gmail.com) •
 ## Skills
 
 - Languages: TypeScript, JavaScript, Java, SQL, HTML, CSS
-- Frontend: React, Vue.js, Nuxt, Zustand, TanStack Query, Tailwind CSS, shadcn/ui, Electron
+- Frontend: React, Vue.js, Nuxt, Zustand, TanStack Query, Tailwind CSS, shadcn/ui, GSAP, Electron
 - Web platform: Core Web Vitals, Accessibility (WCAG), SEO, SSG, i18n, PWA, Web Workers, WebSockets
 - Graphics: three.js, React Three Fiber, WebGL, GLSL, SVG, Canvas API
 - Backend and data: Node.js, Hono, Spring Boot, REST API, RBAC, PostgreSQL, SQLite, Drizzle ORM, Zod
