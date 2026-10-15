@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "konfrontend": {
+      "source": {
+        "source": "directory",
+        "path": "./plugins/autotriage"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "autotriage@konfrontend": true
+  }
+}
