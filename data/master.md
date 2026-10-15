@@ -1,6 +1,6 @@
 # Master: Konstantin Dolbilov
 
-Last updated: 2026-10-12
+Last updated: 2026-10-13
 
 ## Contact
 
@@ -17,7 +17,7 @@ Konstantin Dolbilov • Web Developer • Gijon, Spain (UTC+2) • [cossamedia@g
 ### Technical skills
 
 - Languages: TypeScript, JavaScript, Java, SQL, HTML, CSS
-- Frontend: React, Vue.js, Nuxt, Vue Router, Vuex, Redux, Zustand, TanStack Query, TanStack Router, TanStack Table, Tailwind CSS, shadcn/ui, GSAP, Design Systems, Responsive Design, PWA, SSG, i18n, SEO, Core Web Vitals, Lighthouse, Accessibility (WCAG), Google Maps API, PDF.js, pdf-lib, Monaco Editor, Hugo
+- Frontend: React, Vue.js, Nuxt, Vue Router, Vuex, Redux, Zustand, TanStack Query, TanStack Router, TanStack Table, Tailwind CSS, shadcn/ui, GSAP, Framer Motion, Design Systems, Responsive Design, PWA, SSG, i18n, SEO, Core Web Vitals, Lighthouse, Accessibility (WCAG), Google Maps API, PDF.js, pdf-lib, Monaco Editor, Hugo
 - Web APIs: SVG, Canvas API, Service Workers, SharedWorker, IndexedDB, Web Workers, OffscreenCanvas, WebSockets, Shadow DOM, IntersectionObserver
 - Graphics: three.js, React Three Fiber, drei, WebGL, GLSL, Constructive Solid Geometry (CSG), Bounding Volume Hierarchy (BVH)
 - Platforms: Electron, IPC, WebExtension API, Manifest V3, Chrome DevTools Protocol, Cloudflare Workers
