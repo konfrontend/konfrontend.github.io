@@ -1,4 +1,4 @@
-// Verdict arithmetic (ADR 0002). The model detects Flags, Family, and scores;
+// Verdict arithmetic (ADR 0002). The model detects Flags, Family (freelance route), and scores;
 // this script computes alert_level, hard_stops, and verdict from them plus Profile floors.
 // CLI: node scripts/verdict.mjs <candidate> [--check]
 //   without --check: rewrites the computed fields into job.md and prints them
@@ -25,11 +25,13 @@ export function compute(verdict, profile, job) {
 
   // hard_stops from catalogue/flags.md. refused-stack and unmet-constraint are stop Flags the model
   // detects against the Profile; each forces the hard stop of the same id and stays out of the Alert Level.
+  // rate-below-floor is a freelance stop only: on the employment route pay is unknown until the offer.
+  const employment = job?.route === "employment";
   const hardStops = [];
   if (level === 5) hardStops.push("alert-level-5");
   if (risk.some((f) => f.level === 5)) hardStops.push("level-5-flag");
   const floor = profile?.terms?.rate_floor ?? 0;
-  if (job?.budget?.type === "hourly" && typeof job.budget.max === "number" && floor > 0 && job.budget.max < floor) hardStops.push("rate-below-floor");
+  if (!employment && job?.budget?.type === "hourly" && typeof job.budget.max === "number" && floor > 0 && job.budget.max < floor) hardStops.push("rate-below-floor");
   for (const f of stop) hardStops.push(f.id);
 
   // verdict_mapping, in order
@@ -37,7 +39,7 @@ export function compute(verdict, profile, job) {
   if (hardStops.length) result = "no-go";
   else if (verdict.skill_fit === 1) result = "no-go";
   else if (verdict.skill_fit === 2) result = "ask";
-  else if (!verdict.family) result = "ask";
+  else if (!employment && !verdict.family) result = "ask";
   else if (level <= 2) result = "go";
   else if (level === 3) result = "go";
   else if (level === 4) result = verdict.skill_fit === 5 ? "go" : "ask";

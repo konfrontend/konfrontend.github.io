@@ -69,7 +69,7 @@ A hook checks every write under `data/` against the file's schema. The write has
 ```
 data/
   profile/      profile.md, skills.md (the Skill ledger), voice.md, jobs/<slug>.md (Projects)
-  candidates/   one folder per Job: job.md, letter.md
+  candidates/   one folder per Job: job.md (route freelance or employment), letter.md on the freelance route; cover-letter.md, the sent PDF and version.md when tailored on the employment route
 ```
 
 Everything is Markdown with YAML frontmatter, and you can edit all of it by hand. Keep the project in a private git repo if you want a history of your Letters.
