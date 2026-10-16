@@ -1,28 +1,35 @@
-# Issue tracker: GitHub Issues
+# Issue tracker: Linear
 
-Issues and specs for this repo live in GitHub Issues of `konfrontend/autotriage`. Use the `gh` CLI for every operation; run it from the repo root so it picks up the repo.
+Issues and specs for this repo live in Linear. Workspace `gembag` (https://linear.app/gembag), team `GEM` (Gembag), project "Professional Profile". Use the connected Linear MCP tools for all operations; there is no CLI.
 
 ## Conventions
 
-- A feature spec is an issue whose body holds the spec. Implementation tickets are sub-issues of that spec issue, one per ticket, numbered in the title (`01 <slug>`, `02 <slug>`, ...). Never combine several tickets in one issue.
-- Triage state is a label on the issue (see `triage-labels.md`). The five triage labels exist in the repo; apply them, do not create new ones.
-- Comments and conversation history go into issue comments, not into the body.
-- Closed as done: `gh issue close <n> --reason completed`. Closed as not planned: `--reason "not planned"` plus the `wontfix` label.
+- **Create an issue**: team `GEM`, project "Professional Profile", issue template `What-Why-Done`. Fill the template shape: observable gap, impact, optional notes and out-of-scope list, then checkbox acceptance criteria.
+- **Read an issue**: fetch the issue by identifier (`GEM-123`) with its comments and labels.
+- **List issues**: filter by team `GEM`, project "Professional Profile", state and label.
+- **Comment**: add a comment on the issue.
+- **Apply / remove labels**: edit the issue's labels; create a missing label on team `GEM` first.
+- **Close**: move the issue to a completed state and leave a closing comment.
+
+## Pull requests as a triage surface
+
+**PRs as a request surface: no.** _(Set to `yes` if this repo treats external PRs as feature requests; `/triage` reads this flag.)_
 
 ## When a skill says "publish to the issue tracker"
 
-`gh issue create --title "<title>" --body-file <file>`. For an implementation ticket, create it, then attach it to the spec issue as a sub-issue:
-
-```bash
-gh api repos/konfrontend/autotriage/issues/<spec-number>/sub_issues -X POST -F sub_issue_id=<ticket-issue-id>
-```
-
-`<ticket-issue-id>` is the issue's numeric `id` (`gh api repos/konfrontend/autotriage/issues/<n> --jq .id`), not its number. Report the returned issue number and URL to the user.
+Create a Linear issue as above.
 
 ## When a skill says "fetch the relevant ticket"
 
-`gh issue view <n> --comments`.
+Fetch the `GEM-<n>` issue with comments.
 
-## PRs as a request surface
+## Wayfinding operations
 
-Off. Pull requests are not part of the triage queue for this repo.
+Used by `/wayfinder`. The **map** is one issue; tickets are its **sub-issues**.
+
+- **Map**: an issue labelled `wayfinder:map`, holding the Notes / Decisions-so-far / Fog body.
+- **Child ticket**: a sub-issue of the map, labelled `wayfinder:<type>` (`research`/`prototype`/`grilling`/`task`). Once claimed, assigned to the driving dev.
+- **Blocking**: Linear's native "blocked by" relation. A ticket is unblocked when every blocker is completed.
+- **Frontier query**: open sub-issues of the map, drop any with an open blocker or an assignee; first in map order wins.
+- **Claim**: assign the ticket to yourself, the session's first write.
+- **Resolve**: comment the answer, complete the issue, then append a context pointer to the map's Decisions-so-far.
