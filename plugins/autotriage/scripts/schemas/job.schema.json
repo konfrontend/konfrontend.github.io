@@ -25,6 +25,7 @@
       ]
     },
     "extras": { "type": "object" },
+    "recorded_skills": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
     "verdict": {
       "type": "object",
       "required": ["family", "family_runner_up", "flags", "skill_fit", "interest_fit", "value", "alert_level", "hard_stops", "verdict", "decision"],

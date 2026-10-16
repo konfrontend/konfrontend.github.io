@@ -1,6 +1,6 @@
 # Candidate artifacts
 
-A Candidate is one folder under `data/candidates/`, gitignored. Two files: `job.md` is the input, `letter.md` is the output. Together they form the record that later work on Letter generation learns from. Nothing else is stored in the folder; everything a session prints (evidence, reasons, checklists) is thrown away. One write lands outside the folder: `triage` also records the Candidate in the Skill ledger `data/profile/skills.md` (the `seen` list of each Skill the Job required, plus a Gap row per unknown required item; catalogue `skills.md`).
+A Candidate is one folder under `data/candidates/`, gitignored. Two files: `job.md` is the input, `letter.md` is the output. Together they form the record that later work on Letter generation learns from. Nothing else is stored in the folder; everything a session prints (evidence, reasons, checklists) is thrown away. One write lands outside the folder: `triage` also records the Candidate in the Skill ledger `data/profile/skills.md` (the `seen` count of each Skill the Job required, plus a Gap row per unknown required item; catalogue `skills.md`) and writes the rows it counted back into `job.md` as `recorded_skills`, so a re-run records nothing twice.
 
 ## Folder
 
@@ -20,6 +20,7 @@ extras:                           # optional, free-form; anything else the posti
   country: US
   hours_per_week: "<30"
   duration: "1-3 months"
+recorded_skills: [React, Stripe Connect]   # script; the ledger rows this Candidate was counted in
 verdict:                          # absent until triage runs
   family: audit                   # Family id; human may edit before proposal
   family_runner_up: build         # Family id or null
@@ -36,6 +37,7 @@ verdict:                          # absent until triage runs
 Rules:
 
 - `slug`, `title`, `date`, `timezone`, `budget` identify the record and feed the hard stops. Everything else optional goes under `extras`; no new top-level field without a consumer.
+- `recorded_skills` is written by `scripts/skills.mjs record`, the marker that makes recording idempotent: the ledger's `seen` is a count, so the Candidate's own file remembers which rows it was counted in. Never typed by hand.
 - `verdict` holds ids and numbers only. How they combine is in the Flag catalogue (`alert_level_steps`, `hard_stops`, `scores`, `verdict_mapping`). Evidence quotes, score reasons, matched cues, safeguards are session output.
 - `alert_level`, `hard_stops`, `verdict` are computed by a script from `flags`, the scores, and the Profile floors. The `proposal` guard recomputes them and rejects the file on mismatch.
 - `verdict` is the script's recommendation; `decision` is the human's call. `proposal` runs only on `decision: go`. `no-go` ends the Route. `ask` is a verdict, not a decision: the human still writes `go` or `no-go`.

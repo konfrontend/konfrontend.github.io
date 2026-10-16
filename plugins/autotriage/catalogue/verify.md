@@ -57,7 +57,7 @@ Portable across Profiles. Personal inputs (banned extras, allowed extras, word c
 
 - `letter.md` of the current Candidate: body is the Letter, frontmatter `slug`, `family`, `date`.
 - `job.md`: posting body (client facts, Job demands), `verdict.flags`, `verdict.alert_level`, `verdict.family`.
-- Profile: `profile.md` (`terms`, `word_cap`), `skills.md` (Skill rows: names for the acronym list, `shipped` rows for `gaps-required`), `jobs/<slug>.md` bodies (traceability source), `voice.md` (`banned_extra`, `allowed_extra`).
+- Profile: `profile.md` (`terms`, `word_cap`), `skills.md` (Skill rows: names for the acronym list, `shipped` rows for `gaps-required`), `data/projects/<slug>.md` (traceability source: the frontmatter meta and the Stories, harvested by the script into the brief), `voice.md` (`banned_extra`, `allowed_extra`).
 - Catalogues: voice rules, Slot catalogue, the Family template named by `family`, Flag catalogue.
 
 Nothing is stored. The report is session output; a Letter is final only after `verify` passes, so a stored pass carries no information.
@@ -123,7 +123,7 @@ Script Checks read text and counts; model Checks read meaning. The script runs f
 
 ### fact
 
-- `untraceable`: a fact with no source. The model lists every fact in the Letter (product name, URL, role, period, stack item, number, client quote) with its Slot and source: a `jobs/<slug>.md` line, a `profile.md` field, the `job.md` body for client facts, or `derived` for hours and prices computed from the Profile rate. Fix: ask the human once whether the fact is true. True: append it as a confirmed bullet to the matching `jobs/<slug>.md`, then regenerate the Slot. False or unknown: regenerate the Slot without it.
+- `untraceable`: a fact with no source. The model lists every fact in the Letter (product name, URL, role, period, stack item, number, client quote) with its Slot and source: a Project's frontmatter field or Story (lead line or context) as the brief lists them, a `profile.md` field, the `job.md` body for client facts, or `derived` for hours and prices computed from the Profile rate. Fix: ask the human once whether the fact is true. True: append it as a context line under the nearest Story of the matching `data/projects/<slug>.md`, then regenerate the Slot. False or unknown: regenerate the Slot without it.
 - `arithmetic`: a milestone price that is not hours times the Profile rate, or a total that does not sum. Warn.
 
 ### terms

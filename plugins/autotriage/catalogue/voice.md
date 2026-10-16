@@ -71,7 +71,7 @@ The Letter reads as a person who knows what they are doing and is reliable, with
 - Confidence comes from facts, never from adjectives. No seniority, title, or self-assessment words.
 - A cited fact is a product name with URL, a role, a period in years, or one or two concrete things done there that match the Job. Role and period only when Profile `voice.md` `cite_role_period` is true (the default). Ownership or authorship of a Project is always stated when its role says so: it is the strongest fact a product can carry.
 - Not cited: commit counts, percentages, team size, awards.
-- Every fact traces to a `jobs/<slug>.md` entry in the Profile. When the Letter needs a fact the Profile lacks, `proposal` asks the human for it, appends it as a confirmed bullet to the matching `jobs/<slug>.md`, and only then writes the Letter. `letter.md` stays fact-free of anything not in the Profile.
+- Every fact traces to a Project file `data/projects/<slug>.md`: its frontmatter meta or one of its Stories. When the Letter needs a fact the Profile lacks, `proposal` asks the human for it, appends it as a context line under the nearest Story of the matching Project file, and only then writes the Letter. `letter.md` stays fact-free of anything not in the Profile.
 
 ## Formatting
 

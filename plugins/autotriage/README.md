@@ -55,9 +55,9 @@ Each skill checks its preconditions before it loads. It refuses to run out of or
 
 | Skill | Requires |
 | --- | --- |
-| `route` | valid `profile.md` and `skills.md`, at least one valid `jobs/<slug>.md`, `voice.md` |
+| `route` | valid `profile.md` and `skills.md`, at least one valid `projects/<slug>.md`, `voice.md` |
 | `intake`, `setup` | nothing |
-| `skills` | valid `skills.md` |
+| `skills` | valid `skills.md`; every Project `keywords` term is a ledger Skill |
 | `triage <c>` | valid `profile.md` and `skills.md`; valid `job.md`; no `letter.md` yet |
 | `proposal <c>` | full Profile gate; `job.md` with a `verdict` block that recomputes to the same values; `decision: go` |
 | `verify <c>` | full Profile gate; `decision: go`; valid `letter.md` |
@@ -68,7 +68,8 @@ A hook checks every write under `data/` against the file's schema. The write has
 
 ```
 data/
-  profile/      profile.md, skills.md (the Skill ledger), voice.md, jobs/<slug>.md (Projects)
+  profile/      profile.md, skills.md (the Skill ledger), voice.md
+  projects/     one file per Project: frontmatter meta and keywords, Stories under Themes
   candidates/   one folder per Job: job.md, letter.md
 ```
 

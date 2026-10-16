@@ -6,7 +6,7 @@
 //   exit 0 when no script Check fails, 1 when one does, 2 on usage or a missing input.
 import fs from "node:fs";
 import path from "node:path";
-import { readArtifact, readLedger, loadCatalogue, candidateDir, listProjects, PLUGIN_ROOT, PROFILE_DIR } from "./lib.mjs";
+import { readArtifact, readLedger, loadCatalogue, candidateDir, readProjects, PLUGIN_ROOT, PROFILE_DIR } from "./lib.mjs";
 
 const LIST_LINE = /^(?:-|\d+[.)])\s/;
 const URL_RE = /https?:\/\/[^\s)>\]]+/g;
@@ -29,7 +29,7 @@ export function loadInputs(candidate) {
   if (!letter || !job) throw new Error(`data/candidates/${candidate} lacks letter.md or job.md`);
   const profile = readArtifact(path.join(PROFILE_DIR, "profile.md"))?.frontmatter ?? {};
   const voice = readArtifact(path.join(PROFILE_DIR, "voice.md"))?.frontmatter ?? {};
-  const projects = listProjects().map((f) => readArtifact(f));
+  const projects = readProjects().filter((p) => !p.errors.length);
   const skills = readLedger()?.frontmatter?.skills ?? [];
   return { candidate, letter, job, profile, skills, voice, projects };
 }
@@ -179,6 +179,18 @@ function phraseRe(p) {
 }
 function stripQuotes(line) { return line.replace(/"[^"]*"|“[^”]*”/g, " "); }
 
+// The Project facts a Letter may cite, harvested from the frontmatter and the Stories (GEM-337): the
+// model's fact table traces every Letter fact to one of these lines.
+export function projectFacts(p) {
+  const fm = p.frontmatter ?? {};
+  const stories = (p.themes ?? []).flatMap((t) => t.stories);
+  return {
+    slug: p.slug, name: fm.name, url: fm.url ?? null, role: fm.role, employment: fm.employment,
+    period: `${fm.start} – ${fm.end ?? "present"}`, naming: fm.naming, description: fm.description ?? null,
+    keywords: fm.keywords ?? [], stories: stories.map((s) => ({ theme: s.theme, bullet: s.lead, context: s.context })),
+  };
+}
+
 export function analyse({ candidate, letter, job, profile, skills = [], voice, projects }) {
   const family = letter.frontmatter?.family;
   const cat = loadCatalogues(family);
@@ -237,7 +249,11 @@ export function analyse({ candidate, letter, job, profile, skills = [], voice, p
   const harvest = (text) => { for (const t of String(text ?? "").matchAll(ACRONYM)) acronyms.add(t[0]); };
   for (const s of skills) harvest(s.name);
   harvest(job.body);
-  for (const pj of projects) { harvest(pj.body); harvest((pj.frontmatter?.stack ?? []).join(" ").toUpperCase()); harvest(pj.frontmatter?.public_name); }
+  // the Stories are the Letter's fact source: their acronyms are the Profile's own
+  for (const pj of projects) {
+    for (const st of pj.themes?.flatMap((t) => t.stories) ?? []) { harvest(st.lead); harvest(st.context); }
+    harvest((pj.frontmatter?.keywords ?? []).join(" ")); harvest(pj.frontmatter?.name); harvest(pj.frontmatter?.description);
+  }
   const urls = [];
   lines.forEach((line, i) => {
     const n = i + 1, slot = own(n);
@@ -310,7 +326,7 @@ export function analyse({ candidate, letter, job, profile, skills = [], voice, p
   const brief = {
     family, plan_slot: planSlot, alert_level: v.alert_level ?? null, safeguards,
     job_asks_present: seg.slots.filter((s) => jobAsks.has(s.id)).map((s) => s.id),
-    template_slots: templateSlots, terms: profile.terms ?? {}, projects: projects.map((p) => p.frontmatter?.slug).filter(Boolean),
+    template_slots: templateSlots, terms: profile.terms ?? {}, projects: projects.map(projectFacts),
     mandatory_keyword: (v.flags ?? []).includes("mandatory-keyword"),
     shipped_skills: skills.filter((s) => s.level === "shipped").map((s) => s.name),
   };
@@ -339,7 +355,11 @@ export function render(r, frontmatterLines) {
   out.push(`  when-job-asks Slots present: ${b.job_asks_present.join(", ") || "none"}`);
   out.push(`  mandatory-keyword Flag: ${b.mandatory_keyword ? "triggered, the keyword must appear nowhere in the Letter" : "no"}`);
   out.push(`  Profile terms: ${JSON.stringify(b.terms)}`);
-  out.push(`  Projects: ${b.projects.join(", ")}`);
+  out.push(`  Projects (facts the Letter may cite):`);
+  for (const p of b.projects) {
+    out.push(`    ${p.slug}: ${p.name}${p.url ? ` (${p.url})` : ""}, ${p.role}, ${p.employment}, ${p.period}, naming ${p.naming}, ${p.stories.length} Stories`);
+    for (const st of p.stories) out.push(`      - ${st.bullet}${st.context ? ` | ${st.context}` : ""}`);
+  }
   out.push(`  Profile shipped Skills: ${b.shipped_skills.join(", ")}`);
   return out.join("\n");
 }

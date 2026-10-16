@@ -4,31 +4,37 @@
 // CLI: node scripts/guard.mjs <state> [candidate]
 import fs from "node:fs";
 import path from "node:path";
-import { readArtifact, readLedger, validate, refuse, Refusal, candidateDir, listCandidates, listProjects, PROFILE_DIR } from "./lib.mjs";
+import { readArtifact, readLedger, readProjects, deriveEvidence, validate, refuse, Refusal, candidateDir, listCandidates, PROFILE_DIR } from "./lib.mjs";
 import { recompute } from "./verdict.mjs";
+import { shippedWithoutEvidence } from "./skills.mjs";
 
 const ORDER = ["intake", "triage", "proposal", "verify"];
 
-function profileGate(state, level) {
+function profileGate(state, level, out) {
   const profile = readArtifact(path.join(PROFILE_DIR, "profile.md"));
   if (!profile) refuse(state, "no Profile at data/profile/profile.md.", "Run /autotriage:setup first.");
   const errors = validate("profile", profile.frontmatter);
   if (errors.length) refuse(state, `data/profile/profile.md is invalid:\n  ${errors.join("\n  ")}`, "Run /autotriage:setup or fix the file by hand.");
-  ledgerGate(state);
+  const { projects } = ledgerGate(state, out);
   if (level < 2) return profile;
-  const jobs = listProjects();
-  const valid = jobs.filter((f) => validate("project", readArtifact(f)?.frontmatter ?? {}).length === 0);
-  if (!valid.length) refuse(state, "no valid Project under data/profile/jobs/.", "Run /autotriage:setup and add at least one Project.");
+  if (!projects.some((p) => !p.errors.length)) refuse(state, "no valid Project under data/projects/.", "Add at least one Project file (frontmatter per scripts/schemas/project.schema.json, Stories under Themes).");
   if (!fs.existsSync(path.join(PROFILE_DIR, "voice.md"))) refuse(state, "no data/profile/voice.md.", "Run /autotriage:setup.");
   return profile;
 }
 
-// The Skill ledger (ADR 0003) is part of the Profile: triage records into it, so it must exist and validate.
-function ledgerGate(state) {
+// The Skill ledger (catalogue/skills.md) is part of the Profile: triage records into it, so it must exist
+// and validate. Evidence derives from the Projects' keywords: a term the ledger lacks is a refusal (the
+// Project claims a Skill the Profile does not track); a `shipped` row with no Project in Evidence is a warning.
+function ledgerGate(state, out = []) {
   const ledger = readLedger();
   if (!ledger) refuse(state, "no Skill ledger at data/profile/skills.md.", "Run /autotriage:setup first.");
   if (ledger.errors.length) refuse(state, `data/profile/skills.md is invalid:\n  ${ledger.errors.join("\n  ")}`, "Run /autotriage:setup or fix the file by hand.");
-  return ledger;
+  const projects = readProjects();
+  const { evidence, unknown } = deriveEvidence(ledger.frontmatter, projects);
+  if (unknown.length) refuse(state, `keywords the ledger lacks:\n  ${unknown.map((u) => `data/projects/${u.slug}.md: ${u.term}`).join("\n  ")}`, "Add a row to data/profile/skills.md or spell the keyword as its ledger name.");
+  const missing = shippedWithoutEvidence(ledger.frontmatter, evidence);
+  if (missing.length) out.push(`Warning: shipped with no Project in Evidence (${missing.length}): ${missing.join(", ")}`);
+  return { ledger, projects, evidence };
 }
 
 function candidateGate(state, candidate) {
@@ -59,22 +65,23 @@ export function guard(state, candidate) {
       break;
     }
     case "skills":
-      ledgerGate(state);
+      ledgerGate(state, out);
       break;
     case "route":
-      profileGate(state, 2);
+      profileGate(state, 2, out);
       out.push("Profile gate passed.");
       break;
     case "triage": {
-      profileGate(state, 1);
+      profileGate(state, 1, out);
       const { dir, job } = candidateGate(state, candidate);
       if (fs.existsSync(path.join(dir, "letter.md"))) refuse(state, `data/candidates/${candidate}/letter.md already exists; the Route has passed triage.`, "Run /autotriage:verify " + candidate + " or start a new Candidate.");
       out.push(`Candidate: data/candidates/${candidate}`, `Title: ${job.frontmatter.title}`, `Budget: ${JSON.stringify(job.frontmatter.budget)}`, `Timezone: ${job.frontmatter.timezone}`);
       if (job.frontmatter.verdict) out.push("Note: a verdict block already exists; triage will overwrite it.");
+      if (job.frontmatter.recorded_skills?.length) out.push(`Note: the ledger already holds this Candidate for ${job.frontmatter.recorded_skills.join(", ")}; record is a no-op for those rows.`);
       break;
     }
     case "proposal": {
-      profileGate(state, 2);
+      profileGate(state, 2, out);
       const { job } = candidateGate(state, candidate);
       const v = job.frontmatter.verdict;
       if (!v) refuse(state, `data/candidates/${candidate}/job.md has no verdict block.`, `Run /autotriage:triage ${candidate} first.`);
@@ -86,7 +93,7 @@ export function guard(state, candidate) {
       break;
     }
     case "verify": {
-      profileGate(state, 2);
+      profileGate(state, 2, out);
       const { dir, job } = candidateGate(state, candidate);
       if (job.frontmatter.verdict?.decision !== "go") refuse(state, "decision is not go.", `Run /autotriage:triage ${candidate} first.`);
       const letter = readArtifact(path.join(dir, "letter.md"));

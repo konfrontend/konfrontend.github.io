@@ -18,7 +18,12 @@ const profile = {
 };
 const skills = [{ name: "TypeScript", level: "shipped" }, { name: "React", level: "shipped" }, { name: "Postgres", level: "used" }];
 const voice = { language: "en-US", greeting: "Hi,", sign_off: "Kon", banned_extra: ["synergy"], allowed_extra: ["leverage"] };
-const projects = [{ frontmatter: { slug: "acme", stack: ["typescript"], public_name: "Acme" }, body: "- product: https://acme.example, B2B dashboard\n- built the RBAC admin and the SAML login" }];
+const projects = [{
+  slug: "acme", errors: [],
+  frontmatter: { name: "Acme", url: "https://acme.example", role: "Full Stack Developer", employment: "contract", start: "2021-02", naming: "public", description: "B2B dashboard.", keywords: ["TypeScript"] },
+  body: "**Admin**\n\n- Built the RBAC admin and the SAML login.\n  Collaborator and admin roles.",
+  themes: [{ name: "Admin", stories: [{ theme: "Admin", lead: "Built the RBAC admin and the SAML login.", context: "Collaborator and admin roles." }] }],
+}];
 const job = (family, flags = ["regulated-domain"], alert = 2) => ({
   frontmatter: { slug: "acme-audit", verdict: { family, flags, alert_level: alert } },
   body: "Client wants a HIPAA review of a PHI pipeline. Budget $2,000.",
@@ -64,6 +69,8 @@ test("clean audit Letter passes the script Checks", () => {
   assert.deepEqual(r.slots.map((s) => s.id), ["hook", "deliverables", "follow_on", "relevant_work", "gaps", "billing", "terms", "closing", "sign_off"]);
   assert.equal(r.brief.safeguards[0].slot, "deliverables");
   assert.deepEqual(r.brief.shipped_skills, ["TypeScript", "React"], "the brief lists shipped Skills from the ledger");
+  assert.deepEqual(r.brief.projects.map((p) => [p.slug, p.name, p.url, p.period, p.stories.length]), [["acme", "Acme", "https://acme.example", "2021-02 – present", 1]], "the brief harvests the Project facts from the frontmatter and the Stories");
+  assert.deepEqual(r.brief.projects[0].stories[0], { theme: "Admin", bullet: "Built the RBAC admin and the SAML login.", context: "Collaborator and admin roles." });
 });
 
 test("voice: banned phrase, Profile extra, allowed extra, exclamation, plural, self-descriptive", () => {

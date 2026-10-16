@@ -3,9 +3,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { YAML, Ajv } from "./vendor/deps.mjs";
-import { PLUGIN_ROOT, DATA, PROFILE_DIR, CANDIDATES_DIR } from "./paths.mjs";
+import { PLUGIN_ROOT, DATA, PROFILE_DIR, PROJECTS_DIR, CANDIDATES_DIR } from "./paths.mjs";
 
-export { PLUGIN_ROOT, DATA, PROFILE_DIR, CANDIDATES_DIR };
+export { PLUGIN_ROOT, DATA, PROFILE_DIR, PROJECTS_DIR, CANDIDATES_DIR };
 
 export class Refusal extends Error {
   constructor(message) {
@@ -63,7 +63,7 @@ export function schemaForPath(file) {
   if (rel === "profile/profile.md") return "profile";
   if (rel === "profile/voice.md") return "voice";
   if (rel === "profile/skills.md") return "skills";
-  if (/^profile\/jobs\/[^/]+\.md$/.test(rel)) return "project";
+  if (/^projects\/[^/]+\.md$/.test(rel)) return "project";
   if (/^candidates\/[^/]+\/job\.md$/.test(rel)) return "job";
   if (/^candidates\/[^/]+\/letter\.md$/.test(rel)) return "letter";
   return null;
@@ -86,16 +86,68 @@ export function listCandidates() {
 
 export const LEDGER_FILE = path.join(PROFILE_DIR, "skills.md");
 
-// The Skill ledger (ADR 0003): null when the file is missing, else the artifact plus its schema errors.
+// The Skill ledger (catalogue/skills.md): null when the file is missing, else the artifact plus its
+// schema errors. A row's category must be a key of the categories map; the schema cannot say so.
 export function readLedger(file = LEDGER_FILE) {
   const art = readArtifact(file);
   if (!art) return null;
   const errors = art.frontmatter === null ? ["no YAML frontmatter"] : validate("skills", art.frontmatter);
+  if (!errors.length) {
+    const cats = Object.keys(art.frontmatter.categories);
+    art.frontmatter.skills.forEach((r, i) => { if (!cats.includes(r.category)) errors.push(`/skills/${i}/category "${r.category}" is not a key of categories`); });
+  }
   return { ...art, errors };
 }
 
+// One file per Project under data/projects/ (GEM-337); the slug is the file name.
 export function listProjects() {
-  const dir = path.join(PROFILE_DIR, "jobs");
-  if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir).filter((f) => f.endsWith(".md")).map((f) => path.join(dir, f));
+  if (!fs.existsSync(PROJECTS_DIR)) return [];
+  return fs.readdirSync(PROJECTS_DIR).filter((f) => f.endsWith(".md")).sort().map((f) => path.join(PROJECTS_DIR, f));
+}
+
+export function projectSlug(file) {
+  return path.basename(file, ".md");
+}
+
+// A Project's body: Themes in bold on their own line, each holding Stories. A Story is one list item:
+// its lead line is the Bullet, the indented lines under it are the context (the Facts behind it).
+export function parseStories(body) {
+  const themes = [];
+  for (const block of (body ?? "").trim().split(/\n\s*\n+/)) {
+    const m = /^\*\*([^*]+)\*\*$/.exec(block.trim());
+    if (m) { themes.push({ name: m[1], stories: [] }); continue; }
+    if (!/^- /.test(block)) continue;
+    if (!themes.length) themes.push({ name: null, stories: [] });
+    for (const item of block.split(/\n(?=- )/)) {
+      const [lead, ...rest] = item.replace(/^- /, "").split(/\n\s+/);
+      themes.at(-1).stories.push({ theme: themes.at(-1).name, lead: lead.trim(), context: rest.map((l) => l.trim()).join(" ") || null });
+    }
+  }
+  return themes;
+}
+
+// Every Project read, valid or not: the artifact, its slug, its schema errors, and its Stories.
+export function readProjects() {
+  return listProjects().map((file) => {
+    const art = readArtifact(file);
+    const errors = art.frontmatter === null ? ["no YAML frontmatter"] : validate("project", art.frontmatter);
+    return { ...art, slug: projectSlug(file), errors, themes: errors.length ? [] : parseStories(art.body) };
+  });
+}
+
+// Evidence derives from the valid Projects' keywords: each term is a ledger Skill name, case-insensitive.
+// Returns { evidence: Map<row name, slug[]>, unknown: [{ slug, term }] } for the terms the ledger lacks.
+export function deriveEvidence(ledger, projects) {
+  const byName = new Map(ledger.skills.map((r) => [r.name.toLowerCase(), r.name]));
+  const evidence = new Map(ledger.skills.map((r) => [r.name, []]));
+  const unknown = [];
+  for (const p of projects) {
+    if (p.errors?.length) continue;
+    for (const term of p.frontmatter.keywords ?? []) {
+      const name = byName.get(String(term).toLowerCase());
+      if (!name) { unknown.push({ slug: p.slug, term }); continue; }
+      if (!evidence.get(name).includes(p.slug)) evidence.get(name).push(p.slug);
+    }
+  }
+  return { evidence, unknown };
 }
