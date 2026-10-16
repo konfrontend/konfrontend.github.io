@@ -68,7 +68,7 @@ A hook checks every write under `data/` against the file's schema. The write has
 
 ```
 data/
-  profile/      profile.md, skills.md (the Skill ledger), voice.md, jobs/<slug>.md (Past Jobs)
+  profile/      profile.md, skills.md (the Skill ledger), voice.md, jobs/<slug>.md (Projects)
   candidates/   one folder per Job: job.md, letter.md
 ```
 

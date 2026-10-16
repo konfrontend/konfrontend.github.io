@@ -1,17 +1,17 @@
 // Script half of the verify State (catalogue/verify.md). Segments the plain-text Letter into Slots
 // and runs every Check marked `by: script`; the model Checks, the Fixes, and the cycles are the
 // skill's job. Prints Findings, the Slot map with line numbers, the counts, and the brief the model
-// pass reads (Mitigations to look for, `when: job asks` Slots present, Profile terms, shipped Skills).
+// pass reads (Safeguards to look for, `when: job asks` Slots present, Profile terms, shipped Skills).
 // CLI: node scripts/verify.mjs <candidate> [--json]
 //   exit 0 when no script Check fails, 1 when one does, 2 on usage or a missing input.
 import fs from "node:fs";
 import path from "node:path";
-import { readArtifact, readLedger, loadCatalogue, candidateDir, listPastJobs, PLUGIN_ROOT, PROFILE_DIR } from "./lib.mjs";
+import { readArtifact, readLedger, loadCatalogue, candidateDir, listProjects, PLUGIN_ROOT, PROFILE_DIR } from "./lib.mjs";
 
 const LIST_LINE = /^(?:-|\d+[.)])\s/;
 const URL_RE = /https?:\/\/[^\s)>\]]+/g;
 const ACRONYM = /\b[A-Z][A-Z0-9]{2,}(?=s?\b)/g;
-// English and business abbreviations that are not shouting; the Profile, the Past Jobs, and the Job add theirs.
+// English and business abbreviations that are not shouting; the Profile, the Projects, and the Job add theirs.
 const COMMON_ACRONYMS = ["URL", "API", "CLI", "SDK", "UI", "UX", "CI", "CD", "PDF", "CSV", "HTML", "CSS", "SQL", "HTTP", "HTTPS", "JSON", "XML", "REST", "MVP", "CTO", "CEO", "COO", "CFO", "NDA", "USD", "EUR", "GBP", "CET", "CEST", "PST", "PDT", "EST", "EDT", "UTC", "GMT", "BST", "IST", "AEST", "FAQ", "SEO", "CMS", "CRM", "ERP", "SaaS", "SLA", "SSO", "RBAC", "IAM", "AWS", "GCP", "VPS", "DNS", "TLS", "SSL", "VPN", "SSH", "GDPR", "HIPAA", "PHI", "PII", "BAA", "DPA", "PCI", "FERPA", "COPPA", "CCPA", "WCAG", "SOC", "ISO", "ADR", "PRD", "QA", "IDE", "OAuth", "JWT", "ORM", "NPM", "IOS", "MCP", "LLM", "RAG", "AI", "ML"].map((s) => s.toUpperCase());
 const CONTACT_DOMAINS = /\b(?:t\.me|wa\.me|calendly\.com|cal\.com|linkedin\.com|twitter\.com|x\.com|instagram\.com|facebook\.com|discord\.gg|zoom\.us|meet\.google\.com|skype\.com|telegram\.(?:me|org)|whatsapp\.com|signal\.me)\b/i;
 const EMAIL = /[\w.+-]+@[\w-]+\.[\w.-]+/;
@@ -29,9 +29,9 @@ export function loadInputs(candidate) {
   if (!letter || !job) throw new Error(`data/candidates/${candidate} lacks letter.md or job.md`);
   const profile = readArtifact(path.join(PROFILE_DIR, "profile.md"))?.frontmatter ?? {};
   const voice = readArtifact(path.join(PROFILE_DIR, "voice.md"))?.frontmatter ?? {};
-  const pastJobs = listPastJobs().map((f) => readArtifact(f));
+  const projects = listProjects().map((f) => readArtifact(f));
   const skills = readLedger()?.frontmatter?.skills ?? [];
-  return { candidate, letter, job, profile, skills, voice, pastJobs };
+  return { candidate, letter, job, profile, skills, voice, projects };
 }
 
 function loadCatalogues(family) {
@@ -179,7 +179,7 @@ function phraseRe(p) {
 }
 function stripQuotes(line) { return line.replace(/"[^"]*"|“[^”]*”/g, " "); }
 
-export function analyse({ candidate, letter, job, profile, skills = [], voice, pastJobs }) {
+export function analyse({ candidate, letter, job, profile, skills = [], voice, projects }) {
   const family = letter.frontmatter?.family;
   const cat = loadCatalogues(family);
   const checkMeta = new Map(cat.verify.checks.map((c) => [c.id, c]));
@@ -237,7 +237,7 @@ export function analyse({ candidate, letter, job, profile, skills = [], voice, p
   const harvest = (text) => { for (const t of String(text ?? "").matchAll(ACRONYM)) acronyms.add(t[0]); };
   for (const s of skills) harvest(s.name);
   harvest(job.body);
-  for (const pj of pastJobs) { harvest(pj.body); harvest((pj.frontmatter?.stack ?? []).join(" ").toUpperCase()); harvest(pj.frontmatter?.public_name); }
+  for (const pj of projects) { harvest(pj.body); harvest((pj.frontmatter?.stack ?? []).join(" ").toUpperCase()); harvest(pj.frontmatter?.public_name); }
   const urls = [];
   lines.forEach((line, i) => {
     const n = i + 1, slot = own(n);
@@ -304,13 +304,13 @@ export function analyse({ candidate, letter, job, profile, skills = [], voice, p
 
   // brief for the model pass
   const flagById = new Map(cat.flags.flags.map((f) => [f.id, f]));
-  const mitigations = (v.flags ?? []).map((id) => flagById.get(id)).filter((f) => f && (!f.kind || f.kind === "risk") && f.slot && f.slot !== "none")
-    .map((f) => ({ id: f.id, level: f.level, slot: f.slot === "plan" ? planSlot : f.slot, mitigation: f.mitigation }));
+  const safeguards = (v.flags ?? []).map((id) => flagById.get(id)).filter((f) => f && (!f.kind || f.kind === "risk") && f.slot && f.slot !== "none")
+    .map((f) => ({ id: f.id, level: f.level, slot: f.slot === "plan" ? planSlot : f.slot, safeguard: f.safeguard }));
   const counts = { chars: body.length, words: total, prose_words: prose, word_cap: wordCap, total_ceiling: ceiling, hook_chars: hookChars, hook_max: hookMax, urls: urls.length, lists: listRuns.length, per_slot: perSlot };
   const brief = {
-    family, plan_slot: planSlot, alert_level: v.alert_level ?? null, mitigations,
+    family, plan_slot: planSlot, alert_level: v.alert_level ?? null, safeguards,
     job_asks_present: seg.slots.filter((s) => jobAsks.has(s.id)).map((s) => s.id),
-    template_slots: templateSlots, terms: profile.terms ?? {}, past_jobs: pastJobs.map((p) => p.frontmatter?.slug).filter(Boolean),
+    template_slots: templateSlots, terms: profile.terms ?? {}, projects: projects.map((p) => p.frontmatter?.slug).filter(Boolean),
     mandatory_keyword: (v.flags ?? []).includes("mandatory-keyword"),
     shipped_skills: skills.filter((s) => s.level === "shipped").map((s) => s.name),
   };
@@ -334,12 +334,12 @@ export function render(r, frontmatterLines) {
   out.push("", `counts: ${c.chars} chars, ${c.words} words (ceiling ${c.total_ceiling}), ${c.prose_words} prose words (cap ${c.word_cap}), hook ${c.hook_chars}/${c.hook_max} chars, ${c.urls} URLs, ${c.lists} list${c.lists === 1 ? "" : "s"}`);
   const b = r.brief;
   out.push("", `brief: family ${b.family}, plan Slot ${b.plan_slot}, Alert Level ${b.alert_level ?? "?"}`);
-  out.push(`  mitigations to find (${b.mitigations.length}):`);
-  for (const mit of b.mitigations) out.push(`    ${mit.id} (level ${mit.level}) in ${mit.slot}: ${mit.mitigation}`);
+  out.push(`  safeguards to find (${b.safeguards.length}):`);
+  for (const mit of b.safeguards) out.push(`    ${mit.id} (level ${mit.level}) in ${mit.slot}: ${mit.safeguard}`);
   out.push(`  when-job-asks Slots present: ${b.job_asks_present.join(", ") || "none"}`);
   out.push(`  mandatory-keyword Flag: ${b.mandatory_keyword ? "triggered, the keyword must appear nowhere in the Letter" : "no"}`);
   out.push(`  Profile terms: ${JSON.stringify(b.terms)}`);
-  out.push(`  Past Jobs: ${b.past_jobs.join(", ")}`);
+  out.push(`  Projects: ${b.projects.join(", ")}`);
   out.push(`  Profile shipped Skills: ${b.shipped_skills.join(", ")}`);
   return out.join("\n");
 }

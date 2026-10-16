@@ -20,7 +20,7 @@ Each Finding names its Fix in the catalogue; apply exactly that one.
 - `stop`: no edit; the run ends with the report and the question.
 - `none`: reported only.
 
-Length Fixes shrink in this order: the prose Slot most over its own catalogue cap first, then `relevant_work` by its weakest Past Job, never below the Family default count and never below the number the Job asks for, then `answers` paragraphs merged. `hook`, `terms`, `closing`, `sign_off` are never shrunk for length.
+Length Fixes shrink in this order: the prose Slot most over its own catalogue cap first, then `relevant_work` by its weakest Project, never below the Family default count and never below the number the Job asks for, then `answers` paragraphs merged. `hook`, `terms`, `closing`, `sign_off` are never shrunk for length.
 
 ## Steps
 
@@ -39,10 +39,10 @@ Length Fixes shrink in this order: the prose Slot most over its own catalogue ca
    - `job/demand-unanswered`: walk the Job body and list every explicit request of the proposal (examples, stack, approach, availability, subcontracting, a specific question), then name the Slot that answers each; one with no Slot is a Finding. Screening questions are demands: each one is a header in the Letter with its answer under it.
    - `job/mandatory-keyword`: when the brief says the Flag is triggered, the keyword from the Job appears nowhere in the Letter; found is a fail, patched out.
    - `job/gaps-required`: list the Job's required items (a must, a required skill, the codebase; never a preferred or nice-to-have item) outside the ledger's `shipped` Skills (the brief lists them); `gaps` absent or not naming one of them is a Finding, and so is `gaps` naming a nice-to-have.
-   - `flag/mitigation-missing`: for each Mitigation the brief lists, the target Slot states it in its own words; missing is `fail` at Alert Level 3 or 4, `warn` at 1 or 2.
+   - `flag/safeguard-missing`: for each Safeguard the brief lists, the target Slot states it in its own words; missing is `fail` at Alert Level 3 or 4, `warn` at 1 or 2.
    Done when every model Check has a verdict and the fact table has a row per fact.
 
-4. **Model Fixes.** Apply the Fix of every `fail` as in the Fixes section. For `fact/untraceable`, ask the human about every unsourced fact in one message, naming the Past Job each belongs to, and wait: a confirmed fact is appended as one bullet at the end of the matching `data/profile/jobs/<slug>.md` body with the Edit tool, then the Slot is regenerated; a denied or unknown fact is dropped and the Slot regenerated without it. Done when every `fail` has its Fix applied or has stopped the run.
+4. **Model Fixes.** Apply the Fix of every `fail` as in the Fixes section. For `fact/untraceable`, ask the human about every unsourced fact in one message, naming the Project each belongs to, and wait: a confirmed fact is appended as one bullet at the end of the matching `data/profile/jobs/<slug>.md` body with the Edit tool, then the Slot is regenerated; a denied or unknown fact is dropped and the Slot regenerated without it. Done when every `fail` has its Fix applied or has stopped the run.
 
 5. **Cycle.** Run the script again. One cycle is steps 1 to 4; a cycle that ends with zero `fail` from both the script and the model pass is a `pass`. Otherwise start the next cycle at step 2. Three cycles without a pass, a third Finding on the same Slot, or a `stop` Fix ends the run as `stopped`. Done when the run is `pass` or `stopped`.
 

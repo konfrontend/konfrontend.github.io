@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "data/profile/jobs/<slug>.md frontmatter (ticket 05)",
+  "title": "data/profile/jobs/<slug>.md frontmatter: one Project",
   "type": "object",
   "required": ["slug", "public_name", "naming", "role", "stack", "period"],
   "additionalProperties": false,
