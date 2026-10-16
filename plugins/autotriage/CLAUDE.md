@@ -14,7 +14,7 @@ Default five labels, names equal roles. See `docs/agents/triage-labels.md`.
 
 ### Domain docs
 
-Single-context: the PP root `GLOSSARY.md` (`../../GLOSSARY.md`, the one glossary for the plugin and the CV) and `docs/adr/` here. See `docs/agents/domain.md`.
+Single-context: the PP root `GLOSSARY.md` (`../../GLOSSARY.md`, the one glossary for the plugin and the CV) and `docs/adr/` at the PP root (`../../docs/adr/`), where the plugin's ADRs live since the merge. See `docs/agents/domain.md`.
 
 ## Plugin layout
 
