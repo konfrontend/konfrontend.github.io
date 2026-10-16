@@ -69,7 +69,7 @@ _Avoid_: hot, priority, candidate skill
 ### Jobs
 
 **Job**:
-One posting, freelance or employment: its free-form text plus explicit parameters (timezone, budget, anything the text omits).
+One posting, freelance or employment: its free-form text plus the explicit parameters its Route requires (timezone and budget for a freelance Job; company, employment type and remote policy for an employment Job).
 _Avoid_: posting, listing, gig, opportunity
 
 **Candidate**:
