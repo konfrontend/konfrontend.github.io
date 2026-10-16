@@ -63,7 +63,7 @@ export function schemaForPath(file) {
   if (rel === "profile/profile.md") return "profile";
   if (rel === "profile/voice.md") return "voice";
   if (rel === "profile/skills.md") return "skills";
-  if (/^profile\/jobs\/[^/]+\.md$/.test(rel)) return "past-job";
+  if (/^profile\/jobs\/[^/]+\.md$/.test(rel)) return "project";
   if (/^candidates\/[^/]+\/job\.md$/.test(rel)) return "job";
   if (/^candidates\/[^/]+\/letter\.md$/.test(rel)) return "letter";
   return null;
@@ -94,7 +94,7 @@ export function readLedger(file = LEDGER_FILE) {
   return { ...art, errors };
 }
 
-export function listPastJobs() {
+export function listProjects() {
   const dir = path.join(PROFILE_DIR, "jobs");
   if (!fs.existsSync(dir)) return [];
   return fs.readdirSync(dir).filter((f) => f.endsWith(".md")).map((f) => path.join(dir, f));
