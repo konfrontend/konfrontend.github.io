@@ -1,10 +1,10 @@
 // Profile helper for the setup skill. Deterministic parts of the wizard: which Profile files
 // exist and validate, and a YAML skeleton built from a schema's defaults.
 // CLI: node scripts/profile.mjs status
-//      node scripts/profile.mjs skeleton <profile|skills|voice|project>
+//      node scripts/profile.mjs skeleton <profile|skills|voice|past-job>
 import fs from "node:fs";
 import path from "node:path";
-import { PLUGIN_ROOT, PROFILE_DIR, readArtifact, validate, listProjects } from "./lib.mjs";
+import { PLUGIN_ROOT, PROFILE_DIR, readArtifact, validate, listPastJobs } from "./lib.mjs";
 
 function fileStatus(label, file, schema) {
   const art = readArtifact(file);
@@ -22,16 +22,16 @@ export function status() {
   out.push(fileStatus("data/profile/profile.md", profileFile, "profile"));
   out.push(fileStatus("data/profile/skills.md", ledgerFile, "skills"));
   out.push(fileStatus("data/profile/voice.md", voiceFile, "voice"));
-  const jobs = listProjects();
+  const jobs = listPastJobs();
   if (!jobs.length) out.push("data/profile/jobs/: no files");
-  for (const f of jobs) out.push(fileStatus(`data/profile/jobs/${path.basename(f)}`, f, "project"));
+  for (const f of jobs) out.push(fileStatus(`data/profile/jobs/${path.basename(f)}`, f, "past-job"));
 
   const profileOk = readArtifact(profileFile)?.frontmatter && validate("profile", readArtifact(profileFile).frontmatter).length === 0;
   const ledgerOk = readArtifact(ledgerFile)?.frontmatter && validate("skills", readArtifact(ledgerFile).frontmatter).length === 0;
-  const jobOk = jobs.some((f) => readArtifact(f)?.frontmatter && validate("project", readArtifact(f).frontmatter).length === 0);
+  const jobOk = jobs.some((f) => readArtifact(f)?.frontmatter && validate("past-job", readArtifact(f).frontmatter).length === 0);
   const voiceOk = readArtifact(voiceFile)?.frontmatter && validate("voice", readArtifact(voiceFile).frontmatter).length === 0;
   out.push("", `triage gate (profile.md and skills.md valid): ${profileOk && ledgerOk ? "pass" : "fail"}`);
-  out.push(`proposal gate (plus one valid Project and voice.md): ${profileOk && ledgerOk && jobOk && voiceOk ? "pass" : "fail"}`);
+  out.push(`proposal gate (plus one valid past job and voice.md): ${profileOk && ledgerOk && jobOk && voiceOk ? "pass" : "fail"}`);
   return out.join("\n");
 }
 
@@ -39,7 +39,7 @@ export function status() {
 // a trailing comment naming required fields and enum choices.
 export function skeleton(name) {
   const file = path.join(PLUGIN_ROOT, "scripts", "schemas", `${name}.schema.json`);
-  if (!fs.existsSync(file)) throw new Error(`no schema ${name}; known: profile, skills, voice, project`);
+  if (!fs.existsSync(file)) throw new Error(`no schema ${name}; known: profile, skills, voice, past-job`);
   const schema = JSON.parse(fs.readFileSync(file, "utf8"));
   return emit(schema, 0, new Set()).join("\n");
 }
@@ -86,7 +86,7 @@ if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).
   try {
     if (cmd === "status") console.log(status());
     else if (cmd === "skeleton") console.log(skeleton(arg));
-    else { console.error("usage: profile.mjs status | skeleton <profile|skills|voice|project>"); process.exit(2); }
+    else { console.error("usage: profile.mjs status | skeleton <profile|skills|voice|past-job>"); process.exit(2); }
   } catch (e) {
     console.error(`autotriage: profile.mjs failed: ${e.message}`); process.exit(1);
   }

@@ -18,7 +18,7 @@ const profile = {
 };
 const skills = [{ name: "TypeScript", level: "shipped" }, { name: "React", level: "shipped" }, { name: "Postgres", level: "used" }];
 const voice = { language: "en-US", greeting: "Hi,", sign_off: "Kon", banned_extra: ["synergy"], allowed_extra: ["leverage"] };
-const projects = [{ frontmatter: { slug: "acme", stack: ["typescript"], public_name: "Acme" }, body: "- product: https://acme.example, B2B dashboard\n- built the RBAC admin and the SAML login" }];
+const pastJobs = [{ frontmatter: { slug: "acme", stack: ["typescript"], public_name: "Acme" }, body: "- product: https://acme.example, B2B dashboard\n- built the RBAC admin and the SAML login" }];
 const job = (family, flags = ["regulated-domain"], alert = 2) => ({
   frontmatter: { slug: "acme-audit", verdict: { family, flags, alert_level: alert } },
   body: "Client wants a HIPAA review of a PHI pipeline. Budget $2,000.",
@@ -52,7 +52,7 @@ Kon`;
 
 function run(body, family = "audit", { flags, alert, candidate = "2026-09-20-acme-audit", fm = {} } = {}) {
   const letter = { frontmatter: { slug: "acme-audit", family, date: "2026-09-20", outcome: null, ...fm }, body, raw: "" };
-  return analyse({ candidate, letter, job: job(family, flags, alert), profile, skills, voice, projects });
+  return analyse({ candidate, letter, job: job(family, flags, alert), profile, skills, voice, pastJobs });
 }
 const ids = (r) => r.findings.map((f) => f.id);
 const has = (r, id) => r.findings.some((f) => f.id === id);
@@ -62,7 +62,7 @@ test("clean audit Letter passes the script Checks", () => {
   const r = run(cleanAudit);
   assert.equal(r.fails, 0, JSON.stringify(r.findings));
   assert.deepEqual(r.slots.map((s) => s.id), ["hook", "deliverables", "follow_on", "relevant_work", "gaps", "billing", "terms", "closing", "sign_off"]);
-  assert.equal(r.brief.safeguards[0].slot, "deliverables");
+  assert.equal(r.brief.mitigations[0].slot, "deliverables");
   assert.deepEqual(r.brief.shipped_skills, ["TypeScript", "React"], "the brief lists shipped Skills from the ledger");
 });
 
@@ -100,7 +100,7 @@ test("format: markdown, emoji, all-caps, indentation, contact, url count", () =>
   assert.ok(has(r, "format/markdown"));
   assert.ok(has(r, "format/emoji"));
   assert.ok(r.findings.some((f) => f.id === "format/all-caps" && f.detail.includes("SHOUTING")));
-  assert.ok(!r.findings.some((f) => f.id === "format/all-caps" && /RBAC|SAML|PHI|HIPAA/.test(f.detail)), "acronyms from the Profile, the Projects, and the Job are allowed");
+  assert.ok(!r.findings.some((f) => f.id === "format/all-caps" && /RBAC|SAML|PHI|HIPAA/.test(f.detail)), "acronyms from the Profile, the Past Jobs, and the Job are allowed");
   assert.ok(has(r, "format/indentation"));
   assert.ok(r.findings.filter((f) => f.id === "format/contact").length >= 2);
   assert.ok(r.findings.some((f) => f.id === "format/url-count" && f.detail.includes("not https")));
@@ -165,13 +165,13 @@ test("length: hook, prose cap, total ceiling, second list", () => {
   assert.equal(fixOf(r, "length/hook"), "regenerate");
 });
 
-test("length: relevant_work at its cap passes, one Project over fails", () => {
+test("length: relevant_work at its cap passes, one Past Job over fails", () => {
   const n = cap("relevant_work").paragraphs;
-  const withProjects = (count) => cleanAudit.replace("Acme (https://acme.example), B2B dashboard, contractor since 2021. Built the RBAC admin and the SAML login.",
+  const withPastJobs = (count) => cleanAudit.replace("Acme (https://acme.example), B2B dashboard, contractor since 2021. Built the RBAC admin and the SAML login.",
     Array.from({ length: count }, (_, i) => `Acme product ${i + 1} (https://acme.example/${i + 1}). Built the RBAC admin.`).join("\n\n"));
-  const atCap = run(withProjects(n));
+  const atCap = run(withPastJobs(n));
   assert.ok(!has(atCap, "length/relevant-work-count"), ids(atCap));
-  const over = run(withProjects(n + 1));
+  const over = run(withPastJobs(n + 1));
   assert.ok(over.findings.some((f) => f.id === "length/relevant-work-count" && f.detail.includes(`cap ${n}`)), ids(over));
 });
 

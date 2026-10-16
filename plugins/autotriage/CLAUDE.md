@@ -12,7 +12,7 @@ Default five labels (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for
 
 ### Domain docs
 
-Single-context: the PP root `GLOSSARY.md` (`../../GLOSSARY.md`, the one glossary for the plugin and the CV) and `docs/adr/` here. See `docs/agents/domain.md`.
+Single-context: `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
 
 ## Plugin layout
 

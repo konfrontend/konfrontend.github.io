@@ -4,7 +4,7 @@
 // CLI: node scripts/guard.mjs <state> [candidate]
 import fs from "node:fs";
 import path from "node:path";
-import { readArtifact, readLedger, validate, refuse, Refusal, candidateDir, listCandidates, listProjects, PROFILE_DIR } from "./lib.mjs";
+import { readArtifact, readLedger, validate, refuse, Refusal, candidateDir, listCandidates, listPastJobs, PROFILE_DIR } from "./lib.mjs";
 import { recompute } from "./verdict.mjs";
 
 const ORDER = ["intake", "triage", "proposal", "verify"];
@@ -16,9 +16,9 @@ function profileGate(state, level) {
   if (errors.length) refuse(state, `data/profile/profile.md is invalid:\n  ${errors.join("\n  ")}`, "Run /autotriage:setup or fix the file by hand.");
   ledgerGate(state);
   if (level < 2) return profile;
-  const jobs = listProjects();
-  const valid = jobs.filter((f) => validate("project", readArtifact(f)?.frontmatter ?? {}).length === 0);
-  if (!valid.length) refuse(state, "no valid Project under data/profile/jobs/.", "Run /autotriage:setup and add at least one Project.");
+  const jobs = listPastJobs();
+  const valid = jobs.filter((f) => validate("past-job", readArtifact(f)?.frontmatter ?? {}).length === 0);
+  if (!valid.length) refuse(state, "no valid Past Job under data/profile/jobs/.", "Run /autotriage:setup and add at least one past job.");
   if (!fs.existsSync(path.join(PROFILE_DIR, "voice.md"))) refuse(state, "no data/profile/voice.md.", "Run /autotriage:setup.");
   return profile;
 }

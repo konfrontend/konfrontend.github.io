@@ -20,6 +20,6 @@ Live product, open-ended engagement, no bounded change list. All prose, no list.
 Slot notes for this Family:
 
 - `working_model`: queue, acceptance rule, response window, weekly summary. Two or three sentences.
-- `relevant_work`: two Projects by default. Prefer long engagements on a live product.
+- `relevant_work`: two Past Jobs by default. Prefer long engagements on a live product.
 - `billing`: rate, weekly hours, billed weekly on actual hours, notice period. The rate appears here when the Job states neither budget nor rate; otherwise hours and rhythm only.
 - No milestones, no deliverables. A Job that lists a bounded change set is `fix`, not `maintenance`.

@@ -18,7 +18,7 @@ skills:
 - `name`: the Skill as the Letter would name it. Unique, case-insensitive.
 - `category`: `frontend`, `backend`, `database`, `cloud-infra`, `testing`, `graphics-3d`, `ai-agents`, `mobile`, `other`.
 - `level`: `gap`, `learning`, `used`, `shipped`. Tests below.
-- `evidence`: Project slugs (`data/profile/jobs/<slug>.md`) that show the Skill. Required and non-empty at `used` and `shipped`; empty at `learning` and `gap`.
+- `evidence`: Past Job slugs (`data/profile/jobs/<slug>.md`) that show the Skill. Required and non-empty at `used` and `shipped`; empty at `learning` and `gap`.
 - `keywords`: lowercase strings a Job may use for the Skill instead of its name (`sql`, `db`, `postgresql`). Free; added by hand when a match was missed.
 - `seen`: Candidate folder names whose Job required the Skill, unique. Appended by `triage` only after the human confirms the changes, never edited by hand except to correct a wrong match.
 
@@ -26,12 +26,12 @@ At least one row is `shipped`, or the Profile has nothing a Letter can cite.
 
 ## Level tests
 
-- `shipped`: a Project in `evidence` shows the Skill in production, in the Project's own bullets.
-- `used`: used in a Project in `evidence`, not shipped there (a prototype, a tool of the work, a side path).
-- `learning`: studied, no Project uses it.
+- `shipped`: a Past Job in `evidence` shows the Skill in production, in the Past Job's own bullets.
+- `used`: used in a Past Job in `evidence`, not shipped there (a prototype, a tool of the work, a side path).
+- `learning`: studied, no Past Job uses it.
 - `gap`: a Job required it and the freelancer has not used it. A Gap exists only because a Job required it; nobody adds one by hand.
 
-Bumping a Level is a Profile edit: change `level` and add the Project slug to `evidence` in the same edit.
+Bumping a Level is a Profile edit: change `level` and add the Past Job slug to `evidence` in the same edit.
 
 ## Target
 
