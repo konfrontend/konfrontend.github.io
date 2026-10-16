@@ -1,3 +1,6 @@
+---
+role: frontend
+---
 # Konstantin Dolbilov
 
 Senior Frontend Developer
@@ -19,11 +22,7 @@ Gijon, Spain (UTC+2) • [cossamedia@gmail.com](mailto:cossamedia@gmail.com) •
 
 ## Professional Experience
 
-### [Loadster](https://loadster.com)
-
-Cloud SaaS for load testing and uptime monitoring of websites and APIs.
-
-Full Stack Web Developer (Contract) | Mar 2019 – Present
+### loadster
 
 - Built 314 of the 332 components in the Vue.js design system on a Tailwind CSS theme, shared by 2 product dashboards and the Hugo marketing site, and made the dashboard mobile-responsive.
 - Designed the dashboard architecture: a cross-product common layer, a composables layer, separate live and report views, and Vue Router nested routes with route-level layouts.

@@ -1,3 +1,6 @@
+---
+role: full-stack
+---
 # Konstantin Dolbilov
 
 Full Stack Developer
@@ -19,11 +22,7 @@ Gijon, Spain (UTC+2) • [cossamedia@gmail.com](mailto:cossamedia@gmail.com) •
 
 ## Professional Experience
 
-### [Loadster](https://loadster.com)
-
-Cloud SaaS for load testing and uptime monitoring of websites and APIs.
-
-Full Stack Web Developer (Contract) | Mar 2019 – Present
+### loadster
 
 - Built 314 of the 332 components in the Vue.js design system on a Tailwind CSS theme, shared by 2 product dashboards and the Hugo marketing site, and made the dashboard mobile-responsive.
 - Shipped user-requested Playwright scripting for load tests end to end: the Spring Boot API, the Node.js runtime, a Monaco Editor with custom IntelliSense, and live traces of a running test.

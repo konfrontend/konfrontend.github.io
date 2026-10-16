@@ -6,6 +6,8 @@ disable-model-invocation: true
 
 A **render** turns one version into a PDF through `build/render.mjs`: Markdown to HTML with `build/cv.css`, printed by headless Chrome, then checked with Poppler. The script takes the input path as its first argument, relative to the repo root. The default, `versions/general.md`, writes `Konstantin_Dolbilov_Resume.pdf` at the repo root, the public CV. Any other input, such as a tailored version under `applications/<company>-<role>/`, writes a PDF of the same base name next to itself and leaves the root PDF alone. The script replaces the target PDF only when every check passes. A render reads the version and never edits it.
 
+The version's shape, beyond plain Markdown: frontmatter with `role` (`full-stack` or `frontend`, the ledger's role names); an entry `### <slug>` names the Project file `data/projects/<slug>.md` and takes its heading, description and role row from that file's frontmatter (`name`, `url`, `role`, `employment`, `start`, `end`, `description`) by the rules in `docs/format-rules.md`; the Bullets under it are the version's own. An entry written out (`### [Name](url)`, a description paragraph, a `Role | dates` row) renders as is. The Skills section is hand-grouped lines of `Label: term, term`; its terms are checked against the ledger `data/profile/skills.md`: each a Skill with the version's role, none of those missing. A Project file's `keywords` are checked to be ledger Skill names.
+
 ## Steps
 
 1. **Prepare.** Run `npm --prefix build ci` when `build/node_modules` is missing. The script needs Google Chrome (override its path with `CHROME=`) and Poppler (`pdfinfo`, `pdffonts`, `pdfimages`, `pdftotext`, `pdftoppm`). Done when `marked` is installed and every tool resolves.
@@ -27,3 +29,6 @@ A **render** turns one version into a PDF through `build/render.mjs`: Markdown t
 | dates | A role row's dates stray from `Mon YYYY – Mon YYYY` or `Mon YYYY – Present`. | Fix the role row in the version. |
 | characters | The version holds a character outside the whitelist: an emoji, a curly quote, a symbol. | Replace it in the version; `docs/format-rules.md` names the allowed ones. |
 | page size, title, images, file size | The stylesheet or the script changed. | Read `git diff build/`. |
+| source | Nothing rendered: an entry's slug has no Project file, or the file lacks frontmatter or a meta field, or its `employment` is unknown; or the version has a Skills section and no `role`; or the ledger is missing. | Fix the named file: the Project file's frontmatter, or the version's `role`. |
+| skills | A Skills term is not a ledger Skill, matches more than one row, or lacks the version's role; or a ledger Skill with the role is absent from the version. | Edit the version's Skills lines, or the ledger's `roles` for that Skill. |
+| keywords | A Project file's `keywords` entry is not a ledger Skill name. | Use the ledger name in the Project file, or add the Skill to the ledger. |
