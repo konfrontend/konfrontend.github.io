@@ -44,7 +44,7 @@ checks:
   - { id: job/demand-unanswered,      by: model,  severity: fail, fix: regenerate }
   - { id: job/mandatory-keyword,      by: model,  severity: fail, fix: patch }
   - { id: job/gaps-required,          by: model,  severity: fail, fix: regenerate }
-  - { id: flag/mitigation-missing,    by: model,  severity: fail, fix: regenerate }
+  - { id: flag/safeguard-missing,    by: model,  severity: fail, fix: regenerate }
 ---
 
 # Verify catalogue
@@ -68,12 +68,12 @@ The Letter carries no markers. `verify` segments it deterministically from the f
 
 1. Line 1 is the greeting. Not a Slot, not checked beyond presence.
 2. Block 2 is `hook`.
-3. Every following block whose first line ends with `:` is a headered Slot. Header text from the Slot catalogue maps to its id; any other colon-terminated single line maps to `answers`, one `answers` paragraph per header. A block without a header continues the Slot before it (`relevant_work` holds one paragraph per Past Job); prose after the plan block, with or without a blank line before it, is `follow_on`. A list block without a header is the plan Slot with its header missing.
+3. Every following block whose first line ends with `:` is a headered Slot. Header text from the Slot catalogue maps to its id; any other colon-terminated single line maps to `answers`, one `answers` paragraph per header. A block without a header continues the Slot before it (`relevant_work` holds one paragraph per Project); prose after the plan block, with or without a blank line before it, is `follow_on`. A list block without a header is the plan Slot with its header missing.
 4. The last three blocks are `terms`, `closing`, `sign_off`. `terms` may open with a header that is not a catalogue header: the availability question of a question-structured Letter (Slot catalogue, `Ask headers`). A header is a single line ending with a colon (at most twelve words) or a line ending with `?` (the client's question verbatim, any length). Other question headers segment as `answers` paragraphs, so a question-structured Letter leans on `total_word_ceiling` more than on the prose cap.
 
 Blocks are separated by one blank line. A Letter this procedure cannot segment (too few blocks, a header where none is allowed, a block without a header straight after the hook, the same header twice) raises `slot/parse` and stops for the human. Hand-edited Letters go through the same procedure.
 
-`scripts/verify.mjs <candidate>` runs the segmentation and every script Check, and prints the Findings, the Slot map with file line numbers, the counts, and the brief for the model pass (Mitigations to look for with their target Slot, `when: job asks` Slots present, Profile terms). Exit 1 while any script Check fails. Its fixtures in `scripts/verify.test.mjs` seed one Finding per Check group.
+`scripts/verify.mjs <candidate>` runs the segmentation and every script Check, and prints the Findings, the Slot map with file line numbers, the counts, and the brief for the model pass (Safeguards to look for with their target Slot, `when: job asks` Slots present, Profile terms). Exit 1 while any script Check fails. Its fixtures in `scripts/verify.test.mjs` seed one Finding per Check group.
 
 ## Checks
 
@@ -95,7 +95,7 @@ Script Checks read text and counts; model Checks read meaning. The script runs f
 
 - `markdown`: `**`, `*`, `_` used as emphasis, `#` at line start, `[text](url)`, `>` at line start, backticks.
 - `emoji`: any emoji or pictographic character.
-- `all-caps`: a word of three or more capitals that is not a known acronym: one the Skill ledger names, the Past Job bodies, or the Job body use, or a common web and business abbreviation (URL, API, MVP, HIPAA).
+- `all-caps`: a word of three or more capitals that is not a known acronym: one the Skill ledger names, the Project bodies, or the Job body use, or a common web and business abbreviation (URL, API, MVP, HIPAA).
 - `indentation`: a line starting with a space or tab.
 - `contact`: email, phone number, `@handle`, messenger or social handle, booking-page domain, any URL to a page the Profile marks as carrying a contact form.
 - `url-count`: any URL that is not `https://`. The number of links is not capped.
@@ -134,7 +134,7 @@ Script Checks read text and counts; model Checks read meaning. The script runs f
 
 ### closing
 
-- `call`: `closing` offers a call, a walkthrough, a screen share, or a demo. Questions are answered in writing; Past Job codebases are never shown.
+- `call`: `closing` offers a call, a walkthrough, a screen share, or a demo. Questions are answered in writing; Project codebases are never shown.
 
 ### job
 
@@ -144,7 +144,7 @@ Script Checks read text and counts; model Checks read meaning. The script runs f
 
 ### flag
 
-- `mitigation-missing`: a triggered risk Flag in `verdict.flags` with `slot` other than `none` whose Mitigation the target Slot does not state. `fail` at Alert Level 3 or 4, `warn` at 1 or 2. `plan` resolves to the Family's plan Slot.
+- `safeguard-missing`: a triggered risk Flag in `verdict.flags` with `slot` other than `none` whose Safeguard the target Slot does not state. `fail` at Alert Level 3 or 4, `warn` at 1 or 2. `plan` resolves to the Family's plan Slot.
 
 ## Fixes
 
@@ -155,7 +155,7 @@ Script Checks read text and counts; model Checks read meaning. The script runs f
 - `stop`: no Fix; the run ends with the report and the question.
 - `none`: reported only.
 
-Length Fixes shrink in this order: the prose Slot most over its own catalogue cap first, then `relevant_work` by its weakest Past Job, never below the Family default count and never below the number the Job asks for, then `answers` paragraphs merged. `hook`, `terms`, `closing`, `sign_off` are never shrunk.
+Length Fixes shrink in this order: the prose Slot most over its own catalogue cap first, then `relevant_work` by its weakest Project, never below the Family default count and never below the number the Job asks for, then `answers` paragraphs merged. `hook`, `terms`, `closing`, `sign_off` are never shrunk.
 
 ## Cycles
 
