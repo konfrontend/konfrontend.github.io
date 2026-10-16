@@ -1,8 +1,8 @@
 ---
-status: superseded
+status: superseded by ADR-0005
 ---
 
-> Superseded 2026-10-16 by the fact-store decision of GEM-337 (Linear, map GEM-334): the ledger is a summary with Seen as a count, Evidence derives from the Projects' `keywords`. The replacement ADR comes with GEM-350.
+> Superseded 2026-10-16 by the fact-store decision of GEM-337 (Linear, map GEM-334): the ledger is a summary with Seen as a count, Evidence derives from the Projects' `keywords`. See ADR 0005.
 
 # Skills live in their own ledger; Targets are derived, never stored
 

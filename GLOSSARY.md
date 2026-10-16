@@ -19,28 +19,36 @@ One job, engagement or personal project, done or ongoing; an ongoing Project has
 _Avoid_: Past Job, company, client, position, experience, portfolio item
 
 **Project file**:
-The full record of one Project: its Bullets grouped by Theme, closed by its Keywords line.
+The full record of one Project, read by both routes: its meta (name, url, role, employment, start, end, naming, domain, description, keywords) and its Stories grouped by Theme.
 _Avoid_: pool, inventory, log
 
+**employment**:
+How a Project engages the person: `full-time`, `part-time`, `contract`, `freelance` or `independent`. An employment Job offers one of the first three.
+_Avoid_: engagement, contract type, employment type, job type
+
 **Theme**:
-A named group of Bullets inside a project file, such as "Browser extension".
+A named group of Stories inside a Project file, such as "Browser extension".
 _Avoid_: section, category, area
 
+**Story**:
+One list item in a Theme: the Bullet as its lead line, its Facts as indented context below. The only prose of a Project file.
+_Avoid_: entry, item, anecdote, case
+
 **Bullet**:
-One prose line of a Project's work, backed by its Facts, in a project file or in a Version.
+The lead line of a Story: one prose line of a Project's work, shown verbatim in a Version.
 _Avoid_: highlight, point, achievement
 
 **Fact**:
-One verifiable claim about a Project, such as its client, stack, a number or an outcome, that a Bullet or Letter may cite.
+One verifiable claim inside a Story, such as the client, the stack, a number or an outcome, that the Bullet rests on and a Letter may cite.
 _Avoid_: detail, data point
 
 **Naming**:
 How far a Project's client and product may be identified in a Version or Letter: `public`, `first-name-only` or `nda`.
 _Avoid_: visibility, privacy, disclosure
 
-**Keywords line**:
-The Skills one Project proves, closing its project file.
-_Avoid_: skills line, tech stack, tags
+**keywords**:
+The Skills one Project proves, by ledger name: the one field of its Project file that Evidence derives from.
+_Avoid_: Keywords line, skills line, tech stack, tags
 
 **Skill**:
 One technology or domain practice the Profile tracks, with a Level and its Evidence. Years of experience and spoken languages are not Skills.
@@ -51,7 +59,7 @@ How far a Skill is proven: `shipped` (a Project shows it in production), `used` 
 _Avoid_: proficiency, seniority, rating, production, working
 
 **Evidence**:
-The Projects that prove a Skill's Level.
+The Projects whose keywords name a Skill. Derived whenever it is read, never stored.
 _Avoid_: proof, references, sources
 
 **Gap**:
