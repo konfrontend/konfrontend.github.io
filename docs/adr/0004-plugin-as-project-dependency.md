@@ -19,3 +19,9 @@ Two consequences follow from installing through a marketplace:
 - Plugin loaded in place from the project (`.claude/skills/autotriage/`, the layout before this decision): no install step, but the plugin source and the private data share one repo, which is how private data leaked into a public repo; rejected.
 - Install `node_modules` into `${CLAUDE_PLUGIN_DATA}` from a `SessionStart` hook: no generated file in git, but the scripts the model runs through Bash do not receive that variable, and ESM ignores `NODE_PATH`; rejected.
 - Commit `node_modules`: no build step, but hundreds of files and an unreviewable diff on every upgrade; rejected.
+
+## Amended 2026-10-16 (merged into PP)
+
+The plugin no longer ships from a repo of its own. It lives in `plugins/autotriage/` of the professional-profile repo (PP, `konfrontend.github.io`), the project that holds the data, and is loaded from that folder (`claude --plugin-dir plugins/autotriage`, or a local `directory` marketplace in PP's `.claude/settings.json`) instead of being installed from the GitHub `konfrontend` marketplace. `.claude-plugin/marketplace.json` stays for the day the plugin is ported out again, once it is reliable for a freelancer who is not its author.
+
+The leak this decision guarded against is met differently. PP is public, because GitHub Pages on the free plan serves only a public repo, so the plugin source and the data share one repo again; the private part, `data/candidates/`, is gitignored and carries no history, while the Profile under `data/profile/` is committed. The rest stands: the data resolves from the project directory (`scripts/paths.mjs`), `setup` and the Guards are unchanged, and the dependencies stay vendored for the port out.

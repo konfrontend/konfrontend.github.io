@@ -90,7 +90,7 @@ Run the plugin from a checkout, in a project that has `data/`. `--plugin-dir` ov
 claude --plugin-dir ~/path/to/autotriage
 ```
 
-Edits to a `SKILL.md` apply at once; edits to hooks, scripts, and catalogue files apply after `/reload-plugins`. The runtime dependencies (`ajv`, `yaml`) are bundled into `scripts/vendor/deps.mjs`, so the installed plugin needs no `npm install`. After changing a dependency, rebuild the bundle with `npm run vendor`. Decisions are recorded in `docs/adr/`.
+Edits to a `SKILL.md` apply at once; edits to hooks, scripts, and catalogue files apply after `/reload-plugins`. The runtime dependencies (`ajv`, `yaml`) are bundled into `scripts/vendor/deps.mjs`, so the installed plugin needs no `npm install`. After changing a dependency, rebuild the bundle with `npm run vendor`. Decisions are recorded in `docs/adr/` at the PP root.
 
 ## License
 
