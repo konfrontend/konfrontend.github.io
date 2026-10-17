@@ -3,8 +3,8 @@
 // Konstantin_Dolbilov_Resume.pdf at the root; any other input writes a PDF of the same base name next to itself.
 // An entry `### <slug>` takes its heading from the Project file data/projects/<slug>.md; the version's Skills
 // section is checked against the ledger data/profile/skills.md for the version's `role`.
-// The target PDF is replaced only when every check passes. Work files go to build/out/.
-// Run: npm --prefix build run build -- [input]   (override the browser with CHROME=/path/to/chrome)
+// The target PDF is replaced only when every check passes. Work files go to pdf-renderer/out/.
+// Run: npm --prefix pdf-renderer run build -- [input]   (override the browser with CHROME=/path/to/chrome)
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, statSync, existsSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { pathToFileURL } from 'node:url'
@@ -250,11 +250,11 @@ if (projects.length) {
 run('pdftoppm', ['-png', '-r', '110', '-f', '1', '-l', '1', '-singlefile', pdf, out + 'cv'])
 
 for (const c of checks) console.log(`${c.ok ? 'PASS' : 'FAIL'}  ${c.name}: ${c.detail}`)
-console.log(`Screenshot: build/out/cv.png`)
+console.log(`Screenshot: pdf-renderer/out/cv.png`)
 if (checks.every(c => c.ok)) {
   copyFileSync(pdf, root + target)
   console.log(`Wrote ${target}`)
 } else {
-  console.log(`${target} left unchanged; failed render at build/out/cv.pdf`)
+  console.log(`${target} left unchanged; failed render at pdf-renderer/out/cv.pdf`)
   process.exitCode = 1
 }

@@ -1,7 +1,7 @@
 /.idea/
 /interview/
 /.claude/worktrees/
-/build/node_modules/
-/build/out/
+/pdf-renderer/node_modules/
+/pdf-renderer/out/
 .DS_Store
 /data/candidates/

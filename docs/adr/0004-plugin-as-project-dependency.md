@@ -2,7 +2,7 @@
 status: superseded by ADR-0006
 ---
 
-> Superseded 2026-10-16 by the merge decision of GEM-334 (Linear): the plugin lives in `plugins/autotriage/` of the professional-profile repo that holds the data, loaded from that folder; `data/candidates/` is gitignored. See ADR 0006.
+> Superseded 2026-10-16 by the merge decision of GEM-334 (Linear): the plugin lives in `autotriage/` of the professional-profile repo that holds the data, loaded from that folder; `data/candidates/` is gitignored. See ADR 0006.
 
 # The plugin is a dependency of the project; the data lives in that project
 
