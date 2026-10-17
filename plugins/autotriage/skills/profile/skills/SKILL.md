@@ -5,11 +5,11 @@ argument-hint: "print | print gaps"
 ---
 !`node ${CLAUDE_PLUGIN_ROOT}/scripts/guard.mjs skills`
 
-The Skill ledger is `data/profile/skills.md` (catalogue `${CLAUDE_PLUGIN_ROOT}/catalogue/skills.md`: row contract, Level tests, the Target rule). Rendering is the script's; `print` shows its output and nothing else. The ledger is a signal: what the freelancer does about a Gap is outside the plugin.
+The Skill ledger is `data/profile/skills.md` (catalogue `${CLAUDE_PLUGIN_ROOT}/catalogue/skills.md`: row contract, Level tests, the Target rule). Evidence is derived from the Projects' `keywords` under `data/projects/` when printed. Rendering is the script's; `print` shows its output and nothing else. The ledger is a signal: what the freelancer does about a Gap is outside the plugin.
 
 ## Commands
 
-- `print`: run `node ${CLAUDE_PLUGIN_ROOT}/scripts/skills.mjs print` and show its output verbatim in the session. Three groups: Targets (Gaps Seen at least `target_after` times), the other Gaps, then the rest, each by Seen count descending.
+- `print`: run `node ${CLAUDE_PLUGIN_ROOT}/scripts/skills.mjs print` and show its output verbatim in the session. Three groups: Targets (Gaps Seen at least `target_after` times), the other Gaps, then the rest, each by Seen count descending, with each row's Evidence; after the table, the `shipped` rows no Project names yet.
 - `print gaps`: `node ${CLAUDE_PLUGIN_ROOT}/scripts/skills.mjs print gaps`; the first two groups only.
 
 No argument means `print`. Any other argument: print the two commands above.

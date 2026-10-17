@@ -1,6 +1,6 @@
 # Candidate artifacts
 
-A Candidate is one folder under `data/candidates/`, gitignored. `job.md` is the input on both routes; its required `route` field (`freelance | employment`) names the schema it validates against and the files beside it. A freelance Candidate holds `job.md` and `letter.md`; an employment Candidate holds `job.md`, `cover-letter.md`, the sent PDF, and `version.md` only when a Version was tailored for this Job. Together they form the record that later work on Letter generation learns from. Nothing else is stored in the folder; everything a session prints (evidence, reasons, checklists) is thrown away. One write lands outside the folder: `triage` also records the Candidate in the Skill ledger `data/profile/skills.md` (the `seen` list of each Skill the Job required, plus a Gap row per unknown required item; catalogue `skills.md`).
+A Candidate is one folder under `data/candidates/`, gitignored. `job.md` is the input on both routes; its required `route` field (`freelance | employment`) names the schema it validates against and the files beside it. A freelance Candidate holds `job.md` and `letter.md`; an employment Candidate holds `job.md`, `cover-letter.md`, the sent PDF, and `version.md` only when a Version was tailored for this Job. Together they form the record that later work on Letter generation learns from. Nothing else is stored in the folder; everything a session prints (evidence, reasons, checklists) is thrown away. One write lands outside the folder: `triage` also records the Candidate in the Skill ledger `data/profile/skills.md` (the `seen` count of each Skill the Job required, plus a Gap row per unknown required item; catalogue `skills.md`) and writes the rows it counted back into `job.md` as `recorded_skills`, so a re-run records nothing twice.
 
 ## Folder
 
@@ -23,6 +23,7 @@ extras:                           # optional, free-form; anything else the posti
   country: US
   hours_per_week: "<30"
   duration: "1-3 months"
+recorded_skills: [React, Stripe Connect]   # script; the ledger rows this Candidate was counted in
 verdict:                          # absent until triage runs
   family: audit                   # Family id; human may edit before proposal
   family_runner_up: build         # Family id or null
@@ -67,6 +68,7 @@ Rules:
 
 - `slug`, `title`, `date`, `route` identify the record on both routes. On the freelance route `timezone` and `budget` feed the hard stops; on the employment route `company`, `employment`, `remote`, `timezone` describe the terms, and `remote` is the evidence for an `unmet-constraint` stop Flag, not a rule of its own. Everything else optional goes under `extras`; no new top-level field without a consumer.
 - No money hard stop on the employment route: pay is unknown until the offer stage. `rate-below-floor` is not in its `hard_stops` enum.
+- `recorded_skills` is written by `scripts/skills.mjs record`, the marker that makes recording idempotent: the ledger's `seen` is a count, so the Candidate's own file remembers which rows it was counted in. Never typed by hand.
 - `verdict` holds ids and numbers only. How they combine is in the Flag catalogue (`alert_level_steps`, `hard_stops`, `scores`, `verdict_mapping`). Evidence quotes, score reasons, matched cues, safeguards are session output.
 - `alert_level`, `hard_stops`, `verdict` are computed by a script from `flags`, the scores, and the Profile floors. The `proposal` guard recomputes them and rejects the file on mismatch.
 - `verdict` is the script's recommendation; `decision` is the human's call. `proposal` runs only on `decision: go`. `no-go` ends the Route. `ask` is a verdict, not a decision: the human still writes `go` or `no-go`.
