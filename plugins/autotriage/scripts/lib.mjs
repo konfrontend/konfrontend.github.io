@@ -103,6 +103,13 @@ export function loadCatalogue(name) {
   return readArtifact(file).frontmatter;
 }
 
+// The Flags of one route (catalogue/flags.md `routes`). A missing or unknown route reads as freelance,
+// as in jobSchemaFor.
+export function flagsFor(route) {
+  const r = route === "employment" ? "employment" : "freelance";
+  return loadCatalogue("flags").flags.filter((f) => (f.routes ?? []).includes(r));
+}
+
 export function candidateDir(candidate) {
   if (!candidate || !/^\d{4}-\d{2}-\d{2}-[a-z0-9-]+$/.test(candidate)) return null;
   return path.join(CANDIDATES_DIR, candidate);

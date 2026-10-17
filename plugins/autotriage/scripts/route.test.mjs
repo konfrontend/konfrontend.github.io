@@ -4,7 +4,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
-import { validate, jobSchemaFor, inferRoute, schemaForPath, CANDIDATES_DIR } from "./lib.mjs";
+import { validate, jobSchemaFor, inferRoute, schemaForPath, flagsFor, loadCatalogue, CANDIDATES_DIR } from "./lib.mjs";
 import { compute } from "./verdict.mjs";
 
 const freelance = {
@@ -77,4 +77,44 @@ test("verdict arithmetic: no rate-below-floor and no Family rule on the employme
   assert.deepEqual(emp.hard_stops, []);
   assert.equal(emp.verdict, "go");
   assert.equal(compute({ flags: ["refused-stack"], skill_fit: 4 }, profile, employment).verdict, "no-go", "stop Flags still stop on employment");
+});
+
+test("Flags by route: each route reads only its own Flags; the stop Flags are on both", () => {
+  const all = loadCatalogue("flags").flags;
+  assert.equal(new Set(all.map((f) => f.id)).size, all.length, "Flag ids are unique across routes");
+  for (const f of all) assert.ok(f.routes?.length && f.routes.every((r) => ["freelance", "employment"].includes(r)), `${f.id} names its routes`);
+  const ids = (route) => new Set(flagsFor(route).map((f) => f.id));
+  const free = ids("freelance"), emp = ids("employment");
+  for (const id of ["refused-stack", "unmet-constraint"]) assert.ok(free.has(id) && emp.has(id), `${id} on both routes`);
+  assert.ok(free.has("hostile-tone") && !emp.has("hostile-tone"));
+  assert.ok(emp.has("codebase-handover") && !free.has("codebase-handover"));
+  assert.deepEqual(ids(undefined), free, "a missing route reads as freelance");
+  const employmentSlots = ["intro", "relevant_work", "gaps", "terms", "closing", "none"];
+  for (const f of flagsFor("employment").filter((f) => !f.kind || f.kind === "risk")) assert.ok(employmentSlots.includes(f.slot), `${f.id} targets a letter-employment Slot`);
+});
+
+test("verdict arithmetic counts only the Flags of the Candidate's route", () => {
+  const profile = { terms: { rate_floor: 40 } };
+  // hostile-tone is freelance only: on employment it adds no level and no compound step
+  assert.equal(compute({ flags: ["hostile-tone"], skill_fit: 4 }, profile, employment).alert_level, 1);
+  assert.equal(compute({ flags: ["hostile-tone"], skill_fit: 4, family: "build" }, profile, freelance).alert_level, 4);
+  // codebase-handover is employment only
+  assert.equal(compute({ flags: ["codebase-handover"], skill_fit: 4 }, profile, employment).alert_level, 2);
+  assert.equal(compute({ flags: ["codebase-handover"], skill_fit: 4, family: "build" }, profile, freelance).alert_level, 1);
+  // employment green Flag lowers, level 5 Flag stops
+  assert.equal(compute({ flags: ["unpaid-assignment", "practices-stated"], skill_fit: 4 }, profile, employment).alert_level, 2);
+  assert.deepEqual(compute({ flags: ["recruitment-scam"], skill_fit: 4 }, profile, employment).hard_stops, ["alert-level-5", "level-5-flag"]);
+});
+
+test("employment job.md carries requirements and recorded_skills; the Profile may state a salary_floor", () => {
+  assert.deepEqual(validate("job", { ...employment, requirements: ["Vue 3", "Nuxt 4"], recorded_skills: ["Vue"] }), []);
+  assert.ok(validate("job", { ...employment, requirements: [""] }).length, "no empty requirement");
+  assert.ok(validate("job", { ...freelance, requirements: ["React"] }).length, "requirements is employment only");
+  const profile = {
+    identity: { name: "A", timezone: "Europe/Berlin", constraints: [] }, refused_stacks: [], family_precedence: ["audit", "build", "maintenance", "fix"], word_cap: 350,
+    terms: { rate: 50, rate_floor: 40, budget_floor: 500, billing: "hourly-caps" },
+  };
+  assert.deepEqual(validate("profile", profile), [], "salary_floor is optional");
+  assert.deepEqual(validate("profile", { ...profile, terms: { ...profile.terms, salary_floor: { type: "annual", amount: 60000, currency: "EUR" } } }), []);
+  assert.ok(validate("profile", { ...profile, terms: { ...profile.terms, salary_floor: 60000 } }).length, "salary_floor names period and currency");
 });
