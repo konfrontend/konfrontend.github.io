@@ -4,7 +4,7 @@ description: Render a version to PDF and check it fits one A4 page with a clean 
 disable-model-invocation: true
 ---
 
-A **render** turns one version into a PDF through `build/render.mjs`: Markdown to HTML with `build/cv.css`, printed by headless Chrome, then checked with Poppler. The script takes the input path as its first argument, relative to the repo root. The default, `versions/general.md`, writes `Konstantin_Dolbilov_Resume.pdf` at the repo root, the public CV. Any other input, such as a tailored version under `applications/<company>-<role>/`, writes a PDF of the same base name next to itself and leaves the root PDF alone. The script replaces the target PDF only when every check passes. A render reads the version and never edits it.
+A **render** turns one version into a PDF through `build/render.mjs`: Markdown to HTML with `build/cv.css`, printed by headless Chrome, then checked with Poppler. The script takes the input path as its first argument, relative to the repo root. The default, `versions/general.md`, writes `Konstantin_Dolbilov_Resume.pdf` at the repo root, the public CV. Any other input, such as a tailored version at `data/candidates/<folder>/version.md`, writes a PDF of the same base name next to itself and leaves the root PDF alone. The script replaces the target PDF only when every check passes. A render reads the version and never edits it.
 
 ## Steps
 
