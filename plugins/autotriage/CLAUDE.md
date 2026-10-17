@@ -4,17 +4,9 @@ A plugin of the professional-profile repo (PP, the repo root two levels up). The
 
 ## Agent skills
 
-### Issue tracker
-
-Issues live in Linear, workspace `gembag`, team `GEM`, project "Professional Profile", the same tracker as the rest of PP. See `docs/agents/issue-tracker.md`.
-
-### Triage labels
-
-Default five labels, names equal roles. See `docs/agents/triage-labels.md`.
-
 ### Domain docs
 
-Single-context: the PP root `GLOSSARY.md` (`../../GLOSSARY.md`, the one glossary for the plugin and the CV) and `docs/adr/` at the PP root (`../../docs/adr/`), where the plugin's ADRs live since the merge. See `docs/agents/domain.md`.
+Single-context: `GLOSSARY.md` beside this file names the plugin's terms, the Profile model among them. The plugin's ADRs live in `docs/adr/` at the PP root (`../../docs/adr/`) since the merge.
 
 ## Plugin layout
 

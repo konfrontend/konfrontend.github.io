@@ -1,6 +1,6 @@
 # CV workspace
 
-The CV source for Konstantin Dolbilov, web developer. The master holds every bullet; a version picks the ones that fit one application. `cv-pdf` renders a version through `build/` to a one-page A4 PDF. The resumeskills skills in `.agents/skills/` do the tailoring: installed and updated by the `skills` CLI (`npx skills add`, `npx skills update`), tracked in `skills-lock.json`, symlinked from `.claude/skills/<name>`. `GLOSSARY.md` names the terms: use them in chat, tickets and files.
+The CV source for Konstantin Dolbilov, web developer. The master holds every bullet; a version picks the ones that fit one application. `cv-pdf` renders a version through `build/` to a one-page A4 PDF. The resumeskills skills in `.agents/skills/` do the tailoring: installed and updated by the `skills` CLI (`npx skills add`, `npx skills update`), tracked in `skills-lock.json`, symlinked from `.claude/skills/<name>`. `GLOSSARY.md` names the CV terms and `plugins/autotriage/GLOSSARY.md` the plugin's, the Profile model among them: use them in chat, tickets and files.
 
 ## Files
 
@@ -35,4 +35,4 @@ Default five labels, names equal roles. See `docs/agents/triage-labels.md`.
 
 ### Domain docs
 
-Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+Two glossaries: `GLOSSARY.md` at the repo root for the CV, `plugins/autotriage/GLOSSARY.md` for the plugin. `docs/adr/` at the repo root holds the ADRs of both. See `docs/agents/domain.md`.
