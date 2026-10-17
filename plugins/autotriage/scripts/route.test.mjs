@@ -48,7 +48,7 @@ test("employment schema: required terms, optional salary shape, no family, no ra
 });
 
 test("cover-letter.md has its own schema and the write hook finds it", () => {
-  const cover = { slug: "heymondo-senior-frontend", date: "2026-10-14", version: "general", outcome: null };
+  const cover = { slug: "heymondo-senior-frontend", date: "2026-10-14", version: "general" };
   assert.deepEqual(validate("cover-letter", cover), []);
   assert.ok(validate("cover-letter", { ...cover, version: "audit" }).length);
   assert.ok(validate("cover-letter", { ...cover, family: "build" }).length, "no family on a cover letter");

@@ -44,7 +44,8 @@ const compiled = new Map();
 export function schemaFor(name) {
   if (!compiled.has(name)) {
     const file = path.join(PLUGIN_ROOT, "scripts", "schemas", `${name}.schema.json`);
-    compiled.set(name, ajv.compile(JSON.parse(fs.readFileSync(file, "utf8"))));
+    const json = JSON.parse(fs.readFileSync(file, "utf8"));
+    compiled.set(name, Object.assign(ajv.compile(json), { body: json["x-body"] ?? null }));
   }
   return compiled.get(name);
 }
@@ -56,7 +57,27 @@ export function validate(name, data) {
   return check.errors.map((e) => `${e.instancePath || "/"} ${e.message}`);
 }
 
+// A whole artifact: its frontmatter against the schema, and its body against the schema's `x-body`
+// (`empty`: nothing but whitespace after the frontmatter).
+export function validateArtifact(name, art) {
+  if (art.frontmatter === null) return ["no YAML frontmatter"];
+  const errors = validate(name, art.frontmatter);
+  const check = schemaFor(name === "job" ? jobSchemaFor(art.frontmatter) : name);
+  if (check.body === "empty" && art.body.trim()) errors.push("body must be empty");
+  return errors;
+}
+
 export const ROUTES = ["freelance", "employment"];
+
+// The Letter file a route writes beside job.md (catalogue/candidate-artifacts.md); its base name is its schema.
+export function letterFileFor(route) {
+  return route === "employment" ? "cover-letter.md" : "letter.md";
+}
+
+// The Letter template a route fills: the Family's on the freelance route, letter-employment on the employment route.
+export function templateFor(route, family) {
+  return route === "employment" ? "letter-employment" : `letter-${family}`;
+}
 
 // A job.md validates against the schema its route names. A missing or unknown route falls to the
 // freelance schema, whose required `route: freelance` then reports it.
@@ -115,9 +136,9 @@ export function candidateDir(candidate) {
   return path.join(CANDIDATES_DIR, candidate);
 }
 
-export function listCandidates() {
-  if (!fs.existsSync(CANDIDATES_DIR)) return [];
-  return fs.readdirSync(CANDIDATES_DIR).filter((d) => /^\d{4}-\d{2}-\d{2}-/.test(d)).sort();
+export function listCandidates(dir = CANDIDATES_DIR) {
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir).filter((d) => /^\d{4}-\d{2}-\d{2}-/.test(d)).sort();
 }
 
 export const LEDGER_FILE = path.join(PROFILE_DIR, "skills.md");

@@ -8,7 +8,7 @@ A Candidate is one folder under `data/candidates/`, gitignored. `job.md` is the 
 
 ## `job.md`
 
-Written by `intake`; `triage` adds the `verdict` block and, after the checkpoint and the human's explicit confirmation of the ledger changes, records the Candidate in the Skill ledger; the human sets `decision`. Body is the posting verbatim, nothing parsed out, nothing dropped. `intake` reads `route` from the human or infers it (a parameter line with a budget is freelance; a job ad is employment) and marks an inferred value in its report. The route is not a Family; `family` stays a freelance term.
+Written by `intake`; `triage` adds the `verdict` block and, after the checkpoint and the human's explicit confirmation of the ledger changes, records the Candidate in the Skill ledger; the human sets `decision` and, once the Letter went out, `outcome`. Body is the posting verbatim, nothing parsed out, nothing dropped. `intake` reads `route` from the human or infers it (a parameter line with a budget is freelance; a job ad is employment) and marks an inferred value in its report. The route is not a Family; `family` stays a freelance term.
 
 Freelance route (`scripts/schemas/job-freelance.schema.json`):
 
@@ -35,6 +35,7 @@ verdict:                          # absent until triage runs
   hard_stops: []                  # script; hard stop ids
   verdict: go                     # script; go | no-go | ask
   decision: null                  # human; go | no-go
+outcome: null                     # human; sent | replied | interview | offer | hired | rejected | withdrawn; non-null only on decision go
 ```
 
 Employment route (`scripts/schemas/job-employment.schema.json`):
@@ -64,6 +65,7 @@ verdict:                          # absent until triage runs; no family, no fami
   hard_stops: []                  # script; never rate-below-floor on this route
   verdict: go                     # script; go | no-go | ask
   decision: null                  # human; go | no-go
+outcome: null                     # human; sent | replied | interview | offer | hired | rejected | withdrawn; non-null only on decision go
 ```
 
 Rules:
@@ -75,6 +77,7 @@ Rules:
 - `verdict` holds ids and numbers only. How they combine is in the Flag catalogue (`alert_level_steps`, `hard_stops`, `scores`, `verdict_mapping`). Evidence quotes, score reasons, matched cues, safeguards are session output.
 - `alert_level`, `hard_stops`, `verdict` are computed by a script from `flags`, the scores, and the Profile floors. The `proposal` guard recomputes them and rejects the file on mismatch.
 - `verdict` is the script's recommendation; `decision` is the human's call. `proposal` runs only on `decision: go`. `no-go` ends the Route. `ask` is a verdict, not a decision: the human still writes `go` or `no-go`.
+- `outcome` is where the Candidate stands once its Letter went out, set by hand on both routes: `sent | replied | interview | offer | hired | rejected | withdrawn`, or `null` (or absent) before anything is sent. The schema allows a non-null value only when `verdict.decision` is `go`. `hired`, `rejected` and `withdrawn` are terminal; on `hired` the Project is created by hand. No offer field: an offer figure, when wanted, goes in `extras.offer` free-form.
 
 ## `letter.md` (freelance route)
 
@@ -84,22 +87,24 @@ Written by `proposal`, checked by `verify`. Body is the Letter as pasted into Up
 slug: clinic-booking-mvp
 family: audit                     # template used
 date: 2026-09-19
-outcome: null                     # ignored | rejected | interviewed | hired; set by hand when known
 ```
 
 `verify` result is not stored: a Letter is final only after `verify` passes, so a stored pass carries no information.
 
 ## `cover-letter.md` (employment route)
 
-The Letter of the employment route (`scripts/schemas/cover-letter.schema.json`). Body is the cover letter as sent: plain text, no Markdown. Which State writes it is GEM-352's question; the schema and the folder contract are fixed here.
+The Letter of the employment route (`scripts/schemas/cover-letter.schema.json`). Written by `proposal` from `catalogue/templates/letter-employment.md`, checked by `verify`. Body is the cover letter as sent: plain text, no Markdown, within the template's 500 characters.
 
 ```yaml
 slug: heymondo-senior-frontend
 date: 2026-10-14
 version: general                  # general | frontend | tailored; tailored means version.md exists beside it
-outcome: null                     # ignored | rejected | interviewed | hired; set by hand when known
 ```
 
 ## The sent PDF and `version.md` (employment route)
 
 The PDF that went out sits in the Candidate folder under the name `docs/format-rules.md` fixes (`Dolbilov_<Role>_<Company>_<MonYYYY>.pdf`), whichever Version it renders. `version.md` is the tailored Version's source and exists only when `cover-letter.md` says `version: tailored`; the general and frontend Versions live in `versions/` and leave no copy in the folder.
+
+## Tracker
+
+The Tracker is not stored: `node scripts/tracker.mjs print`, behind `/autotriage:tracker`, prints it from every Candidate's `job.md` frontmatter and never writes. One table for both routes, columns `date | candidate | route | decision | family | version | outcome`; `family` is empty on employment rows, `version` empty on freelance rows. Open Candidates come first, then closed (`decision: no-go` or a terminal `outcome`), each by intake date descending; a `hired` Candidate stays listed. The print warns on `outcome: sent` with no letter file (`letter.md` or `cover-letter.md`) in the folder, and skips any folder under `data/candidates/` that is not a dated Candidate, such as the archive. No history is committed.

@@ -1,11 +1,25 @@
+---
+name: Nataliia Musikhina Website
+url: https://nataliiamusikhina.com
+role: Full Stack Developer
+employment: freelance
+start: 2026-06
+end: 2026-08
+naming: public
+domain: artist portfolio site, tattoo
+description: Portfolio website for a tattoo artist.
+keywords: [TypeScript, Vue.js, Nuxt, Tailwind CSS, Sanity, GROQ, Cloudflare Workers, GitHub Actions, Vitest, SSG, i18n, SEO, Core Web Vitals, Accessibility (WCAG), Architecture Decision Records, CI/CD]
+---
 **Product and stack**
 
 - Built the site in Nuxt 4, Vue 3, TypeScript, Tailwind CSS v4 and a Sanity Studio, prerendered in English and French and served by a Cloudflare Worker.
+  The CMS is Sanity Studio v6.
 - Delivered the site in 9 weeks with AI coding agents: 42 Linear issues, each triaged for an agent or a human and written against a 16-term glossary and 3 Architecture Decision Records (ADRs), merged in 10 pull requests.
 
 **CMS**
 
 - Modeled the content in 14 Sanity schema types: 5 singletons pinned to fixed ids and a page builder for projects with slider, gallery and text blocks, so the artist edits every page and its background without a developer.
+  Multilingual project documents; a curated bento-grid tattoo projects page.
 - Localized content in English and French, document-level for projects and field-level for singletons, with an English fallback resolved in GROQ and every query typed by Sanity TypeGen.
 
 **Deployment**
@@ -23,11 +37,11 @@
 - Replaced a 650 KB layered CSS backdrop with one background image from Sanity, served as a 42 KB AVIF on mobile.
 - Built one shared image component that cut a project page's 1.1 MB GIF to a 54 KB animated WebP: AVIF and WebP from the Sanity CDN, srcset clamped to native width, low-quality image placeholders (LQIP), and a high-priority preload for the first visible image only.
 - Cut the body font's @font-face declarations from 37 to 6 by declaring only the weights, styles and subset the site uses.
+  Fonts via @nuxt/fonts.
 - Loaded PhotoSwipe and the 15 KB Tally form script only when a visitor opens them, with the form link still working if the script fails.
 
 **SEO**
 
 - Closed the gaps a baseline SEO audit found: project pages added to the per-locale sitemaps, hreflang links, per-page meta descriptions, schema.org Person data, and share images cropped from Sanity.
+  SEO via @nuxtjs/seo.
 - Served one canonical URL per page: fixed project canonicals that returned 404, dropped the trailing-slash redirect hop, redirected mixed-case paths to lowercase, and set noindex on branch previews.
-
-**Keywords this experience covers:** TypeScript, Vue.js, Nuxt, Tailwind CSS, Sanity, GROQ, Cloudflare Workers, GitHub Actions, Vitest, SSG, i18n, SEO, Core Web Vitals, Accessibility, Architecture Decision Records, CI

@@ -42,6 +42,10 @@ _Avoid_: highlight, point, achievement
 One verifiable claim inside a Story, such as the client, the stack, a number or an outcome, that the Bullet rests on and a Letter may cite.
 _Avoid_: detail, data point
 
+**Answer**:
+The person's hand-written reply to one recurring question a Job may ask, kept under the question it answers. A Letter cites it word for word or tailors it; the Answers together are what the voice is tuned by.
+_Avoid_: answer bank entry, snippet, canned answer, calibration
+
 **Naming**:
 How far a Project's client and product may be identified in a Version or Letter: `public`, `first-name-only` or `nda`.
 _Avoid_: visibility, privacy, disclosure
@@ -85,8 +89,12 @@ A Job being pursued, moving through a Route. Becomes a Project when won.
 _Avoid_: application, lead
 
 **Tracker**:
-The list of Candidates and where each stands.
+The list of Candidates and where each stands, printed from the Candidates' `job.md` frontmatter, never stored.
 _Avoid_: pipeline, log, spreadsheet
+
+**Outcome**:
+Where a Candidate stands once its Letter went out (`sent`, `replied`, `interview`, `offer`, `hired`, `rejected`, `withdrawn`), or `null` before. Set by hand in `job.md`, only on a `go` decision.
+_Avoid_: status, result
 
 **Family**:
 The engagement shape a freelance Letter proposes for a Job: `audit`, `fix`, `build`, `maintenance`. Selects the Letter template, its active Slots and default topics. The client's project type is a detection signal, not the Family.
@@ -143,6 +151,10 @@ _Avoid_: section, block, fragment
 **Hook Slot**:
 The first paragraph of a Letter after the greeting: the client's goal and its main constraint restated as understood, sized to the preview the client sees before opening. Never an introduction, never a pitch.
 _Avoid_: Hook, opener, intro, first sentence
+
+**Intro Slot**:
+The first paragraph of a cover letter after the greeting: the Version's summary in first person, rephrased to the Job. Takes the place of the Hook Slot on the employment route.
+_Avoid_: opener, pitch, elevator pitch, about me
 
 ### Verification
 
