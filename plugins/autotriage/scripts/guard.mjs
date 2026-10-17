@@ -4,7 +4,7 @@
 // CLI: node scripts/guard.mjs <state> [candidate]
 import fs from "node:fs";
 import path from "node:path";
-import { readArtifact, readLedger, validate, refuse, Refusal, candidateDir, listCandidates, listProjects, PROFILE_DIR } from "./lib.mjs";
+import { readArtifact, readLedger, validate, jobSchemaFor, refuse, Refusal, candidateDir, listCandidates, listProjects, PROFILE_DIR } from "./lib.mjs";
 import { recompute } from "./verdict.mjs";
 
 const ORDER = ["intake", "triage", "proposal", "verify"];
@@ -42,8 +42,8 @@ function candidateGate(state, candidate) {
   const job = readArtifact(path.join(dir, "job.md"));
   if (!job) refuse(state, `data/candidates/${candidate}/job.md is missing.`, "Run /autotriage:intake first.");
   const errors = validate("job", job.frontmatter);
-  if (errors.length) refuse(state, `data/candidates/${candidate}/job.md is invalid:\n  ${errors.join("\n  ")}`, "Run /autotriage:intake again or fix the file by hand.");
-  return { dir, job };
+  if (errors.length) refuse(state, `data/candidates/${candidate}/job.md is invalid against ${jobSchemaFor(job.frontmatter)}:\n  ${errors.join("\n  ")}`, "Run /autotriage:intake again or fix the file by hand.");
+  return { dir, job, route: job.frontmatter.route };
 }
 
 export function guard(state, candidate) {
@@ -67,9 +67,13 @@ export function guard(state, candidate) {
       break;
     case "triage": {
       profileGate(state, 1);
-      const { dir, job } = candidateGate(state, candidate);
+      const { dir, job, route } = candidateGate(state, candidate);
       if (fs.existsSync(path.join(dir, "letter.md"))) refuse(state, `data/candidates/${candidate}/letter.md already exists; the Route has passed triage.`, "Run /autotriage:verify " + candidate + " or start a new Candidate.");
-      out.push(`Candidate: data/candidates/${candidate}`, `Title: ${job.frontmatter.title}`, `Budget: ${JSON.stringify(job.frontmatter.budget)}`, `Timezone: ${job.frontmatter.timezone}`);
+      const fm = job.frontmatter;
+      out.push(`Candidate: data/candidates/${candidate}`, `Route: ${route}`, `Title: ${fm.title}`);
+      if (route === "employment") out.push(`Company: ${fm.company ?? "unknown"}`, `Employment: ${fm.employment}, ${fm.remote}${fm.location ? `, ${fm.location}` : ""}`, `Salary: ${fm.salary ? JSON.stringify(fm.salary) : "not stated"}`, "Family: none on this route; skip the Family step.");
+      else out.push(`Budget: ${JSON.stringify(fm.budget)}`);
+      out.push(`Timezone: ${fm.timezone}`);
       if (job.frontmatter.verdict) out.push("Note: a verdict block already exists; triage will overwrite it.");
       break;
     }
@@ -82,7 +86,7 @@ export function guard(state, candidate) {
       if (mismatch.length) refuse(state, `stored verdict disagrees with the recomputation:\n  ${mismatch.join("\n  ")}`, `Run /autotriage:triage ${candidate} again.`);
       if (v.decision === "no-go") refuse(state, "decision is no-go. Route ended.", null);
       if (v.decision !== "go") refuse(state, "checkpoint pending: decision is not set.", `Answer go or no-go in /autotriage:triage ${candidate}, or set verdict.decision in job.md by hand.`);
-      out.push(`Candidate: data/candidates/${candidate}`, `Family: ${v.family} (runner-up: ${v.family_runner_up ?? "none"})`, `Verdict: ${v.verdict}, Alert Level ${v.alert_level}, flags: ${(v.flags ?? []).join(", ") || "none"}`, `Scores: skill_fit ${v.skill_fit}, interest_fit ${v.interest_fit}, value ${v.value}`);
+      out.push(`Candidate: data/candidates/${candidate}`, `Route: ${job.frontmatter.route}`, job.frontmatter.route === "employment" ? "Family: none on this route" : `Family: ${v.family} (runner-up: ${v.family_runner_up ?? "none"})`, `Verdict: ${v.verdict}, Alert Level ${v.alert_level}, flags: ${(v.flags ?? []).join(", ") || "none"}`, `Scores: skill_fit ${v.skill_fit}, interest_fit ${v.interest_fit}, value ${v.value}`);
       break;
     }
     case "verify": {

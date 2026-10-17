@@ -49,11 +49,39 @@ export function schemaFor(name) {
   return compiled.get(name);
 }
 
-// Returns [] when valid, else human-readable error lines.
+// Returns [] when valid, else human-readable error lines. "job" resolves to the route's schema.
 export function validate(name, data) {
-  const check = schemaFor(name);
+  const check = schemaFor(name === "job" ? jobSchemaFor(data) : name);
   if (check(data)) return [];
   return check.errors.map((e) => `${e.instancePath || "/"} ${e.message}`);
+}
+
+export const ROUTES = ["freelance", "employment"];
+
+// A job.md validates against the schema its route names. A missing or unknown route falls to the
+// freelance schema, whose required `route: freelance` then reports it.
+export function jobSchemaFor(frontmatter) {
+  return frontmatter?.route === "employment" ? "job-employment" : "job-freelance";
+}
+
+// Route inference for intake, the way it infers the timezone: a paste whose first line is the
+// freelancer's parameter line with a money figure is freelance; a posting that reads as a job ad
+// (employment type, salary, remote policy, benefits) is employment. Returns the route and whether it
+// was inferred, or null when the text decides nothing and intake must ask.
+export function inferRoute(text) {
+  const t = String(text ?? "");
+  const stated = /^\s*route:\s*(freelance|employment)\s*$/im.exec(t);
+  if (stated) return { route: stated[1], inferred: false };
+  const firstLine = t.split(/\r?\n/).find((l) => l.trim()) ?? "";
+  const parameterLine = /^[^\n]{0,80}$/.test(firstLine) && /(?:^|[,\s])(?:\$|USD\s?)\d/i.test(firstLine) && /,/.test(firstLine);
+  if (parameterLine) return { route: "freelance", inferred: true };
+  const freelanceCues = /\b(upwork|hourly rate|fixed[- ]price|proposal|bid|freelancer|per hour|\/h(?:r|our)?\b)/i;
+  const employmentCues = /\b(full[- ]time|part[- ]time|permanent|salary|compensation|benefits|b2b|remote-first|on-site|hybrid|paid vacation|vacation days|health insurance|probation|requirements:?|we offer|what we offer|about the role|about the position|apply)\b/i;
+  const f = (t.match(new RegExp(freelanceCues.source, "gi")) ?? []).length;
+  const e = (t.match(new RegExp(employmentCues.source, "gi")) ?? []).length;
+  if (e > f) return { route: "employment", inferred: true };
+  if (f > e) return { route: "freelance", inferred: true };
+  return null;
 }
 
 // Which schema an artifact path validates against, or null when the path is not an artifact.
@@ -66,6 +94,7 @@ export function schemaForPath(file) {
   if (/^profile\/jobs\/[^/]+\.md$/.test(rel)) return "project";
   if (/^candidates\/[^/]+\/job\.md$/.test(rel)) return "job";
   if (/^candidates\/[^/]+\/letter\.md$/.test(rel)) return "letter";
+  if (/^candidates\/[^/]+\/cover-letter\.md$/.test(rel)) return "cover-letter";
   return null;
 }
 

@@ -1,8 +1,9 @@
-// PostToolUse hook on Write|Edit: validate any artifact written under data/ against its schema.
+// PostToolUse hook on Write|Edit: validate any artifact written under data/ against its schema;
+// a job.md validates against the schema its route names.
 // The write has already landed; a failing artifact returns the errors to the model so the State fixes
 // it, and the next Guard refuses the file until it does.
 import path from "node:path";
-import { DATA, readArtifact, validate, schemaForPath } from "../lib.mjs";
+import { DATA, readArtifact, validate, schemaForPath, jobSchemaFor } from "../lib.mjs";
 
 const input = JSON.parse(await new Promise((r) => { let s = ""; process.stdin.on("data", (c) => (s += c)); process.stdin.on("end", () => r(s || "{}")); }));
 const file = input?.tool_input?.file_path;
@@ -13,5 +14,6 @@ const art = readArtifact(file);
 if (!art) process.exit(0);
 const errors = art.frontmatter === null ? ["no YAML frontmatter"] : validate(schema, art.frontmatter);
 if (errors.length) {
-  console.log(JSON.stringify({ decision: "block", reason: `autotriage: ${file} does not match the ${schema} schema:\n  ${errors.join("\n  ")}\nFix the frontmatter before continuing.` }));
+  const name = schema === "job" ? jobSchemaFor(art.frontmatter) : schema;
+  console.log(JSON.stringify({ decision: "block", reason: `autotriage: ${file} does not match the ${name} schema:\n  ${errors.join("\n  ")}\nFix the frontmatter before continuing.` }));
 }
