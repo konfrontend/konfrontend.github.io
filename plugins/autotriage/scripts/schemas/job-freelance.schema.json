@@ -4,6 +4,9 @@
   "type": "object",
   "required": ["slug", "title", "date", "route", "timezone", "budget"],
   "additionalProperties": false,
+  "allOf": [
+    { "if": { "required": ["outcome"], "properties": { "outcome": { "not": { "const": null } } } }, "then": { "required": ["verdict"], "properties": { "verdict": { "required": ["decision"], "properties": { "decision": { "const": "go" } } } } } }
+  ],
   "properties": {
     "slug": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
     "title": { "type": "string", "minLength": 1 },
@@ -27,6 +30,7 @@
     },
     "extras": { "type": "object" },
     "recorded_skills": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "outcome": { "enum": ["sent", "replied", "interview", "offer", "hired", "rejected", "withdrawn", null] },
     "verdict": {
       "type": "object",
       "required": ["family", "family_runner_up", "flags", "skill_fit", "interest_fit", "value", "alert_level", "hard_stops", "verdict", "decision"],

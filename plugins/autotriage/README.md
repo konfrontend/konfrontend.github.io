@@ -46,6 +46,7 @@ The model can call these on its own, for example to run the Route step by step w
 | `/autotriage:proposal <candidate>` | Writes the Letter for a Candidate with decision `go`, from the Family template, the voice rules, and the Profile. |
 | `/autotriage:verify <candidate>` | Reviews the Letter against the Checks and applies the Fixes in place. Ends with the Letter ready to paste. |
 | `/autotriage:skills [print \| print gaps]` | Prints the Skill ledger: Targets (Gaps that Jobs keep asking for), other Gaps, then the rest. A signal only; what you do about a Gap is up to you. |
+| `/autotriage:tracker [print]` | Prints the Tracker: every Candidate with its route, decision, Family or Version, and outcome, open ones first, from each `job.md`. Set `outcome` in `job.md` by hand. |
 
 `<candidate>` is the Candidate folder name under `data/candidates/`.
 

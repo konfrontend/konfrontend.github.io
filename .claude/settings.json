@@ -1,4 +1,9 @@
 {
   "enabledPlugins": {},
-  "extraKnownMarketplaces": {}
+  "extraKnownMarketplaces": {},
+  "permissions": {
+    "allow": [
+      "Bash(node */scripts/tracker.mjs *)"
+    ]
+  }
 }

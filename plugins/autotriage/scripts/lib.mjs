@@ -129,9 +129,9 @@ export function candidateDir(candidate) {
   return path.join(CANDIDATES_DIR, candidate);
 }
 
-export function listCandidates() {
-  if (!fs.existsSync(CANDIDATES_DIR)) return [];
-  return fs.readdirSync(CANDIDATES_DIR).filter((d) => /^\d{4}-\d{2}-\d{2}-/.test(d)).sort();
+export function listCandidates(dir = CANDIDATES_DIR) {
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir).filter((d) => /^\d{4}-\d{2}-\d{2}-/.test(d)).sort();
 }
 
 export const LEDGER_FILE = path.join(PROFILE_DIR, "skills.md");
