@@ -4,6 +4,9 @@
   "type": "object",
   "required": ["slug", "title", "date", "route", "company", "employment", "remote", "timezone"],
   "additionalProperties": false,
+  "allOf": [
+    { "if": { "required": ["outcome"], "properties": { "outcome": { "not": { "const": null } } } }, "then": { "required": ["verdict"], "properties": { "verdict": { "required": ["decision"], "properties": { "decision": { "const": "go" } } } } } }
+  ],
   "properties": {
     "slug": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
     "title": { "type": "string", "minLength": 1 },
@@ -28,7 +31,10 @@
     },
     "source": { "type": "string", "minLength": 1 },
     "extras": { "type": "object" },
+    "recorded_skills": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "requirements": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
     "version": { "enum": ["general", "frontend", "tailored"] },
+    "outcome": { "enum": ["sent", "replied", "interview", "offer", "hired", "rejected", "withdrawn", null] },
     "verdict": {
       "type": "object",
       "required": ["flags", "skill_fit", "interest_fit", "value", "alert_level", "hard_stops", "verdict", "decision"],

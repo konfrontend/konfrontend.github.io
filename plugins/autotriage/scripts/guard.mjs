@@ -4,7 +4,7 @@
 // CLI: node scripts/guard.mjs <state> [candidate]
 import fs from "node:fs";
 import path from "node:path";
-import { readArtifact, readLedger, readProjects, deriveEvidence, validate, jobSchemaFor, refuse, Refusal, candidateDir, listCandidates, PROFILE_DIR } from "./lib.mjs";
+import { readArtifact, readLedger, readProjects, deriveEvidence, validate, validateArtifact, jobSchemaFor, letterFileFor, refuse, Refusal, candidateDir, listCandidates, PROFILE_DIR } from "./lib.mjs";
 import { recompute } from "./verdict.mjs";
 import { shippedWithoutEvidence } from "./skills.mjs";
 import { introSummary } from "./version.mjs";
@@ -19,7 +19,10 @@ function profileGate(state, level, out) {
   const { projects } = ledgerGate(state, out);
   if (level < 2) return profile;
   if (!projects.some((p) => !p.errors.length)) refuse(state, "no valid Project under data/projects/.", "Add at least one Project file (frontmatter per scripts/schemas/project.schema.json, Stories under Themes).");
-  if (!fs.existsSync(path.join(PROFILE_DIR, "voice.md"))) refuse(state, "no data/profile/voice.md.", "Run /autotriage:setup.");
+  const voice = readArtifact(path.join(PROFILE_DIR, "voice.md"));
+  if (!voice) refuse(state, "no data/profile/voice.md.", "Run /autotriage:setup.");
+  const voiceErrors = validateArtifact("voice", voice);
+  if (voiceErrors.length) refuse(state, `data/profile/voice.md is invalid:\n  ${voiceErrors.join("\n  ")}`, "Run /autotriage:setup or fix the file by hand.");
   return profile;
 }
 
@@ -75,7 +78,7 @@ export function guard(state, candidate) {
     case "triage": {
       profileGate(state, 1, out);
       const { dir, job, route } = candidateGate(state, candidate);
-      const letterFile = route === "employment" ? "cover-letter.md" : "letter.md";
+      const letterFile = letterFileFor(route);
       if (fs.existsSync(path.join(dir, letterFile))) refuse(state, `data/candidates/${candidate}/${letterFile} already exists; the Route has passed triage.`, "Run /autotriage:verify " + candidate + " or start a new Candidate.");
       const fm = job.frontmatter;
       out.push(`Candidate: data/candidates/${candidate}`, `Route: ${route}`, `Title: ${fm.title}`);
@@ -119,12 +122,12 @@ export function guard(state, candidate) {
       profileGate(state, 2, out);
       const { dir, job, route } = candidateGate(state, candidate);
       if (job.frontmatter.verdict?.decision !== "go") refuse(state, "decision is not go.", `Run /autotriage:triage ${candidate} first.`);
-      const [file, schema] = route === "employment" ? ["cover-letter.md", "cover-letter"] : ["letter.md", "letter"];
-      const letter = readArtifact(path.join(dir, file));
-      if (!letter) refuse(state, `data/candidates/${candidate}/${file} is missing.`, `Run /autotriage:proposal ${candidate} first.`);
-      const errors = letter.frontmatter === null ? ["no YAML frontmatter"] : validate(schema, letter.frontmatter);
-      if (errors.length) refuse(state, `data/candidates/${candidate}/${file} is invalid:\n  ${errors.join("\n  ")}`, `Run /autotriage:proposal ${candidate} again.`);
-      out.push(`Candidate: data/candidates/${candidate}`, route === "employment" ? `Version: ${job.frontmatter.version}` : `Family: ${letter.frontmatter.family}`);
+      const letterFile = letterFileFor(route);
+      const letter = readArtifact(path.join(dir, letterFile));
+      if (!letter) refuse(state, `data/candidates/${candidate}/${letterFile} is missing.`, `Run /autotriage:proposal ${candidate} first.`);
+      const errors = validateArtifact(letterFile.replace(/\.md$/, ""), letter);
+      if (errors.length) refuse(state, `data/candidates/${candidate}/${letterFile} is invalid:\n  ${errors.join("\n  ")}`, `Run /autotriage:proposal ${candidate} again.`);
+      out.push(`Candidate: data/candidates/${candidate}`, `Route: ${route}`, `Letter: ${letterFile}`, ...(route === "employment" ? ["Template: letter-employment", `Version: ${job.frontmatter.version}`] : [`Family: ${letter.frontmatter.family}`]));
       break;
     }
     default:

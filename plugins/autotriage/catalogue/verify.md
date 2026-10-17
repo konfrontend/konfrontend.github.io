@@ -2,7 +2,6 @@
 fix_kinds: [patch, regenerate, remove, ask, stop, none]
 cycle_cap: 3
 regenerations_per_slot: 2
-char_ceiling: 4500
 checks:
   # by: script | model. severity: fail | warn. fix: see fix_kinds.
   - { id: voice/banned-phrase,        by: script, severity: fail, fix: patch }
@@ -49,31 +48,42 @@ checks:
 
 # Verify catalogue
 
-`verify` is the last State. It reviews the Letter in `letter.md` the way a code review reviews a diff, then applies the Fixes itself: `letter.md` after `verify` is the corrected Letter, never a report. A Check is one named rule. A Finding is one violation of a Check in one Slot, `fail` or `warn`. A Fix is the change `verify` applies for a Finding.
+`verify` is the last State. It reviews the Letter the way a code review reviews a diff, then applies the Fixes itself: the Letter file after `verify` is the corrected Letter, never a report. The Letter file is `letter.md` on the freelance route and `cover-letter.md` on the employment route; the route's template (`templates/letter-<family>.md` or `templates/letter-employment.md`) sets its Slots and its caps. A Check is one named rule. A Finding is one violation of a Check in one Slot, `fail` or `warn`. A Fix is the change `verify` applies for a Finding.
 
 Portable across Profiles. Personal inputs (banned extras, allowed extras, word cap, terms) come from the Profile at run time.
 
 ## Inputs
 
-- `letter.md` of the current Candidate: body is the Letter, frontmatter `slug`, `family`, `date`.
-- `job.md`: posting body (client facts, Job demands), `verdict.flags`, `verdict.alert_level`, `verdict.family`.
+- The Letter file of the current Candidate: body is the Letter; frontmatter `slug`, `family`, `date` in `letter.md`, `slug`, `date`, `version` in `cover-letter.md`.
+- `job.md`: `route`, posting body (client facts, Job demands), `verdict.flags`, `verdict.alert_level`, `verdict.family` on the freelance route.
 - Profile: `profile.md` (`terms`, `word_cap`), `skills.md` (Skill rows: names for the acronym list, `shipped` rows for `gaps-required`), `data/projects/<slug>.md` (traceability source: the frontmatter meta and the Stories, harvested by the script into the brief), `voice.md` (`banned_extra`, `allowed_extra`).
-- Catalogues: voice rules, Slot catalogue, the Family template named by `family`, Flag catalogue.
+- Catalogues: voice rules, Slot catalogue, the route's template (the Family template named by `family`, or `letter-employment`), Flag catalogue.
 
 Nothing is stored. The report is session output; a Letter is final only after `verify` passes, so a stored pass carries no information.
 
 ## Finding Slots in plain text
 
-The Letter carries no markers. `verify` segments it deterministically from the fixed Slot order and the mandatory headers:
+The Letter carries no markers. `verify` segments it deterministically: on the freelance route from the fixed Slot order and the mandatory headers, on the employment route from the fixed Slot order alone.
 
-1. Line 1 is the greeting. Not a Slot, not checked beyond presence.
+Freelance route:
+
+1. Line 1 is the greeting Slot, checked for presence only.
 2. Block 2 is `hook`.
 3. Every following block whose first line ends with `:` is a headered Slot. Header text from the Slot catalogue maps to its id; any other colon-terminated single line maps to `answers`, one `answers` paragraph per header. A block without a header continues the Slot before it (`relevant_work` holds one paragraph per Project); prose after the plan block, with or without a blank line before it, is `follow_on`. A list block without a header is the plan Slot with its header missing.
-4. The last three blocks are `terms`, `closing`, `sign_off`. `terms` may open with a header that is not a catalogue header: the availability question of a question-structured Letter (Slot catalogue, `Ask headers`). A header is a single line ending with a colon (at most twelve words) or a line ending with `?` (the client's question verbatim, any length). Other question headers segment as `answers` paragraphs, so a question-structured Letter leans on `total_word_ceiling` more than on the prose cap.
+4. The last three blocks are `terms`, `closing`, `sign_off`. `terms` may open with a header that is not a catalogue header: the availability question of a question-structured Letter (Slot catalogue, `Ask headers`). A header is a single line ending with a colon (at most twelve words) or a line ending with `?` (the client's question verbatim, any length). Other question headers segment as `answers` paragraphs, so a question-structured Letter leans on the template's `cap.total_words` more than on the prose cap.
+
+Employment route (no headers, every block prose):
+
+1. Block 1 is the greeting Slot, one line.
+2. Block 2 is `intro`.
+3. The last two blocks are `closing` and `sign_off`.
+4. The blocks between are `relevant_work`, then `gaps` and `terms` in that order. With one block after `relevant_work`, it is `terms` when it names availability, notice, a start, a timezone or overlap, where the person is based, the remote setup, a relocation or a salary, and `gaps` otherwise; the model corrects the label at the Letter review when it reads wrong.
+
+A cover letter with fewer than five blocks, more than seven, or any header line raises `slot/parse`.
 
 Blocks are separated by one blank line. A Letter this procedure cannot segment (too few blocks, a header where none is allowed, a block without a header straight after the hook, the same header twice) raises `slot/parse` and stops for the human. Hand-edited Letters go through the same procedure.
 
-`scripts/verify.mjs <candidate>` runs the segmentation and every script Check, and prints the Findings, the Slot map with file line numbers, the counts, and the brief for the model pass (Safeguards to look for with their target Slot, `when: job asks` Slots present, Profile terms). Exit 1 while any script Check fails. Its fixtures in `scripts/verify.test.mjs` seed one Finding per Check group.
+`scripts/verify.mjs <candidate>` reads the route from `job.md`, runs the segmentation and every script Check, and prints the Findings, the Slot map with file line numbers, the counts, and the brief for the model pass (route and template, Safeguards to look for with their target Slot when the template has that Slot, `when: job asks` Slots present, Profile terms). Exit 1 while any script Check fails. Its fixtures in `scripts/verify.test.mjs` seed one Finding per Check group, on both routes.
 
 ## Checks
 
@@ -97,26 +107,28 @@ Script Checks read text and counts; model Checks read meaning. The script runs f
 - `emoji`: any emoji or pictographic character.
 - `all-caps`: a word of three or more capitals that is not a known acronym: one the Skill ledger names, the Project bodies, or the Job body use, or a common web and business abbreviation (URL, API, MVP, HIPAA).
 - `indentation`: a line starting with a space or tab.
-- `contact`: email, phone number, `@handle`, messenger or social handle, booking-page domain, any URL to a page the Profile marks as carrying a contact form.
+- `contact`: email, phone number, `@handle`, messenger or social handle, booking-page domain, any URL to a page the Profile marks as carrying a contact form. Both routes: the platform carries contact on the freelance route, the application form and the PDF on the employment route.
 - `url-count`: any URL that is not `https://`. The number of links is not capped.
 - `url-list`: the Letter carries at least one URL. Warn, lists them, reported only.
-- `char-ceiling`: more than 4,500 characters including the greeting. Upwork's cover letter limit is about 5,000 and unconfirmed.
+- `char-ceiling`: more characters than the route's template `cap.chars`, greeting and sign-off included: 4,500 in the Family templates (Upwork's cover letter limit is about 5,000 and unconfirmed), 500 in `letter-employment`.
 
 ### slot
 
 - `parse`: segmentation failed. Stop.
-- `missing`: a Slot the Family template always renders (`hook`, `terms`, `closing`, `sign_off`, the plan Slot) is absent, or `gaps` is absent while `job/gaps-required` holds.
-- `extra`: a block maps to a Slot the Family template does not list, or to a `when: job asks` Slot with no ask. Fix: remove the block.
+- `missing`: a Slot the route always renders (Slot catalogue, route sections) is absent, or `gaps` is absent while `job/gaps-required` holds.
+- `extra`: a block maps to a Slot the route's template does not list, or to a `when: job asks` Slot with no ask. Fix: remove the block.
 - `header-missing`: a Slot the catalogue lists under `headers` opens without its header line. The script sees this for the plan Slot (a list without a header); a prose Slot without its header reads as a continuation of the Slot before it, so the model reports it when a paragraph's content belongs to another Slot.
 - `header-second-person`: a colon-terminated header with `you`, `your`, `you've`, `you're` as a whole word. Only a real client question ending in `?` keeps the client's pronouns; a request fragment is reworded in first person (`Products I've built:`). Fix: patch the header.
-- `family-mismatch`: `letter.md` `family` differs from `job.md` `verdict.family`, or `slug` and `date` do not match the Candidate folder. Stop.
+- `family-mismatch`: on the freelance route `letter.md` `family` differs from `job.md` `verdict.family`; on both routes the Letter file's `slug` and `date` do not match the Candidate folder. Stop.
 - `job-asks-unjustified`: a `when: job asks` Slot is present and the model cannot point at the ask in the Job. Warn.
 
 ### length
 
+Each length Check runs only when the route's template has the cap it reads; `letter-employment` has `cap.chars` alone, so its length is `format/char-ceiling`.
+
 - `hook`: `hook` block over its Slot `cap.chars`.
-- `prose-cap`: prose words over Profile `word_cap` (voice catalogue `prose_word_cap_default` when unset). Prose excludes header lines, list lines, and the `answers` Slot.
-- `total-ceiling`: all words over the voice catalogue `total_word_ceiling`.
+- `prose-cap`: prose words over Profile `word_cap` (the template's `cap.prose_words` when unset). Prose excludes header lines, list lines, and the `answers` Slot.
+- `total-ceiling`: all words over the template's `cap.total_words`.
 - `list-lines`: `deliverables` or `milestones` over its Slot `cap.lines`, or a second list anywhere.
 - `relevant-work-count`: more paragraphs in `relevant_work` than its Slot `cap.paragraphs`.
 - `sentence-cap`: a prose Slot over its Slot `cap.sentences`, or a paragraph over `cap.each.sentences`. Warn; model counts.
@@ -171,8 +183,8 @@ Printed once, at the end, in this order:
 4. Fact table: fact, Slot, source.
 5. The Letter verbatim in a code block, ready to paste.
 
-On `stopped`: the same, plus the one question for the human. The human edits `letter.md` or answers, then reruns `verify`.
+On `stopped`: the same, plus the one question for the human. The human edits the Letter file or answers, then reruns `verify`.
 
 ## End of the Route
 
-`pass` plus the human pasting the Letter into Upwork ends the Route. No further State. While the Profile `voice.md` body is empty, `verify` asks once after a `pass` whether this Letter is approved as calibration; on yes it copies the Letter text into that body.
+`pass` plus the human sending the Letter ends the Route: pasted into Upwork on the freelance route, sent with the application and the PDF on the employment route. No further State, and no calibration step: the Answers in `data/profile/answers/` calibrate the voice, and `voice.md` has no body.
