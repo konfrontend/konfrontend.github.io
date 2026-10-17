@@ -22,8 +22,8 @@ _Avoid_: Past Job, company, client, position, experience, portfolio item
 The full record of one Project: its meta and its Stories grouped by Theme.
 _Avoid_: pool, inventory, log
 
-**employment**:
-How a Project engages the person: `full-time`, `part-time`, `contract`, `freelance` or `independent`. An employment Job offers one of the first three.
+**Employment**:
+How a Project engages the person: full-time, part-time, contract, freelance or independent. An employment Job offers one of the first three.
 _Avoid_: engagement, contract type, employment type, job type
 
 **Theme**:
@@ -47,10 +47,10 @@ The person's hand-written reply to one recurring question a Job may ask. A Lette
 _Avoid_: answer bank entry, snippet, canned answer, calibration
 
 **Naming**:
-How far a Project's client and product may be identified in a Version or Letter: `public`, `first-name-only` or `nda`.
+How far a Project's client and product may be identified in a Version or Letter: public, first name only or NDA.
 _Avoid_: visibility, privacy, disclosure
 
-**keywords**:
+**Keywords**:
 The Skills one Project proves.
 _Avoid_: Keywords line, skills line, tech stack, tags
 
@@ -59,15 +59,15 @@ One technology or domain practice the Profile tracks, with a Level and its Evide
 _Avoid_: technology, stack item, competency, capability
 
 **Level**:
-How far a Skill is proven: `shipped` (a Project shows it in production), `used` (used, not shipped in a Project), `learning` (studied, no use), `gap` (Jobs require it, the person has not used it).
+How far a Skill is proven: shipped (a Project shows it in production), used (used, not shipped in a Project), learning (studied, no use), gap (Jobs require it, the person has not used it).
 _Avoid_: proficiency, seniority, rating, production, working
 
 **Evidence**:
-The Projects whose keywords name a Skill.
+The Projects whose Keywords name a Skill.
 _Avoid_: proof, references, sources
 
 **Gap**:
-A Skill at Level `gap`. Exists only because a Job required it.
+A Skill whose Level is gap. Exists only because a Job required it.
 _Avoid_: missing skill, weakness, hole
 
 **Seen**:
@@ -81,7 +81,7 @@ _Avoid_: hot, priority, candidate skill
 ### Jobs
 
 **Job**:
-One posting, freelance or employment: its free-form text plus the explicit parameters its Route requires (timezone and budget for a freelance Job; company, employment type and remote policy for an employment Job).
+One posting, freelance or employment: its free-form text plus the explicit parameters its Route requires (timezone and budget for a freelance Job; company, Employment and remote policy for an employment Job).
 _Avoid_: posting, listing, gig, opportunity
 
 **Candidate**:
@@ -93,11 +93,11 @@ The list of Candidates and where each stands.
 _Avoid_: pipeline, log, spreadsheet
 
 **Outcome**:
-Where a Candidate stands once its Letter went out, or on the employment route its Version alone: `sent`, `replied`, `interview`, `offer`, `hired`, `rejected` or `withdrawn`.
+Where a Candidate stands once its Letter went out, or on the employment route its Version alone: sent, replied, interview, offer, hired, rejected or withdrawn.
 _Avoid_: status, result
 
 **Family**:
-The engagement shape a freelance Letter proposes for a Job: `audit`, `fix`, `build` or `maintenance`. Not the client's project type.
+The engagement shape a freelance Letter proposes for a Job: audit, fix, build or maintenance. Not the client's project type.
 _Avoid_: type, category, kind, project type, engagement model
 
 ### Workflow
@@ -115,7 +115,7 @@ The condition a State needs before it runs: the previous State's output exists a
 _Avoid_: gate, precondition check, validation step
 
 **Verdict**:
-Whether a Job is pursued: `go`, `no-go` or `ask`, with the scores and triggered Flags behind it.
+Whether a Job is pursued: go, no-go or ask, with the scores and triggered Flags behind it.
 _Avoid_: decision, result, assessment
 
 **Flag**:
@@ -127,7 +127,7 @@ The Candidate's overall risk, 1–5: highest triggered Flag adjusted by combinat
 _Avoid_: risk score, severity
 
 **Hard Stop**:
-A condition that forces Verdict `no-go` regardless of scores: Alert Level 5, a level 5 Flag, a Stop Flag, or a Job term below a Profile floor.
+A condition that forces a no-go Verdict regardless of scores: Alert Level 5, a level 5 Flag, a Stop Flag, or a Job term below a Profile floor.
 _Avoid_: dealbreaker, blocker
 
 **Safeguard**:
@@ -163,7 +163,7 @@ One named requirement a Letter or a Version is held to.
 _Avoid_: rule, lint, test
 
 **Finding**:
-One place a Letter or a Version breaks a Check, graded `fail` or `warn`.
+One place a Letter or a Version breaks a Check, graded fail or warn.
 _Avoid_: error, issue, violation, warning
 
 **Fix**:
