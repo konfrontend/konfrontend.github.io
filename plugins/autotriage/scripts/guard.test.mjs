@@ -49,6 +49,7 @@ const job = `---
 slug: acme-fix
 title: Fix the admin
 date: 2026-10-16
+route: freelance
 timezone: America/New_York
 budget: { type: hourly, min: 30, max: 80 }
 ---

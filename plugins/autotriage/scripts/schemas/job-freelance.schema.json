@@ -1,13 +1,14 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "job.md frontmatter (catalogue/candidate-artifacts.md)",
+  "title": "job.md frontmatter, freelance route (catalogue/candidate-artifacts.md)",
   "type": "object",
-  "required": ["slug", "title", "date", "timezone", "budget"],
+  "required": ["slug", "title", "date", "route", "timezone", "budget"],
   "additionalProperties": false,
   "properties": {
     "slug": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
     "title": { "type": "string", "minLength": 1 },
     "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "route": { "const": "freelance" },
     "timezone": { "type": "string", "pattern": "^[A-Za-z]+(/[A-Za-z_+-]+)+$|^UTC$" },
     "budget": {
       "type": "object",

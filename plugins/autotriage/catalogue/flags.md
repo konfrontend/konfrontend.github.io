@@ -179,7 +179,7 @@ hard_stops:
   - id: level-5-flag
     rule: "any level 5 risk Flag triggered"
   - id: rate-below-floor
-    rule: "Job states an hourly range whose ceiling is below Profile rate_floor"
+    rule: "freelance route only: Job states an hourly range whose ceiling is below Profile rate_floor; no money hard stop on the employment route, pay is unknown until the offer"
   - id: refused-stack
     rule: "stop Flag refused-stack triggered (a required stack item is in Profile refused_stacks)"
   - id: unmet-constraint
