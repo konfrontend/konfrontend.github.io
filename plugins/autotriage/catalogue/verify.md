@@ -3,60 +3,63 @@ fix_kinds: [patch, regenerate, remove, ask, stop, none]
 cycle_cap: 3
 regenerations_per_slot: 2
 checks:
-  # by: script | model. severity: fail | warn. fix: see fix_kinds.
-  - { id: voice/banned-phrase,        by: script, severity: fail, fix: patch }
-  - { id: voice/soft-banned,          by: script, severity: warn, fix: patch }
-  - { id: voice/exclamation,          by: script, severity: fail, fix: patch }
-  - { id: voice/first-person-plural,  by: script, severity: fail, fix: patch }
-  - { id: voice/self-descriptive,     by: script, severity: fail, fix: patch }
-  - { id: voice/rhetorical-question,  by: model,  severity: fail, fix: patch }
-  - { id: voice/apology,              by: model,  severity: fail, fix: patch }
-  - { id: voice/semicolon-chain,      by: script, severity: warn, fix: patch }
-  - { id: voice/contrast-negation,    by: model,  severity: warn, fix: patch }
-  - { id: format/markdown,            by: script, severity: fail, fix: patch }
-  - { id: format/emoji,               by: script, severity: fail, fix: patch }
-  - { id: format/all-caps,            by: script, severity: fail, fix: patch }
-  - { id: format/indentation,         by: script, severity: fail, fix: patch }
-  - { id: format/contact,             by: script, severity: fail, fix: patch }
-  - { id: format/url-count,           by: script, severity: fail, fix: regenerate }
-  - { id: format/url-list,            by: script, severity: warn, fix: none }
-  - { id: format/char-ceiling,        by: script, severity: fail, fix: regenerate }
-  - { id: slot/parse,                 by: script, severity: fail, fix: stop }
-  - { id: slot/missing,               by: script, severity: fail, fix: regenerate }
-  - { id: slot/extra,                 by: script, severity: fail, fix: remove }
-  - { id: slot/header-missing,        by: script, severity: fail, fix: patch }
-  - { id: slot/header-second-person,  by: script, severity: fail, fix: patch }
-  - { id: slot/family-mismatch,       by: script, severity: fail, fix: stop }
-  - { id: slot/job-asks-unjustified,  by: model,  severity: warn, fix: none }
-  - { id: length/hook,                by: script, severity: fail, fix: regenerate }
-  - { id: length/prose-cap,           by: script, severity: fail, fix: regenerate }
-  - { id: length/total-ceiling,       by: script, severity: fail, fix: regenerate }
-  - { id: length/list-lines,          by: script, severity: fail, fix: regenerate }
-  - { id: length/relevant-work-count, by: script, severity: fail, fix: regenerate }
-  - { id: length/sentence-cap,        by: model,  severity: warn, fix: patch }
-  - { id: terms/hour-range,           by: script, severity: fail, fix: patch }
-  - { id: terms/bounded-window,       by: script, severity: fail, fix: patch }
-  - { id: fact/untraceable,           by: model,  severity: fail, fix: ask }
-  - { id: fact/arithmetic,            by: model,  severity: warn, fix: none }
-  - { id: terms/forbidden-promise,    by: model,  severity: fail, fix: regenerate }
-  - { id: closing/call,               by: script, severity: fail, fix: patch }
-  - { id: job/demand-unanswered,      by: model,  severity: fail, fix: regenerate }
-  - { id: job/mandatory-keyword,      by: model,  severity: fail, fix: patch }
-  - { id: job/gaps-required,          by: model,  severity: fail, fix: regenerate }
-  - { id: flag/safeguard-missing,    by: model,  severity: fail, fix: regenerate }
+  # by: script | model. severity: fail | warn. fix: see fix_kinds. routes: the routes the Check runs on.
+  - { id: voice/banned-phrase,        by: script, severity: fail, fix: patch, routes: [freelance, employment] }
+  - { id: voice/soft-banned,          by: script, severity: warn, fix: patch, routes: [freelance, employment] }
+  - { id: voice/exclamation,          by: script, severity: fail, fix: patch, routes: [freelance, employment] }
+  - { id: voice/first-person-plural,  by: script, severity: fail, fix: patch, routes: [freelance, employment] }
+  - { id: voice/self-descriptive,     by: script, severity: fail, fix: patch, routes: [freelance, employment] }
+  - { id: voice/rhetorical-question,  by: model,  severity: fail, fix: patch, routes: [freelance, employment] }
+  - { id: voice/apology,              by: model,  severity: fail, fix: patch, routes: [freelance, employment] }
+  - { id: voice/semicolon-chain,      by: script, severity: warn, fix: patch, routes: [freelance, employment] }
+  - { id: voice/contrast-negation,    by: model,  severity: warn, fix: patch, routes: [freelance, employment] }
+  - { id: format/markdown,            by: script, severity: fail, fix: patch, routes: [freelance, employment] }
+  - { id: format/emoji,               by: script, severity: fail, fix: patch, routes: [freelance, employment] }
+  - { id: format/all-caps,            by: script, severity: fail, fix: patch, routes: [freelance, employment] }
+  - { id: format/indentation,         by: script, severity: fail, fix: patch, routes: [freelance, employment] }
+  - { id: format/contact,             by: script, severity: fail, fix: patch, routes: [freelance, employment] }
+  - { id: format/url-count,           by: script, severity: fail, fix: regenerate, routes: [freelance, employment] }
+  - { id: format/url-list,            by: script, severity: warn, fix: none, routes: [freelance, employment] }
+  - { id: format/char-ceiling,        by: script, severity: fail, fix: regenerate, routes: [freelance, employment] }
+  - { id: slot/parse,                 by: script, severity: fail, fix: stop, routes: [freelance, employment] }
+  - { id: slot/missing,               by: script, severity: fail, fix: regenerate, routes: [freelance, employment] }
+  - { id: slot/extra,                 by: script, severity: fail, fix: remove, routes: [freelance, employment] }
+  - { id: slot/header-missing,        by: script, severity: fail, fix: patch, routes: [freelance] }
+  - { id: slot/header-second-person,  by: script, severity: fail, fix: patch, routes: [freelance] }
+  - { id: slot/family-mismatch,       by: script, severity: fail, fix: stop, routes: [freelance, employment] }
+  - { id: slot/job-asks-unjustified,  by: model,  severity: warn, fix: none, routes: [freelance, employment] }
+  - { id: length/hook,                by: script, severity: fail, fix: regenerate, routes: [freelance] }
+  - { id: length/prose-cap,           by: script, severity: fail, fix: regenerate, routes: [freelance] }
+  - { id: length/total-ceiling,       by: script, severity: fail, fix: regenerate, routes: [freelance] }
+  - { id: length/list-lines,          by: script, severity: fail, fix: regenerate, routes: [freelance] }
+  - { id: length/relevant-work-count, by: script, severity: fail, fix: regenerate, routes: [freelance] }
+  - { id: length/sentence-cap,        by: model,  severity: warn, fix: patch, routes: [freelance, employment] }
+  - { id: terms/hour-range,           by: script, severity: fail, fix: patch, routes: [freelance, employment] }
+  - { id: terms/bounded-window,       by: script, severity: fail, fix: patch, routes: [freelance, employment] }
+  - { id: fact/untraceable,           by: model,  severity: fail, fix: ask, routes: [freelance, employment] }
+  - { id: fact/arithmetic,            by: model,  severity: warn, fix: none, routes: [freelance] }
+  - { id: terms/forbidden-promise,    by: model,  severity: fail, fix: regenerate, routes: [freelance, employment] }
+  - { id: closing/call,               by: script, severity: fail, fix: patch, routes: [freelance, employment] }
+  - { id: job/demand-unanswered,      by: model,  severity: fail, fix: regenerate, routes: [freelance, employment] }
+  - { id: job/mandatory-keyword,      by: model,  severity: fail, fix: patch, routes: [freelance] }
+  - { id: job/gaps-required,          by: model,  severity: fail, fix: regenerate, routes: [freelance, employment] }
+  - { id: flag/safeguard-missing,     by: model,  severity: fail, fix: regenerate, routes: [freelance, employment] }
+  - { id: version/keyword-coverage,   by: script, severity: warn, fix: none, routes: [employment] }
+  - { id: version/title-in-summary,   by: script, severity: warn, fix: none, routes: [employment] }
 ---
 
 # Verify catalogue
 
-`verify` is the last State. It reviews the Letter the way a code review reviews a diff, then applies the Fixes itself: the Letter file after `verify` is the corrected Letter, never a report. The Letter file is `letter.md` on the freelance route and `cover-letter.md` on the employment route; the route's template (`templates/letter-<family>.md` or `templates/letter-employment.md`) sets its Slots and its caps. A Check is one named rule. A Finding is one violation of a Check in one Slot, `fail` or `warn`. A Fix is the change `verify` applies for a Finding.
+`verify` is the last State. It reviews the Letter the way a code review reviews a diff, then applies the Fixes itself: the Letter file after `verify` is the corrected Letter, never a report. The Letter file is `letter.md` on the freelance route and `cover-letter.md` on the employment route; the route's template (`templates/letter-<family>.md` or `templates/letter-employment.md`) sets its Slots and its caps. A Check is one named rule. A Finding is one violation of a Check in one Slot, `fail` or `warn`. A Fix is the change `verify` applies for a Finding. Each Check names the routes it runs on (`routes`); a Check whose `routes` lack the Candidate's route is skipped by the script and by the model pass.
 
 Portable across Profiles. Personal inputs (banned extras, allowed extras, word cap, terms) come from the Profile at run time.
 
 ## Inputs
 
 - The Letter file of the current Candidate: body is the Letter; frontmatter `slug`, `family`, `date` in `letter.md`, `slug`, `date`, `version` in `cover-letter.md`. An empty `cover-letter.md` body is a CV-only application: valid, with no Letter in it.
-- `job.md`: `route`, posting body (client facts, Job demands), `verdict.flags`, `verdict.alert_level`, `verdict.family` on the freelance route.
-- Profile: `profile.md` (`terms`, `word_cap`), `skills.md` (Skill rows: names for the acronym list, `shipped` rows for `gaps-required`), `data/projects/<slug>.md` (traceability source: the frontmatter meta and the Stories, harvested by the script into the brief), `voice.md` (`banned_extra`, `allowed_extra`).
+- `job.md`: `route`, posting body (client facts, Job demands), `verdict.flags`, `verdict.alert_level`, `verdict.family` on the freelance route, `title` and `requirements` on the employment route.
+- The Version on the employment route, named by `version` in `cover-letter.md`: `general` or `frontend` reads its summary from `profile.md` `summaries` and its role from the `role` frontmatter of `versions/<version>.md`; `tailored` reads the Candidate's `version.md`.
+- Profile: `profile.md` (`terms`, `word_cap`, `summaries`), `skills.md` (Skill rows: names for the acronym list, `shipped` rows for `gaps-required`, `roles` and aliases for `version/keyword-coverage`), `data/projects/<slug>.md` (traceability source: the frontmatter meta and the Stories, harvested by the script into the brief), `voice.md` (`banned_extra`, `allowed_extra`).
 - Catalogues: voice rules, Slot catalogue, the route's template (the Family template named by `family`, or `letter-employment`), Flag catalogue.
 
 Nothing is stored. The report is session output; a Letter is final only after `verify` passes, so a stored pass carries no information.
@@ -83,11 +86,18 @@ A cover letter with fewer than five blocks, more than seven, or any header line 
 
 Blocks are separated by one blank line. A Letter this procedure cannot segment (too few blocks, a header where none is allowed, a block without a header straight after the hook, the same header twice) raises `slot/parse` and stops for the human. Hand-edited Letters go through the same procedure.
 
-`scripts/verify.mjs <candidate>` reads the route from `job.md`, runs the segmentation and every script Check, and prints the Findings, the Slot map with file line numbers, the counts, and the brief for the model pass (route and template, Safeguards to look for with their target Slot when the template has that Slot, `when: job asks` Slots present, Profile terms). Exit 1 while any script Check fails. Its fixtures in `scripts/verify.test.mjs` seed one Finding per Check group, on both routes.
+`scripts/verify.mjs <candidate>` reads the route from `job.md`, runs the Version pass on the employment route, then the segmentation and every script Check of the route, and prints the Version pass first, then the Letter pass: its Findings, the Slot map with file line numbers, the counts, and the brief for the model pass (route and template, Safeguards to look for with their target Slot when the template has that Slot, `when: job asks` Slots present, Profile terms). Exit 1 while any script Check fails. An empty `cover-letter.md` body is a CV-only application: the Version pass runs alone and the Letter pass is skipped. Its fixtures in `scripts/verify.test.mjs` seed one Finding per Check group, on both routes.
 
 ## Checks
 
 Script Checks read text and counts; model Checks read meaning. The script runs first; the model pass runs only when the script reports no `fail`, so cheap Findings never reach the model.
+
+### version
+
+The Version pass, employment route only, by script, before the Letter pass. The Version is the human's document: both Checks `warn` with Fix `none`, and the human tailors the Version or sends it as it is.
+
+- `keyword-coverage`: a `job.md` `requirements` entry found neither in the Version's summary nor among the ledger rows of the Version's role. Found in the summary: the entry's text, or the name or an alias of a ledger row the entry matches, appears in it. Found among the rows: a row the entry matches lists the Version's role in `roles`. On `version: tailored` both read the whole `version.md` text instead. One Finding per entry; no `requirements` is reported in the pass and checks nothing.
+- `title-in-summary`: the posting's role noun is absent from the Version's summary. The role noun is the `job.md` `title` without seniority words (`Senior`, `Lead`, `Staff`, `Principal`, `Junior`, `Mid`), a parenthesis, or anything after a dash, a bar or a comma. `front-end` reads as `frontend`. A missing summary is reported here.
 
 ### voice
 
@@ -150,7 +160,7 @@ Each length Check runs only when the route's template has the cap it reads; `let
 
 ### job
 
-- `demand-unanswered`: an explicit request in the Job (examples, stack, approach, availability, subcontracting, a specific question) that no Slot answers. Fix: regenerate `answers`, or the Slot the demand maps to. A demand that needs a fact the Profile lacks goes to the human as in `fact/untraceable`.
+- `demand-unanswered`: an explicit request in the Job (examples, stack, approach, availability, subcontracting, a specific question) that no Slot answers. Fix: regenerate `answers`, or the Slot the demand maps to. A demand that needs a fact the Profile lacks goes to the human as in `fact/untraceable`. On the employment route it counts only the demands a cover letter can carry (`intro`, `relevant_work`, `gaps`, `terms`); screening questions are form fields answered from the Answers, never Findings.
 - `mandatory-keyword`: Flag `mandatory-keyword` is triggered and the keyword appears anywhere in the Letter. Fix: patch the sentence to drop it. The Letter never complies with a keyword demand.
 - `gaps-required`: a required item of the Job (a must, a required skill, the codebase; never a preferred or nice-to-have item) is outside the ledger's `shipped` Skills and `gaps` is absent or does not name it; or `gaps` names an item that is not required. Fix: regenerate `gaps` (which renders nothing when no required gap remains).
 
