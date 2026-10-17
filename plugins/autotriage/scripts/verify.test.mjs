@@ -241,7 +241,7 @@ Happy to answer any questions about my work.
 Kon`;
 
 function runCover(body, { candidate = "2026-10-16-acme-frontend", fm = {}, flags } = {}) {
-  const letter = { frontmatter: { slug: "acme-frontend", date: "2026-10-16", version: "frontend", outcome: null, ...fm }, body, raw: "" };
+  const letter = { frontmatter: { slug: "acme-frontend", date: "2026-10-16", version: "frontend", ...fm }, body, raw: "" };
   return analyse({ candidate, letter, job: employmentJob(flags), profile, skills, voice, projects });
 }
 

@@ -179,7 +179,7 @@ test("the employment route checks cover-letter.md against letter-employment", ()
   const missing = run(root, "guard.mjs", "verify", "2026-10-16-acme-frontend");
   assert.equal(missing.status, 1);
   assert.match(missing.stderr, /cover-letter\.md is missing/);
-  fs.writeFileSync(path.join(dir, "cover-letter.md"), "---\nslug: acme-frontend\ndate: 2026-10-16\n---\nHello,\n");
+  fs.writeFileSync(path.join(dir, "cover-letter.md"), "---\nslug: acme-frontend\ndate: 2026-10-16\nversion: general\n---\nHello,\n");
   const r = run(root, "guard.mjs", "verify", "2026-10-16-acme-frontend");
   assert.equal(r.status, 0, r.stderr);
   assert.match(r.stdout, /Letter: cover-letter\.md\nTemplate: letter-employment/);

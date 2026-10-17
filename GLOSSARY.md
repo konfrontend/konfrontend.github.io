@@ -89,11 +89,11 @@ A Job being pursued, moving through a Route. Becomes a Project when won.
 _Avoid_: application, lead
 
 **Tracker**:
-The list of Candidates and where each stands, printed from the Candidates' `job.md` frontmatter, never stored.
+The list of Candidates and where each stands, printed from the Candidates' `job.md` and `cover-letter.md` frontmatter, never stored.
 _Avoid_: pipeline, log, spreadsheet
 
 **Outcome**:
-Where a Candidate stands once its Letter went out (`sent`, `replied`, `interview`, `offer`, `hired`, `rejected`, `withdrawn`), or `null` before. Set by hand in `job.md`, only on a `go` decision.
+Where a Candidate stands once its Letter went out, or on the employment route its Version alone (`sent`, `replied`, `interview`, `offer`, `hired`, `rejected`, `withdrawn`), or `null` before. Set by hand in `job.md`, only on a `go` decision.
 _Avoid_: status, result
 
 **Family**:
@@ -137,11 +137,11 @@ _Avoid_: mitigation, condition, caveat
 ### Outputs
 
 **Version**:
-One CV document made from the Master: the general Version behind the public PDF, the frontend Version, or one tailored to a Candidate's Job. The employment route picks one per Candidate and records the pick as `general`, `frontend` or `tailored`.
+One CV document made from the Master: the general Version behind the public PDF, the frontend Version, or one tailored to a Candidate's Job. The employment route picks one per Candidate and records the pick as `general`, `frontend` or `tailored` in `cover-letter.md`.
 _Avoid_: draft, template, CV file
 
 **Letter**:
-The final pasteable text a Route ends with: a proposal on the freelance route, a cover letter on the employment route. The Route ends when the Letter is sent.
+The pasteable text a Route writes: a proposal on the freelance route, a cover letter on the employment route. A freelance Route ends when the Letter is sent; an employment Route can end with a Version and no Letter.
 _Avoid_: bid, application, pitch
 
 **Slot**:

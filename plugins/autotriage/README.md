@@ -43,11 +43,11 @@ The model can call these on its own, for example to run the Route step by step w
 | --- | --- |
 | `/autotriage:intake` | Records a pasted Job as a Candidate folder `data/candidates/YYYY-MM-DD-<slug>/` with its `job.md`. |
 | `/autotriage:triage <candidate>` | Detects Flags, the Family, and scores; a script computes the Verdict; you answer go or no-go at the checkpoint. Then it shows the Skill ledger changes and records them only when you confirm them, as a separate question. |
-| `/autotriage:version <candidate> [--tailor]` | Employment route only: picks the Version by the posting's role title (`general` or `frontend`) and records it in `job.md`. With `--tailor` it records `tailored` and copies the picked Version into the Candidate folder as `version.md` for you to edit. |
-| `/autotriage:proposal <candidate>` | Writes the Letter for a Candidate with decision `go`, from the Family template, the voice rules, and the Profile. |
+| `/autotriage:version <candidate> [--tailor]` | Employment route only: picks the Version by the posting's role title (`general` or `frontend`) and records it in `cover-letter.md`, created with frontmatter only; stop here to send the Version without a Letter. With `--tailor` it records `tailored` and copies the picked Version into the Candidate folder as `version.md` for you to edit. |
+| `/autotriage:proposal <candidate>` | Writes the Letter for a Candidate with decision `go`, from the route's template, the voice rules, and the Profile. On the employment route it writes the body of `cover-letter.md` and keeps its frontmatter. |
 | `/autotriage:verify <candidate>` | Reviews the Letter against the Checks and applies the Fixes in place. Ends with the Letter ready to paste. |
 | `/autotriage:skills [print \| print gaps]` | Prints the Skill ledger: Targets (Gaps that Jobs keep asking for), other Gaps, then the rest. A signal only; what you do about a Gap is up to you. |
-| `/autotriage:tracker [print]` | Prints the Tracker: every Candidate with its route, decision, Family or Version, and outcome, open ones first, from each `job.md`. Set `outcome` in `job.md` by hand. |
+| `/autotriage:tracker [print]` | Prints the Tracker: every Candidate with its route, decision, Family or Version, and outcome, open ones first, from each `job.md` (the Version from `cover-letter.md`). Set `outcome` in `job.md` by hand. |
 
 `<candidate>` is the Candidate folder name under `data/candidates/`.
 
@@ -62,8 +62,8 @@ Each skill checks its preconditions before it loads. It refuses to run out of or
 | `skills` | valid `skills.md`; every Project `keywords` term is a ledger Skill |
 | `triage <c>` | valid `profile.md` and `skills.md`; valid `job.md`; no `letter.md` (`cover-letter.md` on the employment route) yet |
 | `version <c>` | valid `job.md`; `route: employment`; `decision: go` |
-| `proposal <c>` | full Profile gate; `job.md` with a `verdict` block that recomputes to the same values; `decision: go`; on the employment route also `version` set, `version.md` present when `version: tailored`, and the summary the Intro Slot reads |
-| `verify <c>` | full Profile gate; `decision: go`; valid `letter.md`, or valid `cover-letter.md` on the employment route |
+| `proposal <c>` | full Profile gate; `job.md` with a `verdict` block that recomputes to the same values; `decision: go`; on the employment route also a valid `cover-letter.md` (written by `version`), `version.md` present when `version: tailored`, and the summary the Intro Slot reads |
+| `verify <c>` | full Profile gate; `decision: go`; valid `letter.md`, or valid `cover-letter.md` on the employment route, empty body included |
 
 A hook checks every write under `data/` against the file's schema. The write has already landed, so a bad file is not undone: the hook returns the errors to the model, and the next skill's Guard refuses the file until it is fixed.
 
@@ -73,7 +73,7 @@ A hook checks every write under `data/` against the file's schema. The write has
 data/
   profile/      profile.md, skills.md (the Skill ledger), voice.md
   projects/     one file per Project: frontmatter meta and keywords, Stories under Themes
-  candidates/   one folder per Job: job.md (route freelance or employment), letter.md on the freelance route; cover-letter.md and version.md when tailored on the employment route
+  candidates/   one folder per Job: job.md (route freelance or employment), letter.md on the freelance route; cover-letter.md (the Version, and the Letter when one is written) and version.md when tailored on the employment route
 ```
 
 Everything is Markdown with YAML frontmatter, and you can edit all of it by hand. Keep the project in a private git repo if you want a history of your Letters.

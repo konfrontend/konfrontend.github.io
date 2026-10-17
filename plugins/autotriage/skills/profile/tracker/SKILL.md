@@ -7,7 +7,7 @@ The Tracker is printed from each Candidate's `job.md` frontmatter under `data/ca
 
 ## Commands
 
-- `print`: run `node ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.mjs print` and show its output verbatim in the session. One table for both routes, `date | candidate | route | decision | family | version | outcome`: open Candidates first, then closed, each by intake date descending; after the tables, the warnings (an `outcome: sent` with no letter file, an invalid `job.md`).
+- `print`: run `node ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.mjs print` and show its output verbatim in the session. One table for both routes, `date | candidate | route | decision | family | version | outcome`, `version` from `cover-letter.md`: open Candidates first, then closed, each by intake date descending; after the tables, the warnings (an `outcome: sent` with no letter file, an invalid `job.md`).
 
 No argument means `print`. Any other argument: print the command above.
 
