@@ -1,9 +1,9 @@
-// Fixtures for the script half of verify: a clean audit Letter passes, a Letter seeded with one
-// Finding per Check group reports each one with the Fix the catalogue names, and a Letter the
-// segmentation cannot read stops on slot/parse. Run: npm test
+// Fixtures for the script half of verify on both routes: a clean audit Letter and a clean cover
+// letter pass, a Letter seeded with one Finding per Check group reports each one with the Fix the
+// catalogue names, and a Letter the segmentation cannot read stops on slot/parse. Run: npm test
 import test from "node:test";
 import assert from "node:assert/strict";
-import { analyse, segment } from "./verify.mjs";
+import { analyse, segment, segmentEmployment } from "./verify.mjs";
 import { loadCatalogue } from "./lib.mjs";
 
 // Headers and caps come from the Slot catalogue, so a wording or cap change there does not break
@@ -17,7 +17,7 @@ const profile = {
   terms: { rate: 60, rate_floor: 40, billing: "hourly-caps", subcontracting: "none", weekly_hours: { min: 0, max: 30 } },
 };
 const skills = [{ name: "TypeScript", level: "shipped" }, { name: "React", level: "shipped" }, { name: "Postgres", level: "used" }];
-const voice = { language: "en-US", greeting: "Hi,", sign_off: "Kon", banned_extra: ["synergy"], allowed_extra: ["leverage"] };
+const voice = { language: "en-US", greeting: { freelance: "Hi,", employment: "Hello," }, sign_off: "Kon", banned_extra: ["synergy"], allowed_extra: ["leverage"], cite_role_period: false };
 const projects = [{
   slug: "acme", errors: [],
   frontmatter: { name: "Acme", url: "https://acme.example", role: "Full Stack Developer", employment: "contract", start: "2021-02", naming: "public", description: "B2B dashboard.", keywords: ["TypeScript"] },
@@ -222,4 +222,75 @@ test("segment reads the milestones Family without a follow_on", () => {
   assert.deepEqual(seg.slots.map((s) => s.id), ["hook", "milestones", "relevant_work", "gaps", "billing", "terms", "closing", "sign_off"]);
   const r = run(fix, "fix");
   assert.equal(r.fails, 0, JSON.stringify(r.findings));
+});
+
+// The employment route: cover-letter.md against letter-employment, no headers, Slots by position.
+const employmentTemplate = loadCatalogue("templates/letter-employment");
+const employmentJob = (flags = ["regulated-domain"]) => ({
+  frontmatter: { slug: "acme-frontend", route: "employment", verdict: { flags, alert_level: 2, decision: "go" } },
+  body: "Acme is hiring a frontend developer for a Vue and Nuxt site. Requirements: TypeScript, SEO, accessibility.",
+});
+const cleanCover = `Hello,
+
+I'm a frontend developer with 10+ years in TypeScript, Vue and Nuxt.
+
+I build design systems and prerendered sites with technical SEO, accessibility and Core Web Vitals in mind, and cover them with automated tests.
+
+Happy to answer any questions about my work.
+
+Kon`;
+
+function runCover(body, { candidate = "2026-10-16-acme-frontend", fm = {}, flags } = {}) {
+  const letter = { frontmatter: { slug: "acme-frontend", date: "2026-10-16", version: "frontend", outcome: null, ...fm }, body, raw: "" };
+  return analyse({ candidate, letter, job: employmentJob(flags), profile, skills, voice, projects });
+}
+
+test("clean cover letter passes the script Checks within the template's character cap", () => {
+  const r = runCover(cleanCover);
+  assert.equal(r.fails, 0, JSON.stringify(r.findings));
+  assert.deepEqual(r.slots.map((s) => s.id), ["intro", "relevant_work", "closing", "sign_off"]);
+  assert.equal(r.brief.route, "employment");
+  assert.equal(r.brief.template, "letter-employment");
+  assert.equal(r.brief.family, null);
+  assert.deepEqual(r.brief.safeguards, [], "a Safeguard whose Slot the template lacks is not briefed");
+  assert.equal(r.counts.char_cap, employmentTemplate.cap.chars);
+  assert.ok(r.counts.chars <= employmentTemplate.cap.chars);
+  assert.equal(r.counts.word_cap, null, "no prose cap on this route, whatever the Profile word_cap says");
+  assert.equal(r.counts.hook_max, null);
+});
+
+test("cover letter: over the character cap fails, the freelance word caps never apply", () => {
+  const long = cleanCover.replace("and cover them with automated tests.", "and cover them with automated tests. " + "Another sentence about the work. ".repeat(12));
+  const r = runCover(long);
+  assert.ok(r.findings.some((f) => f.id === "format/char-ceiling" && f.detail.includes(`letter-employment cap ${employmentTemplate.cap.chars}`)), ids(r));
+  for (const id of ["length/prose-cap", "length/total-ceiling", "length/hook"]) assert.ok(!has(r, id), `${id} in ${ids(r)}`);
+});
+
+test("cover letter: gaps and terms by position, terms read from its cues", () => {
+  const gapsAndTerms = cleanCover.replace("Happy to answer", "No Jenkins pipeline yet; the nearest work is GitHub Actions for the same tests.\n\nBased in Spain and available now, with full overlap with your working day.\n\nHappy to answer");
+  assert.deepEqual(runCover(gapsAndTerms).slots.map((s) => s.id), ["intro", "relevant_work", "gaps", "terms", "closing", "sign_off"]);
+  const termsOnly = cleanCover.replace("Happy to answer", "Based in Spain and available now.\n\nHappy to answer");
+  assert.deepEqual(runCover(termsOnly).slots.map((s) => s.id), ["intro", "relevant_work", "terms", "closing", "sign_off"]);
+  const gapsOnly = cleanCover.replace("Happy to answer", "No Jenkins pipeline yet; the nearest work is GitHub Actions.\n\nHappy to answer");
+  assert.deepEqual(runCover(gapsOnly).slots.map((s) => s.id), ["intro", "relevant_work", "gaps", "closing", "sign_off"]);
+  const bounded = runCover(cleanCover.replace("Happy to answer", "Available for the next 90 days.\n\nHappy to answer"));
+  assert.ok(has(bounded, "terms/bounded-window"), ids(bounded));
+});
+
+test("cover letter: a header, a missing Slot, a slug mismatch, a contact detail", () => {
+  const header = runCover(cleanCover.replace("I build design systems", "Relevant work:\nI build design systems"));
+  assert.ok(header.findings.some((f) => f.id === "slot/parse" && f.detail.includes("has none")), ids(header));
+  const short = runCover("Hello,\n\nI'm a frontend developer.\n\nKon");
+  assert.ok(short.findings.some((f) => f.id === "slot/parse" && f.detail.includes("too few blocks")), ids(short));
+  const slug = runCover(cleanCover, { fm: { slug: "other" } });
+  assert.ok(slug.findings.some((f) => f.id === "slot/family-mismatch" && f.detail.startsWith("cover-letter.md slug")), ids(slug));
+  const contact = runCover(cleanCover.replace("about my work.", "about my work at kon@example.com."));
+  assert.ok(has(contact, "format/contact"), ids(contact));
+});
+
+test("segmentEmployment reads the greeting apart and every block as prose", () => {
+  const seg = segmentEmployment(cleanCover);
+  assert.deepEqual(seg.errors, []);
+  assert.equal(seg.greeting.lines[0], "Hello,");
+  assert.ok(seg.slots.every((s) => s.header === null));
 });

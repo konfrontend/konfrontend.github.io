@@ -4,13 +4,12 @@
 //      node scripts/profile.mjs skeleton <profile|skills|voice|project>
 import fs from "node:fs";
 import path from "node:path";
-import { PLUGIN_ROOT, PROFILE_DIR, readArtifact, validate, readProjects } from "./lib.mjs";
+import { PLUGIN_ROOT, PROFILE_DIR, readArtifact, validate, validateArtifact, readProjects } from "./lib.mjs";
 
 function fileStatus(label, file, schema) {
   const art = readArtifact(file);
   if (!art) return `${label}: missing`;
-  if (art.frontmatter === null) return `${label}: invalid\n    no YAML frontmatter`;
-  const errors = validate(schema, art.frontmatter);
+  const errors = validateArtifact(schema, art);
   return errors.length ? `${label}: invalid\n    ${errors.join("\n    ")}` : `${label}: ok`;
 }
 
@@ -29,7 +28,7 @@ export function status() {
   const profileOk = readArtifact(profileFile)?.frontmatter && validate("profile", readArtifact(profileFile).frontmatter).length === 0;
   const ledgerOk = readArtifact(ledgerFile)?.frontmatter && validate("skills", readArtifact(ledgerFile).frontmatter).length === 0;
   const jobOk = projects.some((p) => !p.errors.length);
-  const voiceOk = readArtifact(voiceFile)?.frontmatter && validate("voice", readArtifact(voiceFile).frontmatter).length === 0;
+  const voiceOk = readArtifact(voiceFile) && validateArtifact("voice", readArtifact(voiceFile)).length === 0;
   out.push("", `triage gate (profile.md and skills.md valid): ${profileOk && ledgerOk ? "pass" : "fail"}`);
   out.push(`proposal gate (plus one valid Project and voice.md): ${profileOk && ledgerOk && jobOk && voiceOk ? "pass" : "fail"}`);
   return out.join("\n");

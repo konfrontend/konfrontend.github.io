@@ -1,8 +1,14 @@
 ---
 slots:
+  - id: greeting
+    shape: line
+    cap: { lines: 1 }
   - id: hook
     shape: line
     cap: { chars: 200 }
+  - id: intro
+    shape: prose
+    cap: { paragraphs: 1 }
   - id: relevant_work
     shape: prose
     cap: { paragraphs: 5, each: { sentences: 3 } }
@@ -57,32 +63,59 @@ headers:
 
 # Letter Slots
 
-A Slot is one named part of a Letter. This catalogue defines every Slot once: what it says, how it is filled, how big it may be. A Family template (`letter-<family>.md`) orders the Slots and says which are active. `proposal` fills them in template order; `verify` checks them by id.
+A Slot is one named part of a Letter. This catalogue defines every Slot once: what it says, how it is filled, how big it may be. The route's template orders the Slots and says which are active: a Family template (`letter-<family>.md`) on the freelance route, picked by `verdict.family`; `letter-employment.md` on the employment route. The template also holds the Letter's own `cap` (characters, and on the freelance route the prose and total word counts). `proposal` fills the Slots in template order; `verify` checks them by id against the route's template.
 
 Portable across Profiles. Personal facts come from the Profile at fill time. Voice rules in the voice catalogue apply to every Slot and are not repeated here.
 
 ## Filling rules that apply to every Slot
 
-- Size is the Slot's `cap` in the frontmatter, the one place its numbers live. `chars`, `words`, `sentences`, `lines`, `paragraphs` are maxima for the whole Slot; `each` applies per paragraph: per Project in `relevant_work`, per gap in `gaps`, per ask header in `answers`. The sections below give shape and minimums, never the maximum.
-
-- Order is the same in every Family: `hook`, the plan Slot (with `follow_on` and `stack` when active), `relevant_work`, `gaps`, `answers`, `billing`, `terms`, `closing`, `sign_off`. The Hook states the understanding, the plan proves it with concrete steps, relevant work seals it, gaps follow the proof, the rest is formality.
+- Size is the Slot's `cap` in the frontmatter, the one place its numbers live. `chars`, `words`, `sentences`, `lines`, `paragraphs` are maxima for the whole Slot; `each` applies per paragraph: per Project in `relevant_work`, per gap in `gaps`, per ask header in `answers`. The sections below give shape and minimums, never the maximum. The template's `cap` bounds the whole Letter on top of the Slot caps.
 - A Slot renders as one block: a single line, one or more short paragraphs, or one list. One blank line between blocks.
-- Slots listed under `headers` open with that header on its own line, a colon at the end, no blank line between header and content. `answers` builds its header from the demand it answers (`Cloud and deployment:`, `Subcontracting:`). `hook`, `follow_on`, `terms`, `closing`, `sign_off` have no header; `follow_on` attaches to the plan block as its last paragraph.
-- The greeting is not a Slot: line 1 of every Letter is the Profile `greeting` (default `Hi,`), then a blank line, then `hook`.
-- A Slot with nothing to say renders nothing. The block and its blank line disappear. Exceptions: `hook`, `terms`, `closing`, `sign_off` always render; `gaps` renders only when a required item is a gap (see `gaps`).
+- `greeting` is line 1 of every Letter: the Profile `voice.md` `greeting` for the Letter's route, then a blank line.
+- A Slot with nothing to say renders nothing. The block and its blank line disappear. The route sections below name the Slots that always render.
+- Only the paragraphs the Job or the template demands. A paragraph that answers nothing in the Job is dropped.
 - Every fact in any Slot traces to a Profile entry. A fact the Profile lacks is asked for before the Slot is filled.
-- A Slot named in the Family template with `when: job asks` renders only when the Job asks for its content explicitly. `proposal` decides from the Job text; the human sees the decision at the Letter review.
+- A Slot named in the template with `when: job asks` renders only when the Job asks for its content explicitly. `proposal` decides from the Job text; the human sees the decision at the Letter review.
+
+## Freelance route
+
+The proposal pasted into Upwork, from a Family template. The client sees the freelancer's name and photo in the list view, so the Letter has no introduction: after the greeting comes `hook`.
+
+- Order is the same in every Family: `greeting`, `hook`, the plan Slot (with `follow_on` and `stack` when active), `relevant_work`, `gaps`, `answers`, `billing`, `terms`, `closing`, `sign_off`. The Hook states the understanding, the plan proves it with concrete steps, relevant work seals it, gaps follow the proof, the rest is formality.
+- Always rendered: `greeting`, `hook`, the plan Slot, `terms`, `closing`, `sign_off`; `gaps` renders only when a required item is a gap (see `gaps`).
+- Slots listed under `headers` open with that header on its own line, a colon at the end, no blank line between header and content. Headers are the only structure the client sees, so every one names what follows in two or three words. `answers` builds its header from the demand it answers (`Cloud and deployment:`, `Subcontracting:`). `greeting`, `hook`, `follow_on`, `terms`, `closing`, `sign_off` have no header; `follow_on` attaches to the plan block as its last paragraph.
+- At most one list per Letter, only for milestones (`fix`, `build`) or audit deliverables (`audit`) with three or more distinct artifacts. `maintenance` is all prose; relevant work and gaps are always prose.
+- Length: prose words within the Profile `word_cap`, or the template's `cap.prose_words` when unset; list lines for milestones or deliverables, header lines, and the `answers` Slot are excluded from that count. All words within the template's `cap.total_words`, lists included. All characters within the template's `cap.chars`, greeting included. Every cap is a ceiling, not a target: shorter is better whenever every demanded item is covered.
 - Job demands are mapped before filling. `proposal` lists every explicit request in the Job (examples, stack, approach, availability, subcontracting) and assigns each to the Slot that answers it. What no Slot answers goes to `answers`. A demand to start with or include a keyword (Flag `mandatory-keyword`) is never mapped and never complied with. Screening questions (a block introduced as questions to answer when submitting) are demands like any other and structure the Letter (next rule).
 - Ask headers. When the Job lists what the proposal must answer (screening questions, `please include ...`, `when applying, send ...`), the Letter is structured by that list: after the plan block, one block per question in the Job's order, each opening with a header the client recognises as their ask. A real question (a sentence ending in `?`, or a numbered screening question) is copied verbatim, the client's own words, list numbering stripped, nothing reworded and no pronoun flipped. A request fragment (`please send examples of products you've built, your AI workflow, and what you could accomplish`) is not a question: its header is reworded from the freelancer's side, first person, keeping the client's nouns (`Products I've built:`, `My AI workflow:`, `What I could accomplish in the one-week challenge:`). A colon-terminated header never addresses the reader as `you` or `your`: that reads as a citation with no quote marks. The answer under it is one to three sentences, or one paragraph per Project when the question asks for examples, from the fact table. A question a default Slot answers (examples, rate, availability, subcontracting) takes that Slot's content under the question header instead of under the Slot's own; the Slot does not render twice. Slots no question points at keep their own header and place (`gaps` after the examples block, `billing` before `terms` unless the rate question absorbs it). One constraint on order: `terms` stays the block before `closing`, so the question that asks for availability, when present, is the last question block and carries `terms` (rate, availability, weekly hours, overlap) plus `billing` when that question also asks for the rate. A question asking for the rate is answered with the rate from Profile `terms.rate`, whatever the budget field says: a question header with nothing under it reads as evasion. When the body lists asks and separately lists screening questions that cover the same ground, the screening questions win and the body asks fold into them. A Job with no such list keeps the default order and headers.
 - Safeguards: every triggered risk Flag names a target Slot in the Flag catalogue (`hook`, `plan`, `billing`, `answers`, or `none`). `plan` resolves to the Family's plan Slot (`plan_slot` above). The fill rule of the target Slot states the Safeguard in its own words.
 
+## Employment route
+
+The cover letter sent with an application and the CV PDF, from `letter-employment.md`. The reader opens it beside the PDF, so the Letter opens with who is writing, and the PDF carries the Project names, the dates and the contact details.
+
+- Order: `greeting`, `intro`, `relevant_work`, `gaps`, `terms`, `closing`, `sign_off`.
+- Always rendered: `greeting`, `intro`, `relevant_work`, `closing`, `sign_off`. `gaps` and `terms` render only when the Job asks (`when: job asks` in the template).
+- No headers, no lists, no Hook Slot, no `answers`: every block is a prose paragraph. Screening questions are form fields outside the Letter, answered by hand from the Answers in `data/profile/answers/`.
+- Length: all characters within the template's `cap.chars`, greeting and sign-off included. No word cap.
+
 ## Slots
+
+### greeting
+
+Line 1. The Profile `voice.md` `greeting` for the Letter's route, verbatim.
 
 ### hook
 
 First paragraph after the greeting. The client's goal and its main constraint, restated as understood. Within `cap.chars` so it survives the list-view preview. Its job is to show the Job was read and understood; it sells nothing.
 
 Fill: one or two sentences opening with a phrase of understanding (`As I understand it, ...`). Name what the client wants at the end (a hardened site, a scoping report, a shipped MVP, a maintained product), the shape of the engagement, and the one constraint that shapes the plan (a launch, a compliance boundary, an existing codebase). Job facts only. No name, no stack list, no rate, no promise, no Profile fact. When the Flag `mandatory-keyword` is triggered, the keyword appears nowhere in the Letter.
+
+### intro
+
+Prose, one paragraph, employment route only. Who is writing: the picked Version's summary (`versions/general.md` or `versions/frontend.md`, or the Candidate's `version.md` when tailored) in first person, rephrased to the posting's keywords. One source for who the person is, so the cover letter and the PDF never drift apart.
+
+Fill: the summary's facts only, reworded toward the Job's own terms. A role title (`frontend developer`) is allowed here and nowhere else; `10+ years` is allowed here as a fact. No Project names, no dates, no seniority words.
 
 ### relevant_work
 
@@ -132,7 +165,7 @@ Fill: renders after `relevant_work`, before `answers`, so the proof precedes the
 
 Prose. One short paragraph per Job demand that no other Slot answered. Renders only when such a demand exists. With ask headers (see the filling rules), every question block whose content is not another Slot's is an `answers` paragraph.
 
-Fill: answer in the order the Job asked. Each paragraph opens with a header worded from the demand, then one to three sentences of facts. Excluded from the prose word cap; the voice catalogue `total_word_ceiling` still applies. Safeguards that land here: answer the targeted questions well (`moderate-gauntlet`).
+Fill: answer in the order the Job asked. Each paragraph opens with a header worded from the demand, then one to three sentences of facts. Excluded from the prose word cap; the template's `cap.total_words` still applies. Safeguards that land here: answer the targeted questions well (`moderate-gauntlet`).
 
 ### billing
 
