@@ -56,7 +56,7 @@ Happy to answer whatever questions remain, here in Upwork Messages.
 Kon`;
 
 function run(body, family = "audit", { flags, alert, candidate = "2026-09-20-acme-audit", fm = {} } = {}) {
-  const letter = { frontmatter: { slug: "acme-audit", family, date: "2026-09-20", outcome: null, ...fm }, body, raw: "" };
+  const letter = { frontmatter: { slug: "acme-audit", family, date: "2026-09-20", ...fm }, body, raw: "" };
   return analyse({ candidate, letter, job: job(family, flags, alert), profile, skills, voice, projects });
 }
 const ids = (r) => r.findings.map((f) => f.id);

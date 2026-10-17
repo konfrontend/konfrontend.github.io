@@ -13,6 +13,7 @@
     "./skills/route/proposal",
     "./skills/route/verify",
     "./skills/profile/setup",
-    "./skills/profile/skills"
+    "./skills/profile/skills",
+    "./skills/profile/tracker"
   ]
 }

@@ -26,6 +26,7 @@ Pasted sources are input only. Extract, then drop them; nothing under `data/` ke
    Bash(node */scripts/profile.mjs *)
    Bash(node */scripts/verify.mjs *)
    Bash(node */scripts/skills.mjs *)
+   Bash(node */scripts/tracker.mjs *)
    Edit(data/**)
    ```
    None missing: say so in one line. Otherwise show the missing ones and ask once whether to add them; on yes, merge them into `permissions.allow`, keeping every other key and rule. On no, go on: the Route still works, with a permission prompt on each script call and write. Done when the human has answered or nothing is missing.
