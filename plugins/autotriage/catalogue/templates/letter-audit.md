@@ -1,6 +1,8 @@
 ---
 family: audit
+cap: { chars: 4500, prose_words: 350, total_words: 700 }
 slots:
+  - greeting
   - hook
   - deliverables
   - follow_on

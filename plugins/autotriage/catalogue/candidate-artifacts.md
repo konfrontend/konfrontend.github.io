@@ -88,7 +88,7 @@ outcome: null                     # ignored | rejected | interviewed | hired; se
 
 ## `cover-letter.md` (employment route)
 
-The Letter of the employment route (`scripts/schemas/cover-letter.schema.json`). Body is the cover letter as sent: plain text, no Markdown. Which State writes it is GEM-352's question; the schema and the folder contract are fixed here.
+The Letter of the employment route (`scripts/schemas/cover-letter.schema.json`). Written by `proposal` from `catalogue/templates/letter-employment.md`, checked by `verify`. Body is the cover letter as sent: plain text, no Markdown, within the template's 500 characters.
 
 ```yaml
 slug: heymondo-senior-frontend

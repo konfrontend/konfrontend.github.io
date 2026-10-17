@@ -141,8 +141,12 @@ One named part of a Letter template, called by its name plus Slot: Hook Slot, re
 _Avoid_: section, block, fragment
 
 **Hook Slot**:
-The first paragraph of a Letter after the greeting: the client's goal and its main constraint restated as understood, sized to the preview the client sees before opening. Never an introduction, never a pitch.
-_Avoid_: Hook, opener, intro, first sentence
+The first paragraph of a proposal after the greeting: the client's goal and its main constraint restated as understood, sized to the preview the client sees before opening. Never an introduction, never a pitch.
+_Avoid_: Hook, opener, first sentence
+
+**Intro Slot**:
+The first paragraph of a cover letter after the greeting: the picked Version's summary in first person, rephrased to the posting's keywords. The employment route's opening, where the proposal has the Hook Slot.
+_Avoid_: introduction, opener
 
 ### Verification
 
