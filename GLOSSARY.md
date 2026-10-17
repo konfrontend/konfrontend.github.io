@@ -42,6 +42,10 @@ _Avoid_: highlight, point, achievement
 One verifiable claim inside a Story, such as the client, the stack, a number or an outcome, that the Bullet rests on and a Letter may cite.
 _Avoid_: detail, data point
 
+**Answer**:
+The person's hand-written reply to one recurring question a Job may ask, kept under the question it answers. A Letter cites it word for word or tailors it; the Answers together are what the voice is tuned by.
+_Avoid_: answer bank entry, snippet, canned answer, calibration
+
 **Naming**:
 How far a Project's client and product may be identified in a Version or Letter: `public`, `first-name-only` or `nda`.
 _Avoid_: visibility, privacy, disclosure
@@ -143,6 +147,10 @@ _Avoid_: section, block, fragment
 **Hook Slot**:
 The first paragraph of a Letter after the greeting: the client's goal and its main constraint restated as understood, sized to the preview the client sees before opening. Never an introduction, never a pitch.
 _Avoid_: Hook, opener, intro, first sentence
+
+**Intro Slot**:
+The first paragraph of a cover letter after the greeting: the Version's summary in first person, rephrased to the Job. Takes the place of the Hook Slot on the employment route.
+_Avoid_: opener, pitch, elevator pitch, about me
 
 ### Verification
 
