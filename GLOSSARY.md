@@ -19,7 +19,7 @@ One job, engagement or personal project, done or ongoing; an ongoing Project has
 _Avoid_: Past Job, company, client, position, experience, portfolio item
 
 **Project file**:
-The full record of one Project, read by both routes: its meta (name, url, role, employment, start, end, naming, domain, description, keywords) and its Stories grouped by Theme.
+The full record of one Project: its meta and its Stories grouped by Theme.
 _Avoid_: pool, inventory, log
 
 **employment**:
@@ -31,7 +31,7 @@ A named group of Stories inside a Project file, such as "Browser extension".
 _Avoid_: section, category, area
 
 **Story**:
-One list item in a Theme: the Bullet as its lead line, its Facts as indented context below. The only prose of a Project file.
+One piece of a Project's work under a Theme: its Bullet and the Facts behind it.
 _Avoid_: entry, item, anecdote, case
 
 **Bullet**:
@@ -43,7 +43,7 @@ One verifiable claim inside a Story, such as the client, the stack, a number or 
 _Avoid_: detail, data point
 
 **Answer**:
-The person's hand-written reply to one recurring question a Job may ask, kept under the question it answers. A Letter cites it word for word or tailors it; the Answers together are what the voice is tuned by.
+The person's hand-written reply to one recurring question a Job may ask. A Letter cites it word for word or tailors it; the Answers together are what the voice is tuned by.
 _Avoid_: answer bank entry, snippet, canned answer, calibration
 
 **Naming**:
@@ -51,7 +51,7 @@ How far a Project's client and product may be identified in a Version or Letter:
 _Avoid_: visibility, privacy, disclosure
 
 **keywords**:
-The Skills one Project proves, by ledger name: the one field of its Project file that Evidence derives from.
+The Skills one Project proves.
 _Avoid_: Keywords line, skills line, tech stack, tags
 
 **Skill**:
@@ -63,7 +63,7 @@ How far a Skill is proven: `shipped` (a Project shows it in production), `used` 
 _Avoid_: proficiency, seniority, rating, production, working
 
 **Evidence**:
-The Projects whose keywords name a Skill. Derived whenever it is read, never stored.
+The Projects whose keywords name a Skill.
 _Avoid_: proof, references, sources
 
 **Gap**:
@@ -89,37 +89,37 @@ A Job being pursued, moving through a Route. Becomes a Project when won.
 _Avoid_: application, lead
 
 **Tracker**:
-The list of Candidates and where each stands, printed from the Candidates' `job.md` and `cover-letter.md` frontmatter, never stored.
+The list of Candidates and where each stands.
 _Avoid_: pipeline, log, spreadsheet
 
 **Outcome**:
-Where a Candidate stands once its Letter went out, or on the employment route its Version alone (`sent`, `replied`, `interview`, `offer`, `hired`, `rejected`, `withdrawn`), or `null` before. Set by hand in `job.md`, only on a `go` decision.
+Where a Candidate stands once its Letter went out, or on the employment route its Version alone: `sent`, `replied`, `interview`, `offer`, `hired`, `rejected` or `withdrawn`.
 _Avoid_: status, result
 
 **Family**:
-The engagement shape a freelance Letter proposes for a Job: `audit`, `fix`, `build`, `maintenance`. Selects the Letter template, its active Slots and default topics. The client's project type is a detection signal, not the Family.
+The engagement shape a freelance Letter proposes for a Job: `audit`, `fix`, `build` or `maintenance`. Not the client's project type.
 _Avoid_: type, category, kind, project type, engagement model
 
 ### Workflow
 
 **Route**:
-A fixed sequence of States an agent follows for one kind of work. Agents follow it; they do not invent steps.
+A fixed sequence of States for one kind of work: the freelance route or the employment route.
 _Avoid_: pipeline, flow, workflow
 
 **State**:
-One step of a Route. Each State has one skill and one output artifact.
+One step of a Route and the one output it produces.
 _Avoid_: stage, phase, step
 
 **Guard**:
-The deterministic check a State runs before it loads: the previous State's artifact exists and validates, and the Route's preconditions hold. A failing Guard refuses the State with the reason and the next command to run.
+The condition a State needs before it runs: the previous State's output exists and is valid, and the Route's preconditions hold.
 _Avoid_: gate, precondition check, validation step
 
 **Verdict**:
-Triage output: `go`, `no-go`, or `ask`, with scores and triggered Flags.
+Whether a Job is pursued: `go`, `no-go` or `ask`, with the scores and triggered Flags behind it.
 _Avoid_: decision, result, assessment
 
 **Flag**:
-One named risk signal in a Job, with a level 1–5 from the Flag catalogue. A Green Flag is a Flag of level 0 that lowers the Alert Level. A Stop Flag is a Profile-fit failure (refused stack, unmet constraint) with no level that forces a Hard Stop.
+One named risk signal in a Job, with a level 1–5. A Green Flag is a Flag of level 0 that lowers the Alert Level. A Stop Flag is a Profile-fit failure (refused stack, unmet constraint) with no level that forces a Hard Stop.
 _Avoid_: red flag, warning, concern
 
 **Alert Level**:
@@ -131,13 +131,13 @@ A condition that forces Verdict `no-go` regardless of scores: Alert Level 5, a l
 _Avoid_: dealbreaker, blocker
 
 **Safeguard**:
-The term a triggered Flag makes the Letter state, in a fixed Slot, to protect the person from the risk the Flag names. Names only what the Job or the human states.
+The term a triggered Flag makes the Letter state, in a fixed Slot, to protect the person from the risk the Flag names.
 _Avoid_: mitigation, condition, caveat
 
 ### Outputs
 
 **Version**:
-One CV document made from the Master: the general Version behind the public PDF, the frontend Version, or one tailored to a Candidate's Job. The employment route picks one per Candidate and records the pick as `general`, `frontend` or `tailored` in `cover-letter.md`.
+One CV document made from the Master: the general Version behind the public PDF, the frontend Version, or one tailored to a Candidate's Job.
 _Avoid_: draft, template, CV file
 
 **Letter**:
@@ -145,11 +145,11 @@ The pasteable text a Route writes: a proposal on the freelance route, a cover le
 _Avoid_: bid, application, pitch
 
 **Slot**:
-One named part of a Letter template, called by its name plus Slot: Hook Slot, relevant work Slot, gaps Slot, milestones Slot, terms Slot, closing Slot. A template orders and activates Slots.
+One named part of a Letter template, called by its name plus Slot: Hook Slot, relevant work Slot, gaps Slot, milestones Slot, terms Slot, closing Slot.
 _Avoid_: section, block, fragment
 
 **Hook Slot**:
-The first paragraph of a Letter after the greeting: the client's goal and its main constraint restated as understood, sized to the preview the client sees before opening. Never an introduction, never a pitch.
+The first paragraph of a proposal after the greeting: the client's goal and its main constraint restated as understood. Never an introduction, never a pitch.
 _Avoid_: Hook, opener, intro, first sentence
 
 **Intro Slot**:
@@ -159,13 +159,13 @@ _Avoid_: opener, pitch, elevator pitch, about me
 ### Verification
 
 **Check**:
-One named rule `verify` applies to a Letter, by script or by model judgment.
+One named requirement a Letter or a Version is held to.
 _Avoid_: rule, lint, test
 
 **Finding**:
-One violation of a Check in one Slot, graded `fail` or `warn`.
+One place a Letter or a Version breaks a Check, graded `fail` or `warn`.
 _Avoid_: error, issue, violation, warning
 
 **Fix**:
-The change `verify` applies to the Letter for a Finding: a patched sentence or a regenerated Slot.
+The change a Finding calls for in the Letter: a patched sentence or a regenerated Slot.
 _Avoid_: correction, repair, remediation
