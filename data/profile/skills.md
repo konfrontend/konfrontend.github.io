@@ -105,17 +105,20 @@ skills:
   - { name: webpack, category: tooling, level: shipped, keywords: [], roles: [], seen: 0 }
   - { name: Turborepo, category: tooling, level: shipped, keywords: [], roles: [ full-stack, frontend ], seen: 0 }
   - { name: npm workspaces, category: tooling, level: shipped, keywords: [], roles: [], seen: 0 }
+  - { name: Jira, category: tooling, level: used, keywords: [], roles: [ full-stack, frontend ], seen: 0 }
+  - { name: Git, category: tooling, level: shipped, keywords: [], roles: [ full-stack, frontend ], seen: 0 }
   - { name: Role-based access control (RBAC), category: security, level: used, keywords: [ role-based access, permissions, rbac ], roles: [ full-stack ], seen: 8 }
   - { name: Content Security Policy, category: security, level: shipped, keywords: [], roles: [], seen: 0 }
   - { name: Claude Code, category: ai-tooling, level: shipped, keywords: [ claude code / agentic development workflow ], roles: [ full-stack, frontend ], seen: 2 }
   - { name: Agentic Workflows, category: ai-tooling, level: shipped, keywords: [ claude code / agentic development workflow ], roles: [ full-stack, frontend ], seen: 2 }
   - { name: Prompt Engineering, category: ai-tooling, level: shipped, keywords: [], roles: [ full-stack, frontend ], seen: 0 }
-  - { name: Agile/Scrum, category: methodologies, level: shipped, keywords: [], roles: [ full-stack, frontend ], seen: 0 }
+  - { name: Agile/Scrum, category: methodologies, level: shipped, keywords: [ agile, scrum ], roles: [ full-stack, frontend ], seen: 0 }
   - { name: Object-Oriented Programming (OOP), category: methodologies, level: shipped, keywords: [], roles: [ full-stack ], seen: 0 }
   - { name: Domain Modeling, category: methodologies, level: shipped, keywords: [], roles: [ full-stack, frontend ], seen: 0 }
   - { name: Local-first, category: methodologies, level: shipped, keywords: [], roles: [], seen: 0 }
   - { name: Architecture Decision Records, category: methodologies, level: shipped, keywords: [], roles: [ full-stack, frontend ], seen: 0 }
   - { name: Code Quality, category: methodologies, level: shipped, keywords: [], roles: [], seen: 0 }
+  - { name: Code Review, category: methodologies, level: shipped, keywords: [ code reviews, code reviewing ], roles: [ full-stack, frontend ], seen: 0 }
   - { name: Next.js, category: frontend, level: used, keywords: [], roles: [], seen: 5 }
   - { name: "Computational geometry (CGAL, straight skeleton)", category: graphics, level: shipped, keywords: [], roles: [], seen: 0 }
   - { name: C++ / WebAssembly, category: languages, level: shipped, keywords: [], roles: [], seen: 0 }
