@@ -3,7 +3,7 @@
 // catalogue names, and a Letter the segmentation cannot read stops on slot/parse. Run: npm test
 import test from "node:test";
 import assert from "node:assert/strict";
-import { analyse, segment, segmentEmployment } from "./verify.mjs";
+import { analyse, segment, segmentEmployment, render, roleNoun } from "./verify.mjs";
 import { loadCatalogue } from "./lib.mjs";
 
 // Headers and caps come from the Slot catalogue, so a wording or cap change there does not break
@@ -16,7 +16,11 @@ const profile = {
   word_cap: 350,
   terms: { rate: 60, rate_floor: 40, billing: "hourly-caps", subcontracting: "none", weekly_hours: { min: 0, max: 30 } },
 };
-const skills = [{ name: "TypeScript", level: "shipped" }, { name: "React", level: "shipped" }, { name: "Postgres", level: "used" }];
+const skills = [
+  { name: "TypeScript", level: "shipped", keywords: [], roles: ["full-stack", "frontend"] },
+  { name: "React", level: "shipped", keywords: [], roles: ["full-stack", "frontend"] },
+  { name: "Postgres", level: "used", keywords: ["postgresql"], roles: ["full-stack"] },
+];
 const voice = { language: "en-US", greeting: { freelance: "Hi,", employment: "Hello," }, sign_off: "Kon", banned_extra: ["synergy"], allowed_extra: ["leverage"], cite_role_period: false };
 const projects = [{
   slug: "acme", errors: [],
@@ -226,8 +230,8 @@ test("segment reads the milestones Family without a follow_on", () => {
 
 // The employment route: cover-letter.md against letter-employment, no headers, Slots by position.
 const employmentTemplate = loadCatalogue("templates/letter-employment");
-const employmentJob = (flags = ["regulated-domain"]) => ({
-  frontmatter: { slug: "acme-frontend", route: "employment", verdict: { flags, alert_level: 2, decision: "go" } },
+const employmentJob = (flags = ["regulated-domain"], requirements = ["Strong TypeScript skills", "Vue and Nuxt"]) => ({
+  frontmatter: { slug: "acme-frontend", title: "Senior Frontend Developer (Vue)", route: "employment", requirements, verdict: { flags, alert_level: 2, decision: "go" } },
   body: "Acme is hiring a frontend developer for a Vue and Nuxt site. Requirements: TypeScript, SEO, accessibility.",
 });
 const cleanCover = `Hello,
@@ -240,10 +244,14 @@ Happy to answer any questions about my work.
 
 Kon`;
 
-function runCover(body, { candidate = "2026-10-16-acme-frontend", fm = {}, flags } = {}) {
-  const letter = { frontmatter: { slug: "acme-frontend", date: "2026-10-16", version: "frontend", ...fm }, body, raw: "" };
-  return analyse({ candidate, letter, job: employmentJob(flags), profile, skills, voice, projects });
+// The Version as loadInputs reads it: the frontend summary from profile.md, the role from versions/frontend.md.
+const frontendVersion = { name: "frontend", role: "frontend", summary: "10+ years as a frontend developer in TypeScript: Vue and Nuxt sites.", source: "summaries.frontend in data/profile/profile.md", text: null };
+
+function runCover(body, { candidate = "2026-10-16-acme-frontend", fm = {}, flags, requirements, version = frontendVersion } = {}) {
+  const letter = { frontmatter: { slug: "acme-frontend", date: "2026-10-16", version: version?.name ?? "frontend", ...fm }, body, raw: "" };
+  return analyse({ candidate, letter, job: employmentJob(flags, requirements), profile, skills, voice, projects, version });
 }
+const versionIds = (r) => r.findings.filter((f) => f.pass === "version").map((f) => f.id);
 
 test("clean cover letter passes the script Checks within the template's character cap", () => {
   const r = runCover(cleanCover);
@@ -293,4 +301,70 @@ test("segmentEmployment reads the greeting apart and every block as prose", () =
   assert.deepEqual(seg.errors, []);
   assert.equal(seg.greeting.lines[0], "Hello,");
   assert.ok(seg.slots.every((s) => s.header === null));
+});
+
+test("every Check names its routes; the Version Checks run on employment only", () => {
+  const checks = loadCatalogue("verify").checks;
+  for (const c of checks) assert.ok(Array.isArray(c.routes) && c.routes.length, `${c.id} has no routes`);
+  for (const id of ["version/keyword-coverage", "version/title-in-summary"]) {
+    const c = checks.find((x) => x.id === id);
+    assert.deepEqual([c.routes, c.by, c.severity, c.fix], [["employment"], "script", "warn", "none"], id);
+  }
+  const r = run(cleanAudit);
+  assert.equal(r.version, null, "no Version pass on the freelance route");
+  assert.ok(r.findings.every((f) => f.pass === "letter"));
+});
+
+test("Version pass: a covered Version reports nothing", () => {
+  const r = runCover(cleanCover);
+  assert.deepEqual(versionIds(r), [], JSON.stringify(r.findings));
+  assert.equal(r.version.role_noun, "Frontend Developer");
+  assert.equal(r.version.requirements, 2);
+});
+
+test("version/keyword-coverage: one Finding per requirement outside the summary and the role's ledger rows", () => {
+  // Postgres is a full-stack row only, Jenkins no row at all, TypeScript a frontend row
+  const r = runCover(cleanCover, { requirements: ["Strong TypeScript skills", "PostgreSQL", "Jenkins pipelines"] });
+  const found = r.findings.filter((f) => f.id === "version/keyword-coverage");
+  assert.deepEqual(found.map((f) => f.detail.split('"')[1]), ["PostgreSQL", "Jenkins pipelines"]);
+  assert.ok(found.every((f) => f.severity === "warn" && f.fix === "none" && f.slot === "version"));
+  assert.equal(r.fails, 0);
+  const general = runCover(cleanCover, { requirements: ["PostgreSQL"], version: { ...frontendVersion, name: "general", role: "full-stack" } });
+  assert.ok(!has(general, "version/keyword-coverage"), "the full-stack Version carries the Postgres row");
+});
+
+test("version/keyword-coverage on tailored reads the version.md text, never the ledger roles", () => {
+  const tailored = { name: "tailored", role: "frontend", summary: "10+ years as a frontend developer.", source: "the paragraph after the contact line in version.md", text: "10+ years as a frontend developer.\n\n## Skills\n\nVue and Nuxt" };
+  const r = runCover(cleanCover, { version: tailored, requirements: ["Strong TypeScript skills", "Vue and Nuxt"] });
+  const found = r.findings.filter((f) => f.id === "version/keyword-coverage");
+  assert.equal(found.length, 1, JSON.stringify(found));
+  assert.ok(found[0].detail.includes("TypeScript") && found[0].detail.includes("version.md"));
+});
+
+test("version/title-in-summary: the role noun absent from the summary, or no summary at all", () => {
+  const r = runCover(cleanCover, { version: { ...frontendVersion, summary: "10+ years building web frontends in TypeScript, Vue and Nuxt." } });
+  assert.deepEqual(versionIds(r), ["version/title-in-summary"]);
+  assert.ok(r.findings[0].detail.includes('"Frontend Developer"'));
+  const hyphen = runCover(cleanCover, { version: { ...frontendVersion, summary: "10+ years as a front-end developer in TypeScript, Vue and Nuxt." } });
+  assert.deepEqual(versionIds(hyphen), [], "front-end reads as frontend");
+  const none = runCover(cleanCover, { version: { ...frontendVersion, summary: null } });
+  assert.ok(none.findings.some((f) => f.id === "version/title-in-summary" && f.detail.includes("summaries.frontend")), versionIds(none));
+  assert.equal(roleNoun("Lead Senior Front-end Engineer - Payments, Remote"), "Front-end Engineer");
+});
+
+test("an empty cover-letter.md body is a CV-only application: the Version pass alone", () => {
+  const r = runCover("", { requirements: ["Jenkins pipelines"] });
+  assert.equal(r.letter_skipped, true);
+  assert.deepEqual(r.findings.map((f) => f.id), ["version/keyword-coverage"]);
+  assert.equal(r.fails, 0);
+  const out = render(r, 5);
+  assert.match(out, /^version pass: 1 warn/);
+  assert.match(out, /letter pass: skipped/);
+  assert.ok(!out.includes("slots:"));
+});
+
+test("render prints the Version pass before the Letter pass", () => {
+  const out = render(runCover(cleanCover, { requirements: ["Jenkins pipelines"] }), 5);
+  assert.ok(out.indexOf("version pass:") < out.indexOf("script:"), out);
+  assert.match(out, /warn version\/keyword-coverage "Jenkins pipelines"/);
 });
