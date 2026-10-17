@@ -7,7 +7,7 @@
 //   exit 0 when no script Check fails, 1 when one does, 2 on usage or a missing input.
 import fs from "node:fs";
 import path from "node:path";
-import { readArtifact, readLedger, loadCatalogue, candidateDir, readProjects, letterFileFor, templateFor, PLUGIN_ROOT, PROFILE_DIR } from "./lib.mjs";
+import { readArtifact, readLedger, loadCatalogue, flagsFor, candidateDir, readProjects, letterFileFor, templateFor, PLUGIN_ROOT, PROFILE_DIR } from "./lib.mjs";
 
 const LIST_LINE = /^(?:-|\d+[.)])\s/;
 const URL_RE = /https?:\/\/[^\s)>\]]+/g;
@@ -43,11 +43,10 @@ function loadCatalogues(route, family) {
   const verify = loadCatalogue("verify");
   const voiceRules = loadCatalogue("voice");
   const slots = readArtifact(path.join(PLUGIN_ROOT, "catalogue", "templates", "letter-slots.md")).frontmatter;
-  const flags = loadCatalogue("flags");
   const templateName = templateFor(route, family);
   const templateFile = path.join(PLUGIN_ROOT, "catalogue", "templates", `${templateName}.md`);
   const template = fs.existsSync(templateFile) ? readArtifact(templateFile).frontmatter : null;
-  return { verify, voiceRules, slots, flags, template, templateName };
+  return { verify, voiceRules, slots, template, templateName };
 }
 
 // A catalogue number the script needs; a missing one is a catalogue bug, never a silent default.
@@ -358,7 +357,7 @@ export function analyse({ candidate, letter, job, profile, skills = [], voice, p
   if (closing && /\b(?:call|walk ?through|walk you through|screen ?share|zoom|google meet|video|demo)\b/i.test(closing.text)) add("closing/call", "closing", "offers a call or a walkthrough; questions are answered in writing");
 
   // brief for the model pass
-  const flagById = new Map(cat.flags.flags.map((f) => [f.id, f]));
+  const flagById = new Map(flagsFor(job.frontmatter?.route).map((f) => [f.id, f]));
   const safeguards = (v.flags ?? []).map((id) => flagById.get(id)).filter((f) => f && (!f.kind || f.kind === "risk") && f.slot && f.slot !== "none")
     .map((f) => ({ id: f.id, level: f.level, slot: f.slot === "plan" ? planSlot : f.slot, safeguard: f.safeguard }))
     .filter((f) => templateIds.has(f.slot));

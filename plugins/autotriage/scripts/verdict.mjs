@@ -4,11 +4,11 @@
 //   without --check: rewrites the computed fields into job.md and prints them
 //   with --check: exits 1 when stored values disagree with the recomputation
 import path from "node:path";
-import { readArtifact, writeArtifact, loadCatalogue, candidateDir, PROFILE_DIR } from "./lib.mjs";
+import { readArtifact, writeArtifact, flagsFor, candidateDir, PROFILE_DIR } from "./lib.mjs";
 
 export function compute(verdict, profile, job) {
-  const catalogue = loadCatalogue("flags");
-  const byId = new Map(catalogue.flags.map((f) => [f.id, f]));
+  // Only the Flags of the Candidate's route count; an id from the other route is ignored.
+  const byId = new Map(flagsFor(job?.route).map((f) => [f.id, f]));
   const triggered = (verdict.flags ?? []).map((id) => byId.get(id)).filter(Boolean);
   const risk = triggered.filter((f) => !f.kind || f.kind === "risk");
   const green = triggered.filter((f) => f.kind === "green");

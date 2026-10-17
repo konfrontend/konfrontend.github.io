@@ -54,6 +54,8 @@ salary: { type: annual, min: 50000, max: 60000, currency: EUR }  # optional; abs
 source: linkedin                  # optional, free string
 extras:                           # optional, free-form
   hours_per_day: 7.5
+requirements: [Vue 3, Nuxt 4, TypeScript, technical SEO, WCAG]   # triage; the Job's required items as the posting names them
+recorded_skills: [Vue, Nuxt]      # script; as on the freelance route
 verdict:                          # absent until triage runs; no family, no family_runner_up
   flags: [regulated-domain]
   skill_fit: 4
@@ -69,6 +71,7 @@ outcome: null                     # human; sent | replied | interview | offer | 
 Rules:
 
 - `slug`, `title`, `date`, `route` identify the record on both routes. On the freelance route `timezone` and `budget` feed the hard stops; on the employment route `company`, `employment`, `remote`, `timezone` describe the terms, and `remote` is the evidence for an `unmet-constraint` stop Flag, not a rule of its own. Everything else optional goes under `extras`; no new top-level field without a consumer.
+- `requirements` (employment route) is written by `triage` with the `verdict` block: the required items it listed for `skill_fit`, each a string as the posting names it, nice-to-haves left out. Its one consumer is `verify`'s Version pass, which looks for each entry in the Version sent. A re-run of `triage` replaces it.
 - No money hard stop on the employment route: pay is unknown until the offer stage. `rate-below-floor` is not in its `hard_stops` enum.
 - `recorded_skills` is written by `scripts/skills.mjs record`, the marker that makes recording idempotent: the ledger's `seen` is a count, so the Candidate's own file remembers which rows it was counted in. Never typed by hand.
 - `verdict` holds ids and numbers only. How they combine is in the Flag catalogue (`alert_level_steps`, `hard_stops`, `scores`, `verdict_mapping`). Evidence quotes, score reasons, matched cues, safeguards are session output.

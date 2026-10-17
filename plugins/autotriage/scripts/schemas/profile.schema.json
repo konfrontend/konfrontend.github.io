@@ -35,6 +35,16 @@
         "rate": { "type": "number", "minimum": 1 },
         "rate_floor": { "type": "number", "minimum": 1 },
         "budget_floor": { "type": "number", "minimum": 0 },
+        "salary_floor": {
+          "type": "object",
+          "required": ["type", "amount", "currency"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "enum": ["annual", "monthly", "hourly"] },
+            "amount": { "type": "number", "minimum": 1 },
+            "currency": { "type": "string", "pattern": "^[A-Z]{3}$" }
+          }
+        },
         "billing": { "enum": ["hourly-caps", "milestones", "both"], "default": "hourly-caps" },
         "weekly_hours": { "type": "object", "properties": { "min": { "type": "integer" }, "max": { "type": "integer" } } },
         "availability_from": { "type": "string" },
