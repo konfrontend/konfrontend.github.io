@@ -142,5 +142,6 @@ skills:
   - { name: Figma, category: frontend, level: gap, keywords: [], roles: [], seen: 1 }
   - { name: Vercel, category: devops, level: gap, keywords: [], roles: [], seen: 1 }
   - { name: Railway, category: devops, level: gap, keywords: [], roles: [], seen: 1 }
+  - { name: Virtual Private Servers (VPS), category: devops, level: shipped, keywords: [], roles: [], seen: 0 }
 ---
 One row per Skill, in master order, desk-only rows after. Evidence derives from the Projects' `keywords`, never stored.

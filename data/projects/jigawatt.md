@@ -8,7 +8,7 @@ end: 2026-07
 naming: public
 domain: solar industry, PV system design
 description: "Software suite for solar installers: interactive 3D design and energy modeling."
-keywords: [TypeScript, React, Vue.js, three.js, React Three Fiber, drei, Vite, Zustand, Redux, Vuex, Tailwind CSS, shadcn/ui, GSAP, Vitest, Google Maps API, PDF.js, WebGL, GLSL, SVG, Constructive Solid Geometry (CSG), Web Workers, OffscreenCanvas, PWA, Service Workers, IndexedDB, Code Quality]
+keywords: [TypeScript, React, Vue.js, three.js, React Three Fiber, drei, Vite, Zustand, Redux, Vuex, Tailwind CSS, shadcn/ui, GSAP, Vitest, Google Maps API, PDF.js, WebGL, GLSL, SVG, Constructive Solid Geometry (CSG), Web Workers, OffscreenCanvas, PWA, Service Workers, IndexedDB, Code Quality, pdf-lib, MongoDB, Azure Functions, C++ / WebAssembly, "Computational geometry (CGAL, straight skeleton)"]
 ---
 **Roof modeling**
 

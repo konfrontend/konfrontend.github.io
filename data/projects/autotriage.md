@@ -7,7 +7,7 @@ start: 2026-09
 naming: public
 domain: developer tooling, AI agent workflow
 description: Claude Code plugin that triages a freelance job posting and writes the proposal letter inside hook-enforced rails.
-keywords: [Claude Code, Node.js, JSON Schema, Agentic Workflows, Prompt Engineering, Domain Modeling, Architecture Decision Records]
+keywords: [Claude Code, Node.js, JSON Schema, Agentic Workflows, Prompt Engineering, Domain Modeling, Architecture Decision Records, Ajv]
 ---
 **Agent workflow design**
 

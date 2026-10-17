@@ -7,7 +7,7 @@ start: 2026-08
 naming: public
 domain: time tracking, desktop app
 description: Local-first time tracker app with an optional self-hosted sync server.
-keywords: [TypeScript, React, Electron, Node.js, Hono, PostgreSQL, SQLite, Drizzle ORM, Zod, Tailwind CSS, shadcn/ui, TanStack Query, Playwright, Vitest, Testcontainers, Docker, GitHub Actions, Cloudflare Tunnel, Turborepo, REST API, IPC, Local-first, CI/CD]
+keywords: [TypeScript, React, Electron, Node.js, Hono, PostgreSQL, SQLite, Drizzle ORM, Zod, Tailwind CSS, shadcn/ui, TanStack Query, Playwright, Vitest, Testcontainers, Docker, GitHub Actions, Cloudflare Tunnel, Turborepo, REST API, IPC, Local-first, CI/CD, Design Systems, Claude Code, Agentic Workflows, Auth, npm workspaces, Virtual Private Servers (VPS)]
 ---
 **Product and stack**
 
