@@ -228,7 +228,7 @@ test("segment reads the milestones Family without a follow_on", () => {
   assert.equal(r.fails, 0, JSON.stringify(r.findings));
 });
 
-// The employment route: cover-letter.md against letter-employment, no headers, Slots by position.
+// The employment route: cover-cover-letter.md against letter-employment, no headers, Slots by position.
 const employmentTemplate = loadCatalogue("templates/letter-employment");
 const employmentJob = (flags = ["regulated-domain"], requirements = ["Strong TypeScript skills", "Vue and Nuxt"]) => ({
   frontmatter: { slug: "acme-frontend", title: "Senior Frontend Developer (Vue)", route: "employment", requirements, verdict: { flags, alert_level: 2, decision: "go" } },
@@ -291,7 +291,7 @@ test("cover letter: a header, a missing Slot, a slug mismatch, a contact detail"
   const short = runCover("Hello,\n\nI'm a frontend developer.\n\nKon");
   assert.ok(short.findings.some((f) => f.id === "slot/parse" && f.detail.includes("too few blocks")), ids(short));
   const slug = runCover(cleanCover, { fm: { slug: "other" } });
-  assert.ok(slug.findings.some((f) => f.id === "slot/family-mismatch" && f.detail.startsWith("cover-letter.md slug")), ids(slug));
+  assert.ok(slug.findings.some((f) => f.id === "slot/family-mismatch" && f.detail.startsWith("cover-cover-letter.md slug")), ids(slug));
   const contact = runCover(cleanCover.replace("about my work.", "about my work at kon@example.com."));
   assert.ok(has(contact, "format/contact"), ids(contact));
 });
@@ -352,7 +352,7 @@ test("version/title-in-summary: the role noun absent from the summary, or no sum
   assert.equal(roleNoun("Lead Senior Front-end Engineer - Payments, Remote"), "Front-end Engineer");
 });
 
-test("an empty cover-letter.md body is a CV-only application: the Version pass alone", () => {
+test("an empty cover-cover-letter.md body is a CV-only application: the Version pass alone", () => {
   const r = runCover("", { requirements: ["Jenkins pipelines"] });
   assert.equal(r.letter_skipped, true);
   assert.deepEqual(r.findings.map((f) => f.id), ["version/keyword-coverage"]);

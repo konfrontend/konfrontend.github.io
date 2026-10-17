@@ -79,7 +79,7 @@ test("the print warns on outcome sent with no letter file, and only then", () =>
   const dir = fixture();
   try {
     const { warnings } = readRows(dir);
-    assert.deepEqual(warnings, ["2026-09-23-sent-no-letter: outcome is sent but letter.md is not in the folder"]);
+    assert.deepEqual(warnings, ["2026-09-23-sent-no-letter: outcome is sent but cover-letter.md is not in the folder"]);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

@@ -11,10 +11,6 @@ Issues and specs for this repo live in Linear. Workspace `gembag` (https://linea
 - **Apply / remove labels**: edit the issue's labels; create a missing label on team `GEM` first.
 - **Close**: move the issue to a completed state and leave a closing comment.
 
-## Pull requests as a triage surface
-
-**PRs as a request surface: no.** _(Set to `yes` if this repo treats external PRs as feature requests; `/triage` reads this flag.)_
-
 ## When a skill says "publish to the issue tracker"
 
 Create a Linear issue as above.

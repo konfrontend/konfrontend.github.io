@@ -1,8 +1,8 @@
 // Fixtures for the version State and the employment Guards: the pick rule reads the role title,
-// version.mjs records `version` in a frontmatter-only cover-letter.md, keeps its body on a re-run, and
+// version.mjs records `version` in a frontmatter-only cover-cover-letter.md, keeps its body on a re-run, and
 // copies the picked Version on --tailor, and the Guards refuse version off the employment route or
-// before go, proposal without cover-letter.md or with `version: tailored` and no version.md, and verify
-// without cover-letter.md; an empty body is a valid cover-letter.md. Each case runs the
+// before go, proposal without cover-cover-letter.md or with `version: tailored` and no version.md, and verify
+// without cover-cover-letter.md; an empty body is a valid cover-cover-letter.md. Each case runs the
 // scripts against a temp project through CLAUDE_PROJECT_DIR. Run: npm test
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -100,7 +100,7 @@ function fixture(jobText) {
   fs.writeFileSync(path.join(data, "candidates", CANDIDATE, "job.md"), jobText);
   return { root, dir: path.join(data, "candidates", CANDIDATE) };
 }
-// A Candidate past the version State: cover-letter.md as version.mjs leaves it.
+// A Candidate past the version State: cover-cover-letter.md as version.mjs leaves it.
 function versioned(version, jobText = job()) {
   const f = fixture(jobText);
   fs.writeFileSync(path.join(f.dir, "cover-letter.md"), cover(version));
@@ -121,7 +121,7 @@ test("the summary of a Version source is the paragraph after the contact line", 
   assert.equal(summaryParagraph("# Kon\n\nno contact line\n"), null);
 });
 
-test("version creates cover-letter.md with frontmatter only and names the next command", () => {
+test("version creates cover-cover-letter.md with frontmatter only and names the next command", () => {
   const jobText = job({ title: "Senior Vue Engineer" });
   const { root, dir } = fixture(jobText);
   const r = run(root, "version.mjs", CANDIDATE);
@@ -175,7 +175,7 @@ test("the version Guard requires a valid job.md, route employment, and decision 
   assert.match(invalid.stderr, /job\.md is invalid against job-employment/);
 });
 
-test("the proposal Guard on employment refuses without cover-letter.md and on tailored without version.md", () => {
+test("the proposal Guard on employment refuses without cover-cover-letter.md and on tailored without version.md", () => {
   const none = run(fixture(job()).root, "guard.mjs", "proposal", CANDIDATE);
   assert.equal(none.status, 1);
   assert.match(none.stderr, new RegExp(`proposal refused\\. .*cover-letter\\.md is missing\\.\nRun /autotriage:version ${CANDIDATE} first\\.`));
@@ -206,7 +206,7 @@ test("the proposal Guard on employment refuses without cover-letter.md and on ta
   assert.match(s.stderr, /no summary for the intro Slot: summaries\.general in data\/profile\/profile\.md is missing/);
 });
 
-test("the verify Guard on employment requires a valid cover-letter.md, empty body included; triage refuses once it exists", () => {
+test("the verify Guard on employment requires a valid cover-cover-letter.md, empty body included; triage refuses once it exists", () => {
   const { root, dir } = fixture(job());
   const missing = run(root, "guard.mjs", "verify", CANDIDATE);
   assert.equal(missing.status, 1);

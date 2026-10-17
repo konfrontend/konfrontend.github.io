@@ -1,6 +1,6 @@
 ---
 name: version
-description: Pick the Version an employment Candidate is sent with (general, frontend, or tailored) and record it in cover-letter.md.
+description: Pick the Version an employment Candidate is sent with (general, frontend, or tailored) and record it in cover-cover-letter.md.
 argument-hint: "<YYYY-MM-DD-slug> [--tailor]"
 ---
 !`node ${CLAUDE_PLUGIN_ROOT}/scripts/guard.mjs version $ARGUMENTS`

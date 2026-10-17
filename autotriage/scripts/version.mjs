@@ -1,5 +1,5 @@
 // The version State (employment route). Picks the Version a Candidate is sent with by the posting's
-// role title and records it as `version` in cover-letter.md, created with frontmatter only and an empty
+// role title and records it as `version` in cover-cover-letter.md, created with frontmatter only and an empty
 // body (a CV-only application until proposal writes the Letter into it); with --tailor it writes
 // `version: tailored` and copies the picked Version into the Candidate folder as version.md for the human to edit.
 // CLI: node scripts/version.mjs <candidate> [--tailor]
@@ -35,7 +35,7 @@ export function introSummary(profile, dir, version) {
   return { source: `summaries.${version} in data/profile/profile.md`, text: profile?.summaries?.[version] ?? null };
 }
 
-// Writes `version` into cover-letter.md: a new file gets `slug` and `date` from job.md and an empty body;
+// Writes `version` into cover-cover-letter.md: a new file gets `slug` and `date` from job.md and an empty body;
 // a re-run rewrites `version` and leaves the body alone. On tailor also creates version.md from the
 // picked Version. An existing version.md is the human's edit and is never overwritten.
 export function setVersion(candidate, { tailor = false } = {}) {

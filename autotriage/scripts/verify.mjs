@@ -4,7 +4,7 @@
 // employment route) and runs every Check marked `by: script`; the model Checks, the Fixes, and the
 // cycles are the skill's job. Prints Findings, the Slot map with line numbers, the counts, and the brief the model
 // pass reads (Safeguards to look for, `when: job asks` Slots present, Profile terms, shipped Skills).
-// An empty cover-letter.md body is a CV-only application: the Version pass runs alone.
+// An empty cover-cover-letter.md body is a CV-only application: the Version pass runs alone.
 // CLI: node scripts/verify.mjs <candidate> [--json]
 //   exit 0 when no script Check fails, 1 when one does, 2 on usage or a missing input.
 import fs from "node:fs";
@@ -44,7 +44,7 @@ export function loadInputs(candidate) {
   return { candidate, letter, job, profile, skills, voice, projects, version };
 }
 
-// The Version the Candidate is sent with (cover-letter.md `version`): its role and summary, and on
+// The Version the Candidate is sent with (cover-cover-letter.md `version`): its role and summary, and on
 // `tailored` the whole version.md text, which the Version pass reads instead of the summary and the ledger.
 export function readVersion(dir, name, profile) {
   const { source, text: summary } = introSummary(profile, dir, name);
@@ -248,7 +248,7 @@ export function versionPass(job, version, skills) {
     if (!covered) add("version/keyword-coverage", `"${req}" ${where}`);
   }
   const noun = roleNoun(job.frontmatter?.title);
-  if (!version?.summary) add("version/title-in-summary", `no summary to check: ${version?.source ?? "no version in cover-letter.md"} is missing`);
+  if (!version?.summary) add("version/title-in-summary", `no summary to check: ${version?.source ?? "no version in cover-cover-letter.md"} is missing`);
   else if (noun && !normRole(version.summary).includes(normRole(noun))) add("version/title-in-summary", `"${noun}" from the title "${job.frontmatter.title}" is absent from the summary (${version.source})`);
   return { name: version?.name ?? null, role: version?.role ?? null, source: version?.source ?? null, requirements: requirements.length, role_noun: noun, findings };
 }
@@ -442,7 +442,7 @@ export function render(r, frontmatterLines) {
     out.push("");
   }
   if (r.letter_skipped) {
-    out.push("letter pass: skipped, the cover-letter.md body is empty (a CV-only application)");
+    out.push("letter pass: skipped, the cover-cover-letter.md body is empty (a CV-only application)");
     return out.join("\n");
   }
   const letterFindings = r.findings.filter((f) => f.pass === "letter");

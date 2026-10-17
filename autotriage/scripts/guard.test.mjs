@@ -171,7 +171,7 @@ test("voice.md takes a greeting per route and no body", () => {
   assert.match(run(body, "profile.mjs", "status").stdout, /data\/profile\/voice\.md: invalid\n    body must be empty/);
 });
 
-test("the employment route checks cover-letter.md against letter-employment", () => {
+test("the employment route checks cover-cover-letter.md against letter-employment", () => {
   const root = fixture({ rows: [shippedReact], keywords: ["React"] });
   const dir = path.join(root, "data", "candidates", "2026-10-16-acme-frontend");
   fs.mkdirSync(dir, { recursive: true });
