@@ -5,7 +5,9 @@ The CV source for Konstantin Dolbilov, web developer. The master holds every bul
 ## Files
 
 - `data/master.md`: the master: contact, summary versions, skills, one entry per project linking its project file. Never rendered.
-- `data/projects/<project>.md`: the project file: the project's bullets by theme, closed by its keywords line.
+- `data/projects/<project>.md`: the project file: frontmatter meta with its `keywords`, then the project's Stories by Theme.
+- `data/profile/`: the Profile beside the master: `profile.md`, `voice.md`, the Skill ledger `skills.md`, one Answer per file in `answers/`.
+- `data/candidates/`: one folder per Candidate, gitignored; `archive/` holds the desk Candidates for reference, read by no Route.
 - `versions/general.md`: the general version behind the public `Konstantin_Dolbilov_Resume.pdf`; `index.html` redirects GitHub Pages to it.
 - `docs/format-rules.md`: the rules a rendered version follows, including the tailored file's name and place.
 
