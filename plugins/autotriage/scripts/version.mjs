@@ -1,6 +1,7 @@
 // The version State (employment route). Picks the Version a Candidate is sent with by the posting's
-// role title and writes `version` into job.md; with --tailor it writes `version: tailored` and copies
-// the picked Version into the Candidate folder as version.md for the human to edit.
+// role title and records it as `version` in cover-letter.md, created with frontmatter only and an empty
+// body (a CV-only application until proposal writes the Letter into it); with --tailor it writes
+// `version: tailored` and copies the picked Version into the Candidate folder as version.md for the human to edit.
 // CLI: node scripts/version.mjs <candidate> [--tailor]
 import fs from "node:fs";
 import path from "node:path";
@@ -34,15 +35,17 @@ export function introSummary(profile, dir, version) {
   return { source: `summaries.${version} in data/profile/profile.md`, text: profile?.summaries?.[version] ?? null };
 }
 
-// Writes `version` into job.md, before the verdict block; on tailor also creates version.md from the
+// Writes `version` into cover-letter.md: a new file gets `slug` and `date` from job.md and an empty body;
+// a re-run rewrites `version` and leaves the body alone. On tailor also creates version.md from the
 // picked Version. An existing version.md is the human's edit and is never overwritten.
 export function setVersion(candidate, { tailor = false } = {}) {
   const dir = candidateDir(candidate);
   const job = readArtifact(path.join(dir, "job.md"));
   const picked = pickVersion(job.frontmatter.title);
   const version = tailor ? "tailored" : picked;
-  const { verdict, version: _, ...rest } = job.frontmatter;
-  writeArtifact(job.file, { ...rest, version, ...(verdict ? { verdict } : {}) }, job.body);
+  const cover = readArtifact(path.join(dir, "cover-letter.md"));
+  const { slug, date } = job.frontmatter;
+  writeArtifact(path.join(dir, "cover-letter.md"), cover ? { ...cover.frontmatter, version } : { slug, date, version }, cover ? cover.body : "");
   const out = [`version: ${version}${tailor ? ` (from ${picked})` : ""}, picked by the title "${job.frontmatter.title}"`];
   const target = path.join(dir, "version.md");
   if (tailor) {
@@ -54,7 +57,7 @@ export function setVersion(candidate, { tailor = false } = {}) {
       out.push(`Created data/candidates/${candidate}/version.md from versions/${picked}.md. Tailor it before the proposal.`);
     }
   } else if (fs.existsSync(target)) out.push(`Note: data/candidates/${candidate}/version.md exists but is not used; proposal reads it only on version: tailored.`);
-  out.push(`Next: /autotriage:proposal ${candidate}`);
+  out.push(`Next: /autotriage:proposal ${candidate}, or stop here to send the Version without a Letter`);
   return out.join("\n");
 }
 

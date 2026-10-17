@@ -54,7 +54,7 @@ Portable across Profiles. Personal inputs (banned extras, allowed extras, word c
 
 ## Inputs
 
-- The Letter file of the current Candidate: body is the Letter; frontmatter `slug`, `family`, `date` in `letter.md`, `slug`, `date` in `cover-letter.md`.
+- The Letter file of the current Candidate: body is the Letter; frontmatter `slug`, `family`, `date` in `letter.md`, `slug`, `date`, `version` in `cover-letter.md`. An empty `cover-letter.md` body is a CV-only application: valid, with no Letter in it.
 - `job.md`: `route`, posting body (client facts, Job demands), `verdict.flags`, `verdict.alert_level`, `verdict.family` on the freelance route.
 - Profile: `profile.md` (`terms`, `word_cap`), `skills.md` (Skill rows: names for the acronym list, `shipped` rows for `gaps-required`), `data/projects/<slug>.md` (traceability source: the frontmatter meta and the Stories, harvested by the script into the brief), `voice.md` (`banned_extra`, `allowed_extra`).
 - Catalogues: voice rules, Slot catalogue, the route's template (the Family template named by `family`, or `letter-employment`), Flag catalogue.

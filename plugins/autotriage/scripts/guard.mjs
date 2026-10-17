@@ -90,12 +90,13 @@ export function guard(state, candidate) {
       break;
     }
     case "version": {
-      const { job, route } = candidateGate(state, candidate);
+      const { dir, job, route } = candidateGate(state, candidate);
       if (route !== "employment") refuse(state, `data/candidates/${candidate} is on the ${route} route; the version State runs on employment only.`, `Run /autotriage:proposal ${candidate}.`);
       const decision = job.frontmatter.verdict?.decision;
       if (decision !== "go") refuse(state, decision === "no-go" ? "decision is no-go. Route ended." : "decision is not go.", decision === "no-go" ? null : `Run /autotriage:triage ${candidate} first.`);
       out.push(`Candidate: data/candidates/${candidate}`, `Title: ${job.frontmatter.title}`);
-      if (job.frontmatter.version) out.push(`Note: version is already ${job.frontmatter.version}; this run overwrites it.`);
+      const current = readArtifact(path.join(dir, "cover-letter.md"))?.frontmatter?.version;
+      if (current) out.push(`Note: version is already ${current}; this run rewrites it and leaves the cover-letter.md body alone.`);
       break;
     }
     case "proposal": {
@@ -107,9 +108,12 @@ export function guard(state, candidate) {
       if (mismatch.length) refuse(state, `stored verdict disagrees with the recomputation:\n  ${mismatch.join("\n  ")}`, `Run /autotriage:triage ${candidate} again.`);
       if (v.decision === "no-go") refuse(state, "decision is no-go. Route ended.", null);
       if (v.decision !== "go") refuse(state, "checkpoint pending: decision is not set.", `Answer go or no-go in /autotriage:triage ${candidate}, or set verdict.decision in job.md by hand.`);
-      const version = job.frontmatter.version;
       if (job.frontmatter.route === "employment") {
-        if (!version) refuse(state, `data/candidates/${candidate}/job.md has no version.`, `Run /autotriage:version ${candidate} first.`);
+        const cover = readArtifact(path.join(dir, "cover-letter.md"));
+        if (!cover) refuse(state, `data/candidates/${candidate}/cover-letter.md is missing.`, `Run /autotriage:version ${candidate} first.`);
+        const errors = validateArtifact("cover-letter", cover);
+        if (errors.length) refuse(state, `data/candidates/${candidate}/cover-letter.md is invalid:\n  ${errors.join("\n  ")}`, `Run /autotriage:version ${candidate} again.`);
+        const version = cover.frontmatter.version;
         if (version === "tailored" && !fs.existsSync(path.join(dir, "version.md"))) refuse(state, `version is tailored but data/candidates/${candidate}/version.md is missing.`, `Run /autotriage:version ${candidate} --tailor, or /autotriage:version ${candidate} to send a stored Version.`);
         const intro = introSummary(profile.frontmatter, dir, version);
         if (!intro.text) refuse(state, `no summary for the intro Slot: ${intro.source} is missing.`, version === "tailored" ? `Put the summary paragraph after the contact line in data/candidates/${candidate}/version.md.` : `Add summaries.${version} to data/profile/profile.md.`);
@@ -127,7 +131,7 @@ export function guard(state, candidate) {
       if (!letter) refuse(state, `data/candidates/${candidate}/${letterFile} is missing.`, `Run /autotriage:proposal ${candidate} first.`);
       const errors = validateArtifact(letterFile.replace(/\.md$/, ""), letter);
       if (errors.length) refuse(state, `data/candidates/${candidate}/${letterFile} is invalid:\n  ${errors.join("\n  ")}`, `Run /autotriage:proposal ${candidate} again.`);
-      out.push(`Candidate: data/candidates/${candidate}`, `Route: ${route}`, `Letter: ${letterFile}`, ...(route === "employment" ? ["Template: letter-employment", `Version: ${job.frontmatter.version}`] : [`Family: ${letter.frontmatter.family}`]));
+      out.push(`Candidate: data/candidates/${candidate}`, `Route: ${route}`, `Letter: ${letterFile}`, ...(route === "employment" ? ["Template: letter-employment", `Version: ${letter.frontmatter.version}`] : [`Family: ${letter.frontmatter.family}`]));
       break;
     }
     default:

@@ -1,5 +1,5 @@
 // The Tracker (catalogue/candidate-artifacts.md, GEM-341): a print derived from each Candidate's job.md
-// frontmatter, one table for both routes. Open Candidates first (decision not no-go, outcome not
+// frontmatter, plus `version` from cover-letter.md on the employment route, one table for both routes. Open Candidates first (decision not no-go, outcome not
 // terminal), then closed, each by intake date descending. Folders under data/candidates/ that are not
 // a dated Candidate (the archive) are skipped. Never writes.
 // CLI: node scripts/tracker.mjs print
@@ -29,7 +29,7 @@ export function readRows(dir = CANDIDATES_DIR) {
       route,
       decision: fm.verdict?.decision ?? null,
       family: route === "freelance" ? fm.verdict?.family ?? null : null,
-      version: route === "employment" ? fm.version ?? cover?.version ?? null : null,
+      version: route === "employment" ? cover?.version ?? null : null,
       outcome: fm.outcome ?? null,
     });
     if (fm.outcome === "sent" && !fs.existsSync(path.join(folder, letterFile))) warnings.push(`${candidate}: outcome is sent but ${letterFile} is not in the folder`);
