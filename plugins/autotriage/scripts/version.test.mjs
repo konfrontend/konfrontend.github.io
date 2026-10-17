@@ -90,7 +90,7 @@ function fixture(jobText) {
   for (const d of ["profile", "projects", path.join("candidates", CANDIDATE)]) fs.mkdirSync(path.join(data, d), { recursive: true });
   fs.mkdirSync(path.join(root, "versions"));
   fs.writeFileSync(path.join(data, "profile", "profile.md"), profile);
-  fs.writeFileSync(path.join(data, "profile", "voice.md"), "---\nlanguage: en-US\ngreeting: \"Hi,\"\nsign_off: Kon\n---\n");
+  fs.writeFileSync(path.join(data, "profile", "voice.md"), "---\nlanguage: en-US\ngreeting: { freelance: \"Hi,\", employment: \"Hello,\" }\nsign_off: Kon\n---\n");
   fs.writeFileSync(path.join(data, "profile", "skills.md"), ledger);
   fs.writeFileSync(path.join(data, "projects", "acme.md"), project);
   fs.writeFileSync(path.join(root, "versions", "general.md"), versionSource(GENERAL));
@@ -191,7 +191,7 @@ test("the verify Guard on employment requires a valid cover-letter.md; triage re
   const invalid = run(root, "guard.mjs", "verify", CANDIDATE);
   assert.equal(invalid.status, 1);
   assert.match(invalid.stderr, /cover-letter\.md is invalid/);
-  fs.writeFileSync(path.join(dir, "cover-letter.md"), "---\nslug: acme-frontend\ndate: 2026-10-17\noutcome: null\n---\nHi,\n");
+  fs.writeFileSync(path.join(dir, "cover-letter.md"), "---\nslug: acme-frontend\ndate: 2026-10-17\n---\nHi,\n");
   const ok = run(root, "guard.mjs", "verify", CANDIDATE);
   assert.equal(ok.status, 0, ok.stderr);
   assert.match(ok.stdout, /Version: general/);
