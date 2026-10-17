@@ -137,7 +137,7 @@ _Avoid_: mitigation, condition, caveat
 ### Outputs
 
 **Version**:
-One CV document made from the Master: the general Version behind the public PDF, or one tailored to a Candidate's Job.
+One CV document made from the Master: the general Version behind the public PDF, the frontend Version, or one tailored to a Candidate's Job. The employment route picks one per Candidate and records the pick as `general`, `frontend` or `tailored`.
 _Avoid_: draft, template, CV file
 
 **Letter**:

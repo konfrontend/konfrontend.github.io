@@ -27,6 +27,15 @@
       "default": ["audit", "build", "maintenance", "fix"]
     },
     "word_cap": { "type": "integer", "minimum": 100, "maximum": 700, "default": 350 },
+    "summaries": {
+      "type": "object",
+      "required": ["general", "frontend"],
+      "additionalProperties": false,
+      "properties": {
+        "general": { "type": "string", "minLength": 1 },
+        "frontend": { "type": "string", "minLength": 1 }
+      }
+    },
     "terms": {
       "type": "object",
       "required": ["rate", "rate_floor", "budget_floor", "billing"],

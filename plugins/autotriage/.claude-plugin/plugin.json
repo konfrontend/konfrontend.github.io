@@ -1,6 +1,6 @@
 {
   "name": "autotriage",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Freelance job posting in, triage Verdict and pasteable proposal Letter out. One skill per Route State, hook-guarded.",
   "author": { "name": "Konstantin Dolbilov", "url": "https://github.com/konfrontend" },
   "repository": "https://github.com/konfrontend/autotriage",
@@ -10,6 +10,7 @@
     "./skills/route/route",
     "./skills/route/intake",
     "./skills/route/triage",
+    "./skills/route/version",
     "./skills/route/proposal",
     "./skills/route/verify",
     "./skills/profile/setup",
