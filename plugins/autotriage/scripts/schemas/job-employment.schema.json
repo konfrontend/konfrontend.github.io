@@ -28,6 +28,7 @@
     },
     "source": { "type": "string", "minLength": 1 },
     "extras": { "type": "object" },
+    "version": { "enum": ["general", "frontend", "tailored"] },
     "verdict": {
       "type": "object",
       "required": ["flags", "skill_fit", "interest_fit", "value", "alert_level", "hard_stops", "verdict", "decision"],

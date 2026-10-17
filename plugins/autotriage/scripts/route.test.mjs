@@ -48,9 +48,12 @@ test("employment schema: required terms, optional salary shape, no family, no ra
 });
 
 test("cover-letter.md has its own schema and the write hook finds it", () => {
-  const cover = { slug: "heymondo-senior-frontend", date: "2026-10-14", version: "general", outcome: null };
+  const cover = { slug: "heymondo-senior-frontend", date: "2026-10-14", outcome: null };
   assert.deepEqual(validate("cover-letter", cover), []);
-  assert.ok(validate("cover-letter", { ...cover, version: "audit" }).length);
+  assert.ok(validate("cover-letter", { ...cover, version: "general" }).length, "version lives in job.md, not on the cover letter");
+  assert.deepEqual(validate("job", { ...employment, version: "tailored" }), []);
+  assert.ok(validate("job", { ...employment, version: "audit" }).length, "version enum is closed");
+  assert.ok(validate("job", { ...freelance, version: "general" }).length, "no version on the freelance route");
   assert.ok(validate("cover-letter", { ...cover, family: "build" }).length, "no family on a cover letter");
   const folder = path.join(CANDIDATES_DIR, "2026-10-14-heymondo-senior-frontend");
   assert.equal(schemaForPath(path.join(folder, "cover-letter.md")), "cover-letter");

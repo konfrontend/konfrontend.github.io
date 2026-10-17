@@ -3,9 +3,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { YAML, Ajv } from "./vendor/deps.mjs";
-import { PLUGIN_ROOT, DATA, PROFILE_DIR, PROJECTS_DIR, CANDIDATES_DIR } from "./paths.mjs";
+import { PLUGIN_ROOT, DATA, PROFILE_DIR, PROJECTS_DIR, CANDIDATES_DIR, VERSIONS_DIR } from "./paths.mjs";
 
-export { PLUGIN_ROOT, DATA, PROFILE_DIR, PROJECTS_DIR, CANDIDATES_DIR };
+export { PLUGIN_ROOT, DATA, PROFILE_DIR, PROJECTS_DIR, CANDIDATES_DIR, VERSIONS_DIR };
 
 export class Refusal extends Error {
   constructor(message) {

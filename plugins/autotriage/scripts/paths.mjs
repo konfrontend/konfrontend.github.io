@@ -3,7 +3,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const PLUGIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-export const DATA = path.resolve(process.env.CLAUDE_PROJECT_DIR || process.cwd(), "data");
+export const PROJECT_DIR = path.resolve(process.env.CLAUDE_PROJECT_DIR || process.cwd());
+export const DATA = path.join(PROJECT_DIR, "data");
 export const PROFILE_DIR = path.join(DATA, "profile");
 export const PROJECTS_DIR = path.join(DATA, "projects");
 export const CANDIDATES_DIR = path.join(DATA, "candidates");
+// The general and frontend Versions (`versions/<name>.md`) sit beside `data/`, at the project root.
+export const VERSIONS_DIR = path.join(PROJECT_DIR, "versions");
