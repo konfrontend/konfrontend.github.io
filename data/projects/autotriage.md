@@ -1,3 +1,14 @@
+---
+name: autotriage
+url: https://github.com/konfrontend/autotriage
+role: Author & Sole Developer
+employment: independent
+start: 2026-09
+naming: public
+domain: developer tooling, AI agent workflow
+description: Claude Code plugin that triages a freelance job posting and writes the proposal letter inside hook-enforced rails.
+keywords: [Claude Code, Node.js, JSON Schema, Agentic Workflows, Prompt Engineering, Domain Modeling, Architecture Decision Records]
+---
 **Agent workflow design**
 
 - Built a public Claude Code plugin that triages a freelance job posting and writes a ready-to-paste proposal letter in 1–2 minutes instead of 30–60; 17 postings triaged, 11 letters written.
@@ -15,5 +26,3 @@
 
 - Required the model to trace each letter fact to a past job, profile field, posting line, or calculation; it asks the user about any unsourced fact and saves confirmed ones to the profile.
 - Built letter verification that applies its own fixes in place: 12 model-judged checks run only after 28 scripted checks pass, and each run ends passed or stopped on one user question.
-
-**Keywords this experience covers:** Claude Code, Node.js, JSON Schema, Agentic Workflows, Prompt Engineering, Domain Modeling, Architecture Decision Records

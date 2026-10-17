@@ -143,4 +143,4 @@ skills:
   - { name: Vercel, category: devops, level: gap, keywords: [], roles: [], seen: 1 }
   - { name: Railway, category: devops, level: gap, keywords: [], roles: [], seen: 1 }
 ---
-PROTOTYPE (GEM-337): seeded by prototype/fact-store/seed-ledger.mjs. One row per Skill, in master order. Evidence is derived from the Keywords lines, never stored.
+One row per Skill, in master order, desk-only rows after. Evidence derives from the Projects' `keywords`, never stored.
