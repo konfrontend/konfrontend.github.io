@@ -25,12 +25,6 @@
       "skillPath": "skills/job-description-analyzer/SKILL.md",
       "computedHash": "f6b48144029ceef1e18e9ea9d8d7f3036965615608d82f91d3adb1321d3f4bbe"
     },
-    "linkedin-profile-optimizer": {
-      "source": "paramchoudhary/resumeskills",
-      "sourceType": "github",
-      "skillPath": "skills/linkedin-profile-optimizer/SKILL.md",
-      "computedHash": "2d49d4fb126ddfdc630542e0844e87822abb8960030788de7cafa5deae7d736c"
-    },
     "portfolio-case-study-writer": {
       "source": "paramchoudhary/resumeskills",
       "sourceType": "github",

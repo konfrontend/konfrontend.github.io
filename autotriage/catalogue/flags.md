@@ -354,7 +354,7 @@ A Flag is one named risk signal in a Job. Green Flags are signals the client or 
 
 ## Routes
 
-Every Flag names its routes in `routes`. The Candidate's `route` (`job.md`) selects the Flag set: `triage` judges only those Flags, `verdict.mjs` counts only those ids, and `verify` recomputes Safeguards only from them. The stop Flags are on both routes; every other Flag is on one. An employment Flag's Safeguard targets a Slot of `letter-employment.md`; a 500-character cover letter carries little, so most employment Safeguards are `relevant_work` content or `none`.
+Every Flag names its routes in `routes`. The Candidate's `route` (`job.md`) selects the Flag set: `triage` judges only those Flags, `verdict.ts` counts only those ids, and `verify` recomputes Safeguards only from them. The stop Flags are on both routes; every other Flag is on one. An employment Flag's Safeguard targets a Slot of `letter-employment.md`; a 500-character cover letter carries little, so most employment Safeguards are `relevant_work` content or `none`.
 
 ## How `triage` uses this file
 

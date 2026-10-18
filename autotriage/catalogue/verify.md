@@ -56,10 +56,10 @@ Portable across Profiles. Personal inputs (banned extras, allowed extras, word c
 
 ## Inputs
 
-- The Letter file of the current Candidate: body is the Letter; frontmatter `slug`, `family`, `date` in `letter.md`, `slug`, `date`, `version` in `cover-letter.md`. An empty `cover-letter.md` body is a CV-only application: valid, with no Letter in it.
+- The Letter file of the current Candidate: body is the Letter; frontmatter `slug`, `family`, `date` in `letter.md`, `slug`, `date`, `version` in `cover-letter.md`. An empty `cover-letter.md` body is a resume-only application: valid, with no Letter in it.
 - `job.md`: `route`, posting body (client facts, Job demands), `verdict.flags`, `verdict.alert_level`, `verdict.family` on the freelance route, `title` and `requirements` on the employment route.
 - The Version on the employment route, named by `version` in `cover-letter.md`: `general` or `frontend` reads its summary from `profile.md` `summaries` and its role from the `role` frontmatter of `versions/<version>.md`; `tailored` reads the Candidate's `version.md`.
-- Profile: `profile.md` (`terms`, `word_cap`, `summaries`), `skills.md` (Skill rows: names for the acronym list, `shipped` rows for `gaps-required`, `roles` and aliases for `version/keyword-coverage`), `data/projects/<slug>.md` (traceability source: the frontmatter meta and the Stories, harvested by the script into the brief), `voice.md` (`banned_extra`, `allowed_extra`).
+- Profile: `profile.md` (`terms`, `word_cap`, `summaries`), the Skills (every Project's `keywords`: names for the acronym list and for `gaps-required`), `profile/projects/<slug>.md` (traceability source: the frontmatter meta and the Stories by key, harvested by the script into the brief), `voice.md` (`banned_extra`, `allowed_extra`).
 - Catalogues: voice rules, Slot catalogue, the route's template (the Family template named by `family`, or `letter-employment`), Flag catalogue.
 
 Nothing is stored. The report is session output; a Letter is final only after `verify` passes, so a stored pass carries no information.
@@ -86,7 +86,7 @@ A cover letter with fewer than five blocks, more than seven, or any header line 
 
 Blocks are separated by one blank line. A Letter this procedure cannot segment (too few blocks, a header where none is allowed, a block without a header straight after the hook, the same header twice) raises `slot/parse` and stops for the human. Hand-edited Letters go through the same procedure.
 
-`scripts/verify.mjs <candidate>` reads the route from `job.md`, runs the Version pass on the employment route, then the segmentation and every script Check of the route, and prints the Version pass first, then the Letter pass: its Findings, the Slot map with file line numbers, the counts, and the brief for the model pass (route and template, Safeguards to look for with their target Slot when the template has that Slot, `when: job asks` Slots present, Profile terms). Exit 1 while any script Check fails. An empty `cover-letter.md` body is a CV-only application: the Version pass runs alone and the Letter pass is skipped. Its fixtures in `scripts/verify.test.mjs` seed one Finding per Check group, on both routes.
+`scripts/verify.ts <candidate>` reads the route from `job.md`, runs the Version pass on the employment route, then the segmentation and every script Check of the route, and prints the Version pass first, then the Letter pass: its Findings, the Slot map with file line numbers, the counts, and the brief for the model pass (route and template, Safeguards to look for with their target Slot when the template has that Slot, `when: job asks` Slots present, Profile terms). Exit 1 while any script Check fails. An empty `cover-letter.md` body is a resume-only application: the Version pass runs alone and the Letter pass is skipped. Its fixtures in `scripts/verify.test.ts` seed one Finding per Check group, on both routes.
 
 ## Checks
 
@@ -145,7 +145,7 @@ Each length Check runs only when the route's template has the cap it reads; `let
 
 ### fact
 
-- `untraceable`: a fact with no source. The model lists every fact in the Letter (product name, URL, role, period, stack item, number, client quote) with its Slot and source: a Project's frontmatter field or Story (lead line or context) as the brief lists them, a `profile.md` field, the `job.md` body for client facts, or `derived` for hours and prices computed from the Profile rate. Fix: ask the human once whether the fact is true. True: append it as a context line under the nearest Story of the matching `data/projects/<slug>.md`, then regenerate the Slot. False or unknown: regenerate the Slot without it.
+- `untraceable`: a fact with no source. The model lists every fact in the Letter (product name, URL, role, period, stack item, number, client quote) with its Slot and source: a Project's frontmatter field or Story (lead line or context) as the brief lists them, a `profile.md` field, the `job.md` body for client facts, or `derived` for hours and prices computed from the Profile rate. Fix: ask the human once whether the fact is true. True: append it as a context line under the nearest Story of the matching `profile/projects/<slug>.md`, then regenerate the Slot. False or unknown: regenerate the Slot without it.
 - `arithmetic`: a milestone price that is not hours times the Profile rate, or a total that does not sum. Warn.
 
 ### terms
@@ -197,4 +197,4 @@ On `stopped`: the same, plus the one question for the human. The human edits the
 
 ## End of the Route
 
-`pass` plus the human sending the Letter ends the Route: pasted into Upwork on the freelance route, sent with the application and the PDF on the employment route. No further State, and no calibration step: the Answers in `data/profile/answers/` calibrate the voice, and `voice.md` has no body.
+`pass` plus the human sending the Letter ends the Route: pasted into Upwork on the freelance route, sent with the application and the PDF on the employment route. No further State, and no calibration step: the Answers in `profile/answers/` calibrate the voice, and `voice.md` has no body.

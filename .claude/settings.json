@@ -1,9 +1,17 @@
 {
-  "enabledPlugins": {},
-  "extraKnownMarketplaces": {},
+  "extraKnownMarketplaces": {
+    "konfrontend": {
+      "source": { "source": "directory", "path": "./autotriage" }
+    }
+  },
+  "enabledPlugins": {
+    "autotriage@konfrontend": true
+  },
   "permissions": {
     "allow": [
-      "Bash(node */scripts/tracker.mjs *)"
+      "Bash(node */scripts/*.ts *)",
+      "Bash(npm test*)",
+      "Bash(npm run *)"
     ]
   }
 }

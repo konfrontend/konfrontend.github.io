@@ -1,0 +1,13 @@
+{
+  "name": "@konfrontend/resume-renderer",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "build": "node render.ts"
+  },
+  "dependencies": {
+    "@konfrontend/profile": "^0.1.0",
+    "marked": "^18.1.0"
+  }
+}

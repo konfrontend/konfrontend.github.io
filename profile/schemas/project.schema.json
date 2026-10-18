@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "projects/<slug>.md frontmatter: one Project. Meta only; the body holds the Stories, each `- [key] Bullet` with its Facts indented beneath. `keywords` are the canonical Skills the Project proves.",
+  "type": "object",
+  "required": ["name", "role", "employment", "start", "naming", "description", "keywords"],
+  "additionalProperties": false,
+  "properties": {
+    "name": { "type": "string", "minLength": 1 },
+    "url": { "type": "string", "pattern": "^https?://" },
+    "role": { "type": "string", "minLength": 1 },
+    "employment": { "enum": ["full-time", "part-time", "contract", "freelance", "independent"] },
+    "start": { "type": "string", "pattern": "^\\d{4}-\\d{2}$" },
+    "end": { "type": "string", "pattern": "^\\d{4}-\\d{2}$" },
+    "naming": { "enum": ["public", "first-name-only", "nda"] },
+    "domain": { "type": "string" },
+    "description": { "type": "string", "minLength": 1 },
+    "keywords": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+  }
+}

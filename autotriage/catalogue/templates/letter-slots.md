@@ -96,7 +96,7 @@ The cover letter sent with an application and the CV PDF, from `letter-employmen
 
 - Order: `greeting`, `intro`, `relevant_work`, `gaps`, `terms`, `closing`, `sign_off`.
 - Always rendered: `greeting`, `intro`, `relevant_work`, `closing`, `sign_off`. `gaps` and `terms` render only when the Job asks (`when: job asks` in the template).
-- No headers, no lists, no Hook Slot, no `answers`: every block is a prose paragraph. Screening questions are form fields outside the Letter, answered by hand from the Answers in `data/profile/answers/`.
+- No headers, no lists, no Hook Slot, no `answers`: every block is a prose paragraph. Screening questions are form fields outside the Letter, answered by hand from the Answers in `profile/answers/`.
 - Length: all characters within the template's `cap.chars`, greeting and sign-off included. No word cap.
 
 ## Slots
@@ -113,7 +113,7 @@ Fill: one or two sentences opening with a phrase of understanding (`As I underst
 
 ### intro
 
-Prose, one paragraph, employment route only. Who is writing: the picked Version's summary (`versions/general.md` or `versions/frontend.md`, or the Candidate's `version.md` when tailored) in first person, rephrased to the posting's keywords. One source for who the person is, so the cover letter and the PDF never drift apart.
+Prose, one paragraph, employment route only. Who is writing: the `summary` of the Version sent (`resume/versions/general.md`, or the Candidate's `version.md` when tailored) in first person, rephrased to the posting's keywords. One source for who the person is, so the cover letter and the PDF never drift apart.
 
 Fill: the summary's facts only, reworded toward the Job's own terms. A role title (`frontend developer`) is allowed here and nowhere else; `10+ years` is allowed here as a fact. No Project names, no dates, no seniority words.
 
