@@ -1,19 +1,19 @@
 {
   "name": "autotriage",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
-  "description": "Claude Code plugin: freelance job posting in, triage Verdict and pasteable proposal Letter out.",
+  "description": "Claude Code plugin: a job posting in, a triage Verdict and a pasteable Letter out, inside hook-guarded rails.",
   "license": "MIT",
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "scripts": {
-    "test": "node --test scripts/*.test.mjs",
-    "vendor": "esbuild scripts/vendor/deps.src.mjs --bundle --format=esm --platform=node --target=node20 --legal-comments=eof --banner:js=\"import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);\" --outfile=scripts/vendor/deps.mjs"
+    "test": "node --test scripts/*.test.ts"
   },
-  "devDependencies": {
+  "dependencies": {
+    "@konfrontend/profile": "^0.1.0",
     "ajv": "^8.17.1",
-    "esbuild": "^0.28.2",
     "yaml": "^2.8.0"
   }
 }

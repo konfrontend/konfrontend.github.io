@@ -52,7 +52,7 @@ The Letter reads as a person who knows what they are doing and is reliable, with
 - A cited fact is a product name with URL, a role, a period in years, or one or two concrete things done there that match the Job; the route's template narrows which of these a Slot may cite. On the freelance route, role and period only when Profile `voice.md` `cite_role_period` is true (the default). Ownership or authorship of a Project is always stated when its role says so: it is the strongest fact a product can carry.
 - Not cited: commit counts, percentages, team size, awards.
 - No arithmetic for the reader: no derived total, no monthly or annual extrapolation, no comparison the reader did not ask for.
-- Every fact traces to a Project file `data/projects/<slug>.md`: its frontmatter meta or one of its Stories. When the Letter needs a fact the Profile lacks, `proposal` asks the human for it, appends it as a context line under the nearest Story of the matching Project file, and only then writes the Letter. The Letter holds no fact the Profile lacks.
+- Every fact traces to a Project file `profile/projects/<slug>.md`: its frontmatter meta or one of its Stories. When the Letter needs a fact the Profile lacks, `proposal` asks the human for it, appends it as a context line under the nearest Story of the matching Project file, and only then writes the Letter. The Letter holds no fact the Profile lacks.
 
 ## Formatting
 
@@ -87,4 +87,4 @@ allowed_extra: []        # shared banned phrases this Profile permits
 cite_role_period: true   # freelance route only; false: relevant_work cites product name, URL and things done, no role or years
 ```
 
-No body: the schema forbids one. The Answers in `data/profile/answers/` are the voice calibration, hand-written and polished; nothing a State writes calibrates the voice.
+No body: the schema forbids one. The Answers in `profile/answers/` are the voice calibration, hand-written and polished; nothing a State writes calibrates the voice.

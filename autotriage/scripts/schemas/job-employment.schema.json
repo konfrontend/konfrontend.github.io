@@ -31,7 +31,6 @@
     },
     "source": { "type": "string", "minLength": 1 },
     "extras": { "type": "object" },
-    "recorded_skills": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
     "requirements": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
     "outcome": { "enum": ["sent", "replied", "interview", "offer", "hired", "rejected", "withdrawn", null] },
     "verdict": {

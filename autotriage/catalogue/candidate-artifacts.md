@@ -1,14 +1,14 @@
 # Candidate artifacts
 
-A Candidate is one folder under `data/candidates/`, gitignored. `job.md` is the input on both routes; its required `route` field (`freelance | employment`) names the schema it validates against and the files beside it. A freelance Candidate holds `job.md` and `letter.md`; an employment Candidate holds `job.md`, `cover-letter.md`, and `version.md` only when a Version was tailored for this Job. No PDF: the human renders it outside the plugin. `job.md` is the posting for reference; `cover-letter.md` records what went out: the Version, always, and the Letter when one was written. Together they form the record that later work on Letter generation learns from. Nothing else is stored in the folder; everything a session prints (evidence, reasons, checklists) is thrown away. One write lands outside the folder: `triage` also records the Candidate in the Skill ledger `data/profile/skills.md` (the `seen` count of each Skill the Job required, plus a Gap row per unknown required item; catalogue `skills.md`) and writes the rows it counted back into `job.md` as `recorded_skills`, so a re-run records nothing twice.
+A Candidate is one folder under `private/candidates/`, gitignored. `job.md` is the input on both routes; its required `route` field (`freelance | employment`) names the schema it validates against and the files beside it. A freelance Candidate holds `job.md` and `letter.md`; an employment Candidate holds `job.md`, `cover-letter.md`, and `version.md` only when a Version was tailored for this Job. No PDF: the human renders it outside the plugin. `job.md` is the posting for reference; `cover-letter.md` records what went out: the Version, always, and the Letter when one was written. Together they form the record that later work on Letter generation learns from. Nothing else is stored in the folder; everything a session prints (evidence, reasons, checklists) is thrown away. Nothing is written outside the folder: the Skill ledger derives from every Candidate's `requirements` when the Profile is built.
 
 ## Folder
 
-`data/candidates/YYYY-MM-DD-<slug>/`. Date is the day `intake` ran. Slug is two to four words from the posting title, chosen by `intake`. The full title stays in `title`.
+`private/candidates/YYYY-MM-DD-<slug>/`. Date is the day `intake` ran. Slug is two to four words from the posting title, chosen by `intake`. The full title stays in `title`.
 
 ## `job.md`
 
-Written by `intake`; `triage` adds the `verdict` block and, after the checkpoint and the human's explicit confirmation of the ledger changes, records the Candidate in the Skill ledger; the human sets `decision` and, once the Letter or the Version went out, `outcome`. Body is the posting verbatim, nothing parsed out, nothing dropped. `intake` reads `route` from the human or infers it (a parameter line with a budget is freelance; a job ad is employment) and marks an inferred value in its report. The route is not a Family; `family` stays a freelance term.
+Written by `intake`; `triage` adds `requirements` and the `verdict` block; the human sets `decision` and, once the Letter or the Version went out, `outcome`. Body is the posting verbatim, nothing parsed out, nothing dropped. `intake` reads `route` from the human or infers it (a parameter line with a budget is freelance; a job ad is employment) and marks an inferred value in its report. The route is not a Family; `family` stays a freelance term.
 
 Freelance route (`scripts/schemas/job-freelance.schema.json`):
 
@@ -23,7 +23,7 @@ extras:                           # optional, free-form; anything else the posti
   country: US
   hours_per_week: "<30"
   duration: "1-3 months"
-recorded_skills: [React, Stripe Connect]   # script; the ledger rows this Candidate was counted in
+requirements: [React, Stripe Connect]   # triage; the Job's required items as the posting names them
 verdict:                          # absent until triage runs
   family: audit                   # Family id; human may edit before proposal
   family_runner_up: build         # Family id or null
@@ -55,7 +55,6 @@ source: linkedin                  # optional, free string
 extras:                           # optional, free-form
   hours_per_day: 7.5
 requirements: [Vue 3, Nuxt 4, TypeScript, technical SEO, WCAG]   # triage; the Job's required items as the posting names them
-recorded_skills: [Vue, Nuxt]      # script; as on the freelance route
 verdict:                          # absent until triage runs; no family, no family_runner_up
   flags: [regulated-domain]
   skill_fit: 4
@@ -71,9 +70,8 @@ outcome: null                     # human; sent | replied | interview | offer | 
 Rules:
 
 - `slug`, `title`, `date`, `route` identify the record on both routes. On the freelance route `timezone` and `budget` feed the hard stops; on the employment route `company`, `employment`, `remote`, `timezone` describe the terms, and `remote` is the evidence for an `unmet-constraint` stop Flag, not a rule of its own. Everything else optional goes under `extras`; no new top-level field without a consumer.
-- `requirements` (employment route) is written by `triage` with the `verdict` block: the required items it listed for `skill_fit`, each a string as the posting names it, nice-to-haves left out. Its one consumer is `verify`'s Version pass, which looks for each entry in the Version sent. A re-run of `triage` replaces it.
+- `requirements` is written by `triage` with the `verdict` block on both routes: the required items it listed for `skill_fit`, each a string as the posting names it, nice-to-haves left out. Two consumers: `verify`'s Version pass on the employment route, which looks for each entry in the Version sent, and the Profile build, which counts them into the Skill ledger as Seen and Gaps. A re-run of `triage` replaces it.
 - No money hard stop on the employment route: pay is unknown until the offer stage. `rate-below-floor` is not in its `hard_stops` enum.
-- `recorded_skills` is written by `scripts/skills.mjs record`, the marker that makes recording idempotent: the ledger's `seen` is a count, so the Candidate's own file remembers which rows it was counted in. Never typed by hand.
 - `verdict` holds ids and numbers only. How they combine is in the Flag catalogue (`alert_level_steps`, `hard_stops`, `scores`, `verdict_mapping`). Evidence quotes, score reasons, matched cues, safeguards are session output.
 - `alert_level`, `hard_stops`, `verdict` are computed by a script from `flags`, the scores, and the Profile floors. The `proposal` guard recomputes them and rejects the file on mismatch.
 - `verdict` is the script's recommendation; `decision` is the human's call. `proposal` runs only on `decision: go`. `no-go` ends the Route. `ask` is a verdict, not a decision: the human still writes `go` or `no-go`.
@@ -98,15 +96,15 @@ What went out on the employment route (`scripts/schemas/cover-letter.schema.json
 ```yaml
 slug: heymondo-senior-frontend
 date: 2026-10-14
-version: general                  # the version State; general | frontend | tailored; tailored means version.md exists beside it
+version: general                  # the version State; general | tailored; tailored means version.md exists beside it
 ```
 
-- `version` is written by `scripts/version.mjs` (the `version` State, employment route, on `decision: go`): frontend, front-end, React, Vue or UI in the `job.md` `title` picks `frontend`, anything else `general`; `--tailor` writes `tailored`. `proposal` reads it for the Intro Slot and refuses without `cover-letter.md`.
+- `version` is written by `scripts/version.ts` (the `version` State, employment route, on `decision: go`): `general`, or `tailored` with `--tailor`. `proposal` reads the named Version's `summary` for the Intro Slot and refuses without `cover-letter.md`.
 
 ## `version.md` (employment route)
 
-The tailored Version's source, created by `version --tailor` as a copy of the picked Version (`versions/general.md` or `versions/frontend.md`) and edited by the human. It exists only when `cover-letter.md` says `version: tailored`; the general and frontend Versions live in `versions/` and leave no copy in the folder. Its summary, the paragraph after the contact line, is what the Intro Slot reads. No schema: it is a Version, bound by `docs/format-rules.md`.
+The tailored Version's source, created by `version --tailor` as a copy of `resume/versions/general.md` and edited by the human: a selection over the Profile (Story keys per Project, Skills lines, `summary`), validated against `profile/schemas/version.schema.json` on every write and read through the Profile, so a key no Project has or a Skills term no Project proves refuses the next State. It exists only when `cover-letter.md` says `version: tailored`. Its `summary` is what the Intro Slot reads.
 
 ## Tracker
 
-The Tracker is not stored: `node scripts/tracker.mjs print`, behind `/autotriage:tracker`, prints it from every Candidate's `job.md` frontmatter, `version` from `cover-letter.md`, and never writes. One table for both routes, columns `date | candidate | route | decision | family | version | outcome`; `family` is empty on employment rows, `version` empty on freelance rows. Open Candidates come first, then closed (`decision: no-go` or a terminal `outcome`), each by intake date descending; a `hired` Candidate stays listed. The print warns on `outcome: sent` with no letter file (`letter.md` or `cover-letter.md`) in the folder, and skips any folder under `data/candidates/` that is not a dated Candidate, such as the archive. No history is committed.
+The Tracker is not stored: `node scripts/tracker.ts print`, behind `/autotriage:tracker`, prints it from every Candidate's `job.md` frontmatter, `version` from `cover-letter.md`, and never writes. One table for both routes, columns `date | candidate | route | decision | family | version | outcome`; `family` is empty on employment rows, `version` empty on freelance rows. Open Candidates come first, then closed (`decision: no-go` or a terminal `outcome`), each by intake date descending; a `hired` Candidate stays listed. The print warns on `outcome: sent` with no letter file (`letter.md` or `cover-letter.md`) in the folder, and skips any folder under `private/candidates/` that is not a dated Candidate, such as the archive. No history is committed.
