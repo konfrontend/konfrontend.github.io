@@ -11,8 +11,8 @@ skills:
   - "AI tooling: Claude Code, Model Context Protocol (MCP), Agentic Workflows, Prompt Engineering"
   - "Methodologies: Agile/Scrum, Object-Oriented Programming (OOP), Domain Modeling, Architecture Decision Records"
 projects:
-  loadster: [design-system, playwright-scripting, mcp-server, claude-workflow]
-  jigawatt: [roof-engine, shade-simulation, stack-choice]
-  nataliiamusikhina: [lcp]
-  timestop: [electron-app, local-first-model, sync-server]
+  loadster: [design-system, playwright-scripting, mcp-server, claude-workflow, vitest-intro]
+  jigawatt: [roof-engine, shade-simulation]
+  nataliiamusikhina: [site-stack]
+  timestop: [agent-workflow, local-first-model, sync-server, app-tests]
 ---
