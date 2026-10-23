@@ -1,12 +1,5 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "letter.md frontmatter (catalogue/candidate-artifacts.md)",
-  "type": "object",
-  "required": ["slug", "family", "date"],
-  "additionalProperties": false,
-  "properties": {
-    "slug": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
-    "family": { "enum": ["audit", "fix", "build", "maintenance"] },
-    "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" }
-  }
+  "title": "letter.md (catalogue/candidate-artifacts.md): body only, on both routes. The frontmatter is null, which is to say absent.",
+  "type": "null"
 }

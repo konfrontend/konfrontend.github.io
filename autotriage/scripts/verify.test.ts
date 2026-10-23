@@ -1,32 +1,30 @@
-// Fixtures for the script half of verify on both routes: a clean audit Letter and a clean cover
-// letter pass, a Letter seeded with one Finding per Check group reports each one with the Fix the
+// Fixtures for the script half of verify on both routes: a clean Letter with each plan Slot and a clean
+// cover letter pass, a Letter seeded with one Finding per Check group reports each one with the Fix the
 // catalogue names, and a Letter the segmentation cannot read stops on slot/parse. Run: npm test
 import test from "node:test";
 import assert from "node:assert/strict";
-import { analyse, segment, segmentEmployment, render, roleNoun, type VersionText, type Analysis } from "./verify.ts";
+import { analyse, segment, segmentEmployment, render, copiedRun, postingRuns, type Analysis } from "./verify.ts";
 import { loadCatalogue, type Project } from "./lib.ts";
 
 // Headers and caps come from the Slot catalogue, so a wording or cap change there does not break
 // the fixtures; the tests pin segmentation and counting, not the current catalogue values.
-const slotCatalogue = loadCatalogue("templates/letter-slots") as { headers: Record<string, string>; slots: { id: string; cap: Record<string, number> }[] };
+const slotCatalogue = loadCatalogue("templates/letter-slots") as { headers: Record<string, string>; plan_slots: string[]; slots: { id: string; cap: Record<string, number> }[] };
 const H = slotCatalogue.headers;
 const cap = (id: string) => slotCatalogue.slots.find((s) => s.id === id)!.cap;
 
-const profile = {
-  word_cap: 350,
-  terms: { rate: 60, rate_floor: 40, billing: "hourly-caps", subcontracting: "none", weekly_hours: { min: 0, max: 30 } },
-};
+const profile = { terms: { rate: 60, rate_floor: 40, weekly_hours: { min: 0, max: 30 } } };
 const skillNames = ["TypeScript", "React", "Postgres"];
-const voice = { language: "en-US", greeting: { freelance: "Hi,", employment: "Hello," }, sign_off: "Kon", banned_extra: ["synergy"], allowed_extra: ["leverage"], cite_role_period: false };
+const voice = { language: "en-US", greeting: { freelance: "Hi,", employment: "Hello," }, sign_off: "Kon", banned_extra: ["synergy"], allowed_extra: ["leverage"] };
 const bullet = { key: "rbac-admin", story: null, text: "Built the RBAC admin and the SAML login." };
 const projects: Project[] = [{
   slug: "acme", file: "acme.md", errors: [],
   meta: { name: "Acme", url: "https://acme.example", role: "Full Stack Developer", employment: "contract", start: "2021-02", naming: "public", description: "B2B dashboard.", keywords: ["TypeScript"] },
   stories: [], bullets: [bullet], notes: ["Collaborator and admin roles."], warnings: [],
 }];
-const job = (family: string | null, flags = ["regulated-domain"], alert = 2) => ({
-  frontmatter: { slug: "acme-audit", verdict: { family, flags, alert_level: alert } },
-  body: "Client wants a HIPAA review of a PHI pipeline. Budget $2,000.",
+const answers = [{ slug: "how-test-tenant-isolation", question: "How have you tested that one customer organisation cannot access another organisation's records?" }];
+const job = (flags = ["regulated-domain"], body = "Client wants a HIPAA review of a PHI pipeline. Budget $2,000.") => ({
+  frontmatter: { title: "Pipeline review", route: "freelance", verdict: "go", requirements: ["HIPAA"], flags },
+  body,
 });
 
 const cleanAudit = `Hi,
@@ -43,9 +41,6 @@ If the review lands, the fixes continue from that list, each accepted against a 
 ${H.relevant_work}
 Acme (https://acme.example), B2B dashboard, contractor since 2021. Built the RBAC admin and the SAML login.
 
-${H.gaps}
-No HIPAA project yet; the nearest work is the RBAC admin on Acme, so the PHI boundary comes first in the review.
-
 ${H.billing}
 The review is capped at 20 hours, billed on actual hours; unused hours are not billed.
 
@@ -55,41 +50,48 @@ Happy to answer whatever questions remain, here in Upwork Messages.
 
 Kon`;
 
-function run(body: string, family = "audit", { flags, alert, candidate = "2026-09-20-acme-audit", fm = {} }: { flags?: string[]; alert?: number; candidate?: string; fm?: object } = {}) {
-  const letter = { frontmatter: { slug: "acme-audit", family, date: "2026-09-20", ...fm }, body, raw: "" };
-  return analyse({ candidate, letter, job: job(family, flags, alert), profile, skillNames, voice, projects });
+function run(body: string, { flags, candidate = "2026-09-20-acme-audit", jobBody }: { flags?: string[]; candidate?: string; jobBody?: string } = {}) {
+  return analyse({ candidate, letter: { body }, job: job(flags, jobBody), profile, skillNames, voice, projects, answers });
 }
 const ids = (r: Analysis) => r.findings.map((f) => f.id);
 const has = (r: Analysis, id: string) => r.findings.some((f) => f.id === id);
 const fixOf = (r: Analysis, id: string) => r.findings.find((f) => f.id === id)?.fix;
 
-test("clean audit Letter passes the script Checks", () => {
+test("clean Letter with the deliverables plan Slot passes the script Checks; the prose after the list is the plan block's", () => {
   const r = run(cleanAudit);
   assert.equal(r.fails, 0, JSON.stringify(r.findings));
-  assert.deepEqual(r.slots.map((s) => s.id), ["hook", "deliverables", "follow_on", "relevant_work", "gaps", "billing", "terms", "closing", "sign_off"]);
-  assert.equal(r.brief.safeguards[0].slot, "deliverables");
+  assert.deepEqual(r.slots.map((s) => s.id), ["hook", "deliverables", "relevant_work", "billing", "terms", "closing", "sign_off"]);
+  assert.equal(r.brief.plan_slot, "deliverables");
+  assert.equal(r.brief.alert_level, 2, "recomputed from the stored flags");
+  assert.equal(r.brief.safeguards[0].slot, "deliverables", "plan resolves to the plan Slot present");
   assert.deepEqual(r.brief.skills, ["TypeScript", "React", "Postgres"], "the brief lists the Profile's Skills");
+  assert.deepEqual(r.brief.answers, answers, "the brief lists the Answers as a Letter source");
   assert.deepEqual(r.brief.projects.map((p: any) => [p.slug, p.name, p.url, p.period, p.bullets.length, p.notes]), [["acme", "Acme", "https://acme.example", "2021-02 – present", 1, ["Collaborator and admin roles."]]], "the brief harvests the Project facts from the meta, the Bullets and the Notes");
   assert.deepEqual(r.brief.projects[0].bullets[0], { key: "rbac-admin", story: null, text: "Built the RBAC admin and the SAML login." });
-  assert.match(render(r, 0), /- \[rbac-admin\] Built the RBAC admin/);
+  const out = render(r);
+  assert.match(out, /- \[rbac-admin\] Built the RBAC admin/);
+  assert.match(out, /how-test-tenant-isolation: How have you tested/);
+  assert.ok(!/[Ff]amily/.test(out));
 });
 
-test("voice: banned phrase, Profile extra, allowed extra, exclamation, plural, self-descriptive", () => {
+test("voice: banned phrase, Profile extra, allowed extra, exclamation, plural, self-descriptive, self-deprecation, L1 opener", () => {
   const body = cleanAudit
     .replace("Built the RBAC admin", "I'm excited to say we built the RBAC admin with synergy and leverage")
     .replace("here in Upwork Messages.", "here in Upwork Messages!")
     .replace("contractor since 2021", "senior contractor since 2021")
-    .replace("and the SAML login.", "; the SAML login; the tests.");
+    .replace("and the SAML login.", "; the SAML login; the tests. I may not have the HIPAA badge. I am writing to apply.");
   const r = run(body);
   assert.ok(has(r, "voice/semicolon-chain"), ids(r).join());
   assert.equal(fixOf(r, "voice/semicolon-chain"), "patch");
   assert.ok(has(r, "voice/banned-phrase"), ids(r).join());
   assert.ok(r.findings.some((f) => f.id === "voice/banned-phrase" && f.detail.includes("synergy")));
+  assert.ok(r.findings.some((f) => f.id === "voice/banned-phrase" && f.detail.includes("I am writing to apply")), "L1 openers are banned");
   assert.ok(!r.findings.some((f) => f.detail.includes('"leverage"')), "allowed_extra lifts the shared ban");
   assert.ok(has(r, "voice/exclamation"));
   assert.ok(has(r, "voice/first-person-plural"));
   assert.ok(has(r, "voice/self-descriptive"));
-  assert.equal(fixOf(r, "voice/banned-phrase"), "patch");
+  assert.ok(r.findings.some((f) => f.id === "voice/self-deprecation" && f.detail.includes("I may not have")), "L3 self-deprecation is a script fail");
+  assert.equal(fixOf(r, "voice/self-deprecation"), "patch");
   assert.ok(r.findings.every((f) => f.id !== "voice/first-person-plural" || f.slot === "relevant_work"));
 });
 
@@ -98,7 +100,19 @@ test("voice: a quoted client phrase and the country US are not first-person plur
   assert.ok(!has(run(body), "voice/first-person-plural"));
 });
 
-test("format: markdown, emoji, all-caps, indentation, contact, url count", () => {
+test("voice/posting-copy: six words copied from the posting warn; an ask header is exempt", () => {
+  const posting = "We need someone to review the pipeline before the pilot goes live in Boston. What is your rate and availability?";
+  const copied = cleanAudit.replace("Built the RBAC admin and the SAML login.", "I can review the pipeline before the pilot goes live and report.");
+  const r = run(copied, { jobBody: posting });
+  assert.ok(r.findings.some((f) => f.id === "voice/posting-copy" && f.severity === "warn" && f.fix === "patch" && f.detail.includes("review the pipeline before the pilot")), ids(r).join());
+  const asked = cleanAudit.replace("Madrid, Spain", "What is your rate and availability?\nMadrid, Spain");
+  const r2 = run(asked, { jobBody: posting });
+  assert.ok(!has(r2, "voice/posting-copy"), ids(r2).join());
+  assert.equal(copiedRun("a b c d e f g", postingRuns("x a b c d e f y")), "a b c d e f");
+  assert.equal(copiedRun("a b c d e", postingRuns("a b c d e f")), null, "five words are not a run");
+});
+
+test("format: markdown, emoji, all-caps, indentation, contact, url count; no url-list", () => {
   const body = cleanAudit
     .replace("Findings ranked by severity", "**Findings** ranked by SHOUTING severity")
     .replace("- Assumptions and deferred items", "  - Assumptions and deferred items 🚀")
@@ -112,6 +126,7 @@ test("format: markdown, emoji, all-caps, indentation, contact, url count", () =>
   assert.ok(r.findings.filter((f) => f.id === "format/contact").length >= 2);
   assert.ok(r.findings.some((f) => f.id === "format/url-count" && f.detail.includes("not https")));
   assert.equal(fixOf(r, "format/url-count"), "regenerate");
+  assert.ok(!has(r, "format/url-list"), "format/url-list is gone");
 });
 
 test("slot: a colon header in second person fails, a verbatim question keeps its pronouns", () => {
@@ -121,26 +136,33 @@ test("slot: a colon header in second person fails, a verbatim question keeps its
   assert.ok(!has(r2, "slot/header-second-person"), ids(r2).join());
 });
 
-test("slot: an ask header over a list is the plan Slot", () => {
+test("slot: an ask header over a list is the plan Slot; numbered lines read as milestones", () => {
   const r = run(cleanAudit.replace(`${H.deliverables}\n`, "What I would deliver:\n"));
   const plan = r.slots.find((s) => s.id === "deliverables");
   assert.ok(plan && plan.demand === "What I would deliver", JSON.stringify(r.slots.map((s) => s.id)));
-  assert.ok(!has(r, "slot/missing"), ids(r).join());
+  assert.ok(!has(r, "slot/plan-count"), ids(r).join());
+  const numbered = run(cleanAudit.replace(`${H.deliverables}\n- Findings ranked by severity\n- Map of what to keep, fix, or rebuild\n- Effort and order for the next stage\n- Assumptions and deferred items`, "What I would do first:\n1. Audit, 8 to 12 hours.\n2. Access control, 10 to 20 hours.\n3. Tests, 8 to 12 hours."));
+  assert.ok(numbered.slots.some((s) => s.id === "milestones"), JSON.stringify(numbered.slots.map((s) => s.id)));
 });
 
-test("slot: extra Slot, header-missing list, family and folder mismatch", () => {
-  const body = cleanAudit
-    .replace(`${H.deliverables}\n`, "")
-    .replace(H.billing, `${H.working_model}\nRequests come in through Upwork Messages.\n\n${H.billing}`);
-  const r = run(body, "audit", { candidate: "2026-09-21-other-slug", fm: { family: "audit" } });
-  assert.ok(has(r, "slot/header-missing"), ids(r).join());
-  assert.ok(r.findings.some((f) => f.id === "slot/extra" && f.slot === "working_model"));
-  assert.equal(fixOf(r, "slot/extra"), "remove");
-  assert.ok(r.findings.filter((f) => f.id === "slot/family-mismatch").length >= 2);
-  const r2 = run(cleanAudit, "fix");
-  assert.ok(r2.findings.some((f) => f.id === "slot/missing" && f.slot === "milestones"), ids(r2).join());
-  assert.ok(r2.findings.some((f) => f.id === "slot/extra" && f.slot === "deliverables"));
-  assert.ok(r2.findings.some((f) => f.id === "slot/extra" && f.slot === "follow_on"));
+test("slot/plan-count: no plan Slot, or two, fails with regenerate; a header-missing list is the plan Slot", () => {
+  const none = run(cleanAudit.replace(`${H.deliverables}\n- Findings ranked by severity\n- Map of what to keep, fix, or rebuild\n- Effort and order for the next stage\n- Assumptions and deferred items\nIf the review lands, the fixes continue from that list, each accepted against a written check.\n\n`, ""));
+  assert.ok(none.findings.some((f) => f.id === "slot/plan-count" && f.detail.startsWith("no plan Slot")), ids(none).join());
+  assert.equal(fixOf(none, "slot/plan-count"), "regenerate");
+  const two = run(cleanAudit.replace(H.billing, `${H.working_model}\nRequests come in through Upwork Messages.\n\n${H.billing}`));
+  assert.ok(two.findings.some((f) => f.id === "slot/plan-count" && f.detail.startsWith("2 plan Slots (deliverables, working_model)")), ids(two).join());
+  assert.ok(!has(two, "slot/extra"), "every plan Slot is in the template; only the count is wrong");
+  const headerless = run(cleanAudit.replace(`${H.deliverables}\n`, ""));
+  assert.ok(has(headerless, "slot/header-missing"), ids(headerless).join());
+  assert.ok(!has(headerless, "slot/plan-count"));
+});
+
+test("slot/extra: a Slot the template no longer lists (gaps, stack, follow_on headers read as answers; a stray Slot id fails)", () => {
+  const r = run(cleanAudit.replace(H.billing, `Gaps:\nNo HIPAA project yet.\n\n${H.billing}`));
+  assert.equal(r.slots.find((s) => s.demand === "Gaps")?.id, "answers", "an unknown header is an answers paragraph, never a gaps Slot");
+  assert.ok(!has(r, "slot/extra"));
+  const emp = analyse({ candidate: "2026-10-16-acme-frontend", letter: { body: cleanAudit }, job: { frontmatter: { route: "employment", verdict: "go" }, body: "" }, profile, skillNames, voice, projects });
+  assert.ok(emp.findings.some((f) => f.id === "slot/parse"), "a freelance Letter does not read as a cover letter");
 });
 
 test("slot/parse stops: too few blocks, a header in the tail, an unheadered block after the hook", () => {
@@ -164,12 +186,13 @@ test("length: hook, prose cap, total ceiling, second list", () => {
   const filler = ("Another sentence of prose that says nothing new about the work. ").repeat(60);
   const body = cleanAudit
     .replace(/As I understand it.*\n/, longHook + "\n")
-    .replace("Built the RBAC admin and the SAML login.", "Built the RBAC admin.\n\nGaps list:\n- one\n- two")
-    .replace("No HIPAA project yet;", filler + " No HIPAA project yet;");
+    .replace("Built the RBAC admin and the SAML login.", "Built the RBAC admin.\n\nMore work:\n- one\n- two")
+    .replace("The review is capped", filler + " The review is capped");
   const r = run(body);
   for (const id of ["length/hook", "length/prose-cap", "length/total-ceiling", "length/list-lines"]) assert.ok(has(r, id), `${id} missing in ${ids(r).join()}`);
   assert.ok(r.findings.some((f) => f.id === "length/list-lines" && f.detail.includes("second list")));
   assert.equal(fixOf(r, "length/hook"), "regenerate");
+  assert.equal(r.counts!.word_cap, 350, "the prose cap is the template's; no Profile word_cap");
 });
 
 test("length: relevant_work at its cap passes, one Project over fails", () => {
@@ -201,29 +224,35 @@ test("terms and closing patterns: hour range, bounded window, call", () => {
   assert.equal(fixOf(r, "closing/call"), "patch");
 });
 
-test("answers paragraphs are excluded from prose but counted in total; when-job-asks Slots are reported", () => {
-  const body = cleanAudit.replace(H.billing, `${H.stack}\nReact and TypeScript, because the client already runs them.\n\nSubcontracting:\nNone. All work is mine.\n\n${H.billing}`);
+test("answers paragraphs are excluded from prose but counted in total; a stack ask is an answers paragraph", () => {
+  const body = cleanAudit.replace(H.billing, `Proposed stack:\nReact and TypeScript, because the client already runs them.\n\nSubcontracting:\nNone. All work is mine.\n\n${H.billing}`);
   const r = run(body);
   assert.equal(r.fails, 0, JSON.stringify(r.findings));
-  assert.deepEqual(r.brief.job_asks_present, ["stack"]);
-  assert.equal(r.slots.find((s) => s.id === "answers")!.demand, "Subcontracting");
-  assert.equal(r.counts!.words - r.counts!.prose_words, 7 + 1 + 5 + 23);
+  assert.deepEqual(r.brief.job_asks_present, [], "no when-job-asks Slot on the freelance template");
+  assert.deepEqual(r.slots.filter((s) => s.id === "answers").map((s) => s.demand), ["Proposed stack", "Subcontracting"]);
+  assert.equal(r.counts!.words - r.counts!.prose_words, 23 + 4 + 2 + 9 + 1 + 5, "list lines, catalogue headers, ask headers and answers paragraphs");
 });
 
-test("segment reads the milestones Family without a follow_on", () => {
-  const fix = cleanAudit
-    .replace(`${H.deliverables}\n- Findings ranked by severity\n- Map of what to keep, fix, or rebuild\n- Effort and order for the next stage\n- Assumptions and deferred items\nIf the review lands, the fixes continue from that list, each accepted against a written check.`,
-      `${H.milestones}\n1. Audit, 8 to 12 hours, read-only, findings ranked by severity.\n2. Access control, 10 to 20 hours.\n3. Tests, 8 to 12 hours.`);
-  const seg = segment(fix, { headers: H, planSlot: "milestones" });
+test("segment reads the milestones and working_model plan Slots", () => {
+  const list = `${H.deliverables}\n- Findings ranked by severity\n- Map of what to keep, fix, or rebuild\n- Effort and order for the next stage\n- Assumptions and deferred items\nIf the review lands, the fixes continue from that list, each accepted against a written check.`;
+  const fix = cleanAudit.replace(list, `${H.milestones}\n1. Audit, 8 to 12 hours, read-only, findings ranked by severity.\n2. Access control, 10 to 20 hours.\n3. Tests, 8 to 12 hours.`);
+  const seg = segment(fix, { headers: H, planSlots: slotCatalogue.plan_slots });
   assert.deepEqual(seg.errors, []);
-  assert.deepEqual(seg.slots.map((s) => s.id), ["hook", "milestones", "relevant_work", "gaps", "billing", "terms", "closing", "sign_off"]);
-  assert.equal(run(fix, "fix").fails, 0);
+  assert.deepEqual(seg.slots.map((s) => s.id), ["hook", "milestones", "relevant_work", "billing", "terms", "closing", "sign_off"]);
+  const r = run(fix, { flags: ["burned-before", "regulated-domain"] });
+  assert.equal(r.fails, 0, JSON.stringify(r.findings));
+  assert.equal(r.brief.plan_slot, "milestones");
+  assert.deepEqual(r.brief.safeguards.map((s: any) => s.slot), ["milestones", "milestones"]);
+  assert.equal(r.brief.alert_level, 4, "burned-before with regulated-domain steps up");
+  const maint = run(cleanAudit.replace(list, `${H.working_model}\nRequests come in through Upwork Messages and go on a board you own. Each item is accepted against a written check, with a weekly summary.`));
+  assert.equal(maint.fails, 0, JSON.stringify(maint.findings));
+  assert.equal(maint.brief.plan_slot, "working_model");
 });
 
-// The employment route: cover-letter.md against letter-employment, no headers, Slots by position.
+// The employment route: letter.md against letter-employment, no headers, Slots by position.
 const employmentTemplate = loadCatalogue("templates/letter-employment") as { cap: { chars: number } };
-const employmentJob = (flags = ["regulated-domain"], requirements = ["Strong TypeScript skills", "Vue and Nuxt"]) => ({
-  frontmatter: { slug: "acme-frontend", title: "Senior Frontend Developer (Vue)", route: "employment", requirements, verdict: { flags, alert_level: 2, decision: "go" } },
+const employmentJob = (requirements = ["TypeScript", "Vue.js"]) => ({
+  frontmatter: { title: "Senior Frontend Developer (Vue)", route: "employment", company: "Acme", employment: "full-time", timezone: "Europe/Madrid", verdict: "go", requirements },
   body: "Acme is hiring a frontend developer for a Vue and Nuxt site. Requirements: TypeScript, SEO, accessibility.",
 });
 const cleanCover = `Hello,
@@ -236,15 +265,11 @@ Happy to answer any questions about my work.
 
 Kon`;
 
-// The Version as loadInputs reads it: the general Version's summary, Skills lines and selected Bullets as one text.
-const summary = "10+ years as a frontend developer in TypeScript: Vue and Nuxt sites.";
-const generalVersion: VersionText = { name: "general", source: "resume/versions/general.md", summary, skills: ["TypeScript", "React"], text: `Frontend Developer\n${summary}\nCore: TypeScript, React\nBuilt the RBAC admin and the SAML login.` };
+const generalVersion = { name: "general", source: "resume/versions/general.md", summary: "10+ years as a frontend developer in TypeScript: Vue and Nuxt sites.", skills: ["TypeScript", "React"], text: "Frontend Developer" };
 
-function runCover(body: string, { candidate = "2026-10-16-acme-frontend", fm = {}, flags, requirements, version = generalVersion }: { candidate?: string; fm?: object; flags?: string[]; requirements?: string[]; version?: VersionText | null } = {}) {
-  const letter = { frontmatter: { slug: "acme-frontend", date: "2026-10-16", version: version?.name ?? "general", ...fm }, body, raw: "" };
-  return analyse({ candidate, letter, job: employmentJob(flags, requirements), profile, skillNames, voice, projects, version });
+function runCover(body: string, { candidate = "2026-10-16-acme-frontend", version = generalVersion as typeof generalVersion | null } = {}) {
+  return analyse({ candidate, letter: { body }, job: employmentJob(), profile, skillNames, voice, projects, answers, version });
 }
-const versionIds = (r: Analysis) => r.findings.filter((f) => f.pass === "version").map((f) => f.id);
 
 test("clean cover letter passes the script Checks within the template's character cap", () => {
   const r = runCover(cleanCover);
@@ -252,39 +277,37 @@ test("clean cover letter passes the script Checks within the template's characte
   assert.deepEqual(r.slots.map((s) => s.id), ["intro", "relevant_work", "closing", "sign_off"]);
   assert.equal(r.brief.route, "employment");
   assert.equal(r.brief.template, "letter-employment");
-  assert.equal(r.brief.family, null);
-  assert.deepEqual(r.brief.safeguards, [], "a Safeguard whose Slot the template lacks is not briefed");
+  assert.equal(r.brief.plan_slot, null);
+  assert.deepEqual(r.brief.safeguards, [], "no employment Flag has a Safeguard Slot, and none is stored");
+  assert.deepEqual(r.brief.version, { name: "general", source: "resume/versions/general.md", summary: generalVersion.summary }, "the brief names the Version sent and its summary");
   assert.equal(r.counts!.char_cap, employmentTemplate.cap.chars);
   assert.ok(r.counts!.chars <= employmentTemplate.cap.chars);
-  assert.equal(r.counts!.word_cap, null, "no prose cap on this route, whatever the Profile word_cap says");
+  assert.equal(r.counts!.word_cap, null, "no prose cap on this route");
   assert.equal(r.counts!.hook_max, null);
+  assert.match(render(r), /Version sent: general \(resume\/versions\/general\.md\); summary: 10\+ years/);
 });
 
 test("cover letter: over the character cap fails, the freelance word caps never apply", () => {
   const long = cleanCover.replace("and cover them with automated tests.", "and cover them with automated tests. " + "Another sentence about the work. ".repeat(12));
   const r = runCover(long);
   assert.ok(r.findings.some((f) => f.id === "format/char-ceiling" && f.detail.includes(`letter-employment cap ${employmentTemplate.cap.chars}`)), ids(r).join());
-  for (const id of ["length/prose-cap", "length/total-ceiling", "length/hook"]) assert.ok(!has(r, id), `${id} in ${ids(r).join()}`);
+  for (const id of ["length/prose-cap", "length/total-ceiling", "length/hook", "slot/plan-count"]) assert.ok(!has(r, id), `${id} in ${ids(r).join()}`);
 });
 
-test("cover letter: gaps and terms by position, terms read from its cues", () => {
-  const gapsAndTerms = cleanCover.replace("Happy to answer", "No Jenkins pipeline yet; the nearest work is GitHub Actions for the same tests.\n\nBased in Spain and available now, with full overlap with your working day.\n\nHappy to answer");
-  assert.deepEqual(runCover(gapsAndTerms).slots.map((s) => s.id), ["intro", "relevant_work", "gaps", "terms", "closing", "sign_off"]);
-  const termsOnly = cleanCover.replace("Happy to answer", "Based in Spain and available now.\n\nHappy to answer");
-  assert.deepEqual(runCover(termsOnly).slots.map((s) => s.id), ["intro", "relevant_work", "terms", "closing", "sign_off"]);
-  const gapsOnly = cleanCover.replace("Happy to answer", "No Jenkins pipeline yet; the nearest work is GitHub Actions.\n\nHappy to answer");
-  assert.deepEqual(runCover(gapsOnly).slots.map((s) => s.id), ["intro", "relevant_work", "gaps", "closing", "sign_off"]);
+test("cover letter: a second middle block is terms; a third is too many; no gaps Slot", () => {
+  const terms = cleanCover.replace("Happy to answer", "Based in Spain and available now, with full overlap with your working day.\n\nHappy to answer");
+  assert.deepEqual(runCover(terms).slots.map((s) => s.id), ["intro", "relevant_work", "terms", "closing", "sign_off"]);
+  const three = runCover(cleanCover.replace("Happy to answer", "No Jenkins pipeline yet; the nearest work is GitHub Actions.\n\nBased in Spain and available now.\n\nHappy to answer"));
+  assert.ok(three.findings.some((f) => f.id === "slot/parse" && f.detail.includes("too many blocks")), ids(three).join());
   const bounded = runCover(cleanCover.replace("Happy to answer", "Available for the next 90 days.\n\nHappy to answer"));
   assert.ok(has(bounded, "terms/bounded-window"), ids(bounded).join());
 });
 
-test("cover letter: a header, a missing Slot, a slug mismatch, a contact detail", () => {
+test("cover letter: a header, a missing Slot, a contact detail", () => {
   const header = runCover(cleanCover.replace("I build design systems", "Relevant work:\nI build design systems"));
   assert.ok(header.findings.some((f) => f.id === "slot/parse" && f.detail.includes("has none")), ids(header).join());
   const short = runCover("Hello,\n\nI'm a frontend developer.\n\nKon");
   assert.ok(short.findings.some((f) => f.id === "slot/parse" && f.detail.includes("too few blocks")), ids(short).join());
-  const slug = runCover(cleanCover, { fm: { slug: "other" } });
-  assert.ok(slug.findings.some((f) => f.id === "slot/family-mismatch" && f.detail.startsWith("cover-letter.md slug")), ids(slug).join());
   const contact = runCover(cleanCover.replace("about my work.", "about my work at kon@example.com."));
   assert.ok(has(contact, "format/contact"), ids(contact).join());
 });
@@ -296,68 +319,22 @@ test("segmentEmployment reads the greeting apart and every block as prose", () =
   assert.ok(seg.slots.every((s) => s.header === null));
 });
 
-test("every Check names its routes; the Version Checks run on employment only", () => {
+test("every Check names its routes; the cut Checks are gone and the new ones are in", () => {
   const checks = loadCatalogue("verify").checks as { id: string; routes?: string[]; by: string; severity: string; fix: string }[];
   for (const c of checks) assert.ok(Array.isArray(c.routes) && c.routes.length, `${c.id} has no routes`);
-  for (const id of ["version/keyword-coverage", "version/title-in-summary"]) {
-    const c = checks.find((x) => x.id === id)!;
-    assert.deepEqual([c.routes, c.by, c.severity, c.fix], [["employment"], "script", "warn", "none"], id);
-  }
-  const r = run(cleanAudit);
-  assert.equal(r.version, null, "no Version pass on the freelance route");
-  assert.ok(r.findings.every((f) => f.pass === "letter"));
+  const idList = checks.map((c) => c.id);
+  for (const gone of ["version/keyword-coverage", "version/title-in-summary", "job/gaps-required", "format/url-list", "slot/job-asks-unjustified", "slot/family-mismatch"]) assert.ok(!idList.includes(gone), `${gone} is cut`);
+  for (const added of ["slot/plan-count", "voice/posting-copy", "voice/self-deprecation"]) assert.ok(idList.includes(added), `${added} is in`);
+  assert.deepEqual(checks.find((c) => c.id === "flag/safeguard-missing")!.routes, ["freelance"]);
+  assert.equal(new Set(idList).size, idList.length);
 });
 
-test("Version pass: a covered Version reports nothing", () => {
-  const r = runCover(cleanCover);
-  assert.deepEqual(versionIds(r), [], JSON.stringify(r.findings));
-  assert.equal(r.version!.role_noun, "Frontend Developer");
-  assert.equal(r.version!.requirements, 2);
-});
-
-test("version/keyword-coverage: one Finding per requirement the Version sent does not carry", () => {
-  // TypeScript is in the Skills lines; Postgres is a Skill the Version does not show; Jenkins is no Skill and not in the text
-  const r = runCover(cleanCover, { requirements: ["Strong TypeScript skills", "Postgres", "Jenkins pipelines"] });
-  const found = r.findings.filter((f) => f.id === "version/keyword-coverage");
-  assert.deepEqual(found.map((f) => f.detail.split('"')[1]), ["Postgres", "Jenkins pipelines"]);
-  assert.ok(found.every((f) => f.severity === "warn" && f.fix === "none" && f.slot === "version" && f.detail.endsWith("is not in resume/versions/general.md")));
-  assert.equal(r.fails, 0);
-  const bullet = runCover(cleanCover, { requirements: ["SAML login"] });
-  assert.ok(!has(bullet, "version/keyword-coverage"), "a phrase in a selected Bullet counts");
-});
-
-test("version/keyword-coverage on tailored reads the Candidate's version.md", () => {
-  const tailored: VersionText = { name: "tailored", source: "version.md in the Candidate folder", summary: "10+ years as a frontend developer.", skills: ["Vue"], text: "10+ years as a frontend developer.\nCore: Vue\nVue and Nuxt sites." };
-  const r = runCover(cleanCover, { version: tailored, requirements: ["Strong TypeScript skills", "Vue and Nuxt"] });
-  const found = r.findings.filter((f) => f.id === "version/keyword-coverage");
-  assert.equal(found.length, 1, JSON.stringify(found));
-  assert.ok(found[0].detail.includes("TypeScript") && found[0].detail.includes("version.md in the Candidate folder"));
-});
-
-test("version/title-in-summary: the role noun absent from the summary, or no summary at all", () => {
-  const r = runCover(cleanCover, { version: { ...generalVersion, summary: "10+ years building web frontends in TypeScript, Vue and Nuxt." } });
-  assert.deepEqual(versionIds(r), ["version/title-in-summary"]);
-  assert.ok(r.findings[0].detail.includes('"Frontend Developer"'));
-  const hyphen = runCover(cleanCover, { version: { ...generalVersion, summary: "10+ years as a front-end developer in TypeScript, Vue and Nuxt." } });
-  assert.deepEqual(versionIds(hyphen), [], "front-end reads as frontend");
-  const none = runCover(cleanCover, { version: { ...generalVersion, summary: null, text: null } });
-  assert.ok(none.findings.some((f) => f.id === "version/title-in-summary" && f.detail.includes("missing or invalid")), versionIds(none).join());
-  assert.equal(roleNoun("Lead Senior Front-end Engineer - Payments, Remote"), "Front-end Engineer");
-});
-
-test("an empty cover-letter.md body is a CV-only application: the Version pass alone", () => {
-  const r = runCover("", { requirements: ["Jenkins pipelines"] });
+test("an empty letter.md on the employment route is a resume-only application: nothing to check", () => {
+  const r = runCover("");
   assert.equal(r.letter_skipped, true);
-  assert.deepEqual(r.findings.map((f) => f.id), ["version/keyword-coverage"]);
+  assert.deepEqual(r.findings, []);
   assert.equal(r.fails, 0);
-  const out = render(r, 5);
-  assert.match(out, /^version pass: 1 warn/);
-  assert.match(out, /letter pass: skipped/);
+  const out = render(r);
+  assert.match(out, /^letter pass: skipped, letter\.md is empty \(a resume-only application\)\nversion: general/);
   assert.ok(!out.includes("slots:"));
-});
-
-test("render prints the Version pass before the Letter pass", () => {
-  const out = render(runCover(cleanCover, { requirements: ["Jenkins pipelines"] }), 5);
-  assert.ok(out.indexOf("version pass:") < out.indexOf("script:"), out);
-  assert.match(out, /warn version\/keyword-coverage "Jenkins pipelines"/);
 });

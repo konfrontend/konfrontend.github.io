@@ -1,18 +1,18 @@
-// Script half of the verify State (catalogue/verify.md). On the employment route runs the Version pass
-// first (the Version sent against job.md requirements and title). Segments the plain-text Letter into
-// Slots by the route's template (a Family template on the freelance route, letter-employment on the
-// employment route) and runs every Check marked `by: script`; the model Checks, the Fixes, and the
-// cycles are the skill's job. Prints Findings, the Slot map with line numbers, the counts, and the brief
-// the model pass reads (Safeguards to look for, `when: job asks` Slots present, Profile terms, Skills).
-// An empty cover-letter.md body is a CV-only application: the Version pass runs alone.
+// Script half of the verify State (catalogue/verify.md). Segments the plain-text Letter into Slots by
+// the route's template (letter-freelance or letter-employment) and runs every Check marked `by: script`;
+// the model Checks, the Fixes, and the cycles are the skill's job. Prints Findings, the Slot map with line
+// numbers, the counts, and the brief the model pass reads (Safeguards to look for, `when: job asks` Slots
+// present, Profile terms, the Projects' facts, the Answers, the Version sent, the Skills).
+// An empty letter.md on the employment route is a resume-only application: nothing to check.
 // CLI: node scripts/verify.ts <candidate> [--json]
 //   exit 0 when no script Check fails, 1 when one does, 2 on usage or a missing input.
 import fs from "node:fs";
 import path from "node:path";
-import { readArtifact, loadCatalogue, flagsFor, candidateDir, letterFileFor, templateFor, versionFile, profile, skills, readVersion, versionSkillTerms, AUTOTRIAGE_ROOT, type Artifact, type Profile, type Project } from "./lib.ts";
-import { skillsIn } from "./skills.ts";
+import { readArtifact, loadCatalogue, flagsFor, candidateDir, templateFor, versionFile, versionName, profile, skills, readVersion, versionSkillTerms, AUTOTRIAGE_ROOT, LETTER_FILE, type Profile, type Project } from "./lib.ts";
+import { compute } from "./verdict.ts";
 
 const LIST_LINE = /^(?:-|\d+[.)])\s/;
+const NUMBERED = /^\d+[.)]\s/;
 const URL_RE = /https?:\/\/[^\s)>\]]+/g;
 const ACRONYM = /\b[A-Z][A-Z0-9]{2,}(?=s?\b)/g;
 // English and business abbreviations that are not shouting; the Profile, the Projects, and the Job add theirs.
@@ -24,48 +24,49 @@ const PHONE = /(?:\+|\b)\d[\d\s().-]{7,}\d\b/;
 const EMOJI = /\p{Extended_Pictographic}/u;
 const SELF_WORDS = /\b(?:senior|expert|experienced|seasoned|veteran|lead (?:developer|engineer|dev|architect|front-?end|back-?end|full-?stack))\b/i;
 const WE = /\b(we|our|ours|us)\b/gi;
-// A lone block between relevant_work and closing in a cover letter is terms when it reads as terms.
-const TERMS_CUE = /\b(?:available|availability|notice|start|timezone|time zone|overlap|relocat\w*|remote|hybrid|on-site|salary|based in)\b/i;
+// L5: a run of this many words copied from the posting is a warn; ask headers copy the client's question on purpose.
+const COPY_RUN = 6;
 
 type Any = Record<string, any>;
-export interface Letter { frontmatter: Any | null; body: string; raw: string | null }
+export interface Letter { body: string }
 export interface Job { frontmatter: Any | null; body: string }
-// The Version sent, as text the Version pass searches: its summary, its Skills lines and the Bullets it selects.
+// The Version sent, as the brief shows it: its name, source, summary and Skills terms, read from its body.
 export interface VersionText { name: string; source: string; summary: string | null; skills: string[]; text: string | null }
-export interface Inputs { candidate: string; letter: Letter; job: Job; profile: Any; skillNames: string[]; voice: Any; projects: Project[]; version?: VersionText | null }
+export interface Answer { slug: string; question: string }
+export interface Inputs { candidate: string; letter: Letter; job: Job; profile: Any; skillNames: string[]; voice: Any; projects: Project[]; answers?: Answer[]; version?: VersionText | null }
 
 export function loadInputs(candidate: string): Inputs {
   const dir = candidateDir(candidate);
   if (!dir || !fs.existsSync(dir)) throw new Error(`no Candidate folder for "${candidate}"`);
   const job = readArtifact(path.join(dir, "job.md"));
   if (!job) throw new Error(`private/candidates/${candidate} lacks job.md`);
-  const letterFile = letterFileFor(job.frontmatter?.route);
-  const letter = readArtifact(path.join(dir, letterFile));
-  if (!letter) throw new Error(`private/candidates/${candidate} lacks ${letterFile}`);
+  const letter = readArtifact(path.join(dir, LETTER_FILE));
+  if (!letter) throw new Error(`private/candidates/${candidate} lacks letter.md`);
+  if (letter.frontmatter !== null) throw new Error(`private/candidates/${candidate}/letter.md carries frontmatter; a Letter is body only`);
   const p = profile();
   const projects = p.projects.filter((x) => !x.errors.length);
   const skillNames = skills(p).map((s) => s.name);
-  const version = job.frontmatter?.route === "employment" ? readVersionText(dir, letter.frontmatter?.version, p) : null;
-  return { candidate, letter, job, profile: p.profile ?? {}, skillNames, voice: p.voice ?? {}, projects, version };
+  const version = job.frontmatter?.route === "employment" ? readVersionText(dir, p) : null;
+  const answers = p.answers.map((a) => ({ slug: path.basename(a.file, ".md"), question: a.question }));
+  return { candidate, letter: { body: letter.body }, job, profile: p.profile ?? {}, skillNames, voice: p.voice ?? {}, projects, answers, version };
 }
 
-// The Version the Candidate is sent with (cover-letter.md `version`): its title, summary, Skills lines and Bullets, read from its body.
-export function readVersionText(dir: string, name: unknown, p: Profile): VersionText {
-  const file = versionFile(dir, name);
+// The Version the Candidate is sent with (its own version.md, else the general Version): its summary and
+// Skills terms, read from the Version body.
+export function readVersionText(dir: string, p: Profile): VersionText {
+  const name = versionName(dir);
   const source = name === "tailored" ? "version.md in the Candidate folder" : "resume/versions/general.md";
-  const v = readVersion(file, p);
-  if (v.errors.length) return { name: String(name), source, summary: null, skills: [], text: null };
-  const leads = v.bullets.map((b) => b.text);
-  return { name: String(name), source, summary: v.summary || null, skills: versionSkillTerms(v.skills), text: [v.title, v.summary, ...v.skills, ...leads].join("\n") };
+  const v = readVersion(versionFile(dir), p);
+  if (v.errors.length) return { name, source, summary: null, skills: [], text: null };
+  return { name, source, summary: v.summary || null, skills: versionSkillTerms(v.skills), text: [v.title, v.summary, ...v.skills, ...v.bullets.map((b) => b.text)].join("\n") };
 }
 
-function loadCatalogues(route: string, family: string | null) {
+function loadCatalogues(route: string) {
   const verify = loadCatalogue("verify") as Any;
   const voiceRules = loadCatalogue("voice") as Any;
   const slots = readArtifact(path.join(AUTOTRIAGE_ROOT, "catalogue", "templates", "letter-slots.md"))!.frontmatter as Any;
-  const templateName = templateFor(route, family);
-  const templateFile = path.join(AUTOTRIAGE_ROOT, "catalogue", "templates", `${templateName}.md`);
-  const template = fs.existsSync(templateFile) ? (readArtifact(templateFile)!.frontmatter as Any) : null;
+  const templateName = templateFor(route);
+  const template = readArtifact(path.join(AUTOTRIAGE_ROOT, "catalogue", "templates", `${templateName}.md`))!.frontmatter as Any;
   return { verify, voiceRules, slots, template, templateName };
 }
 
@@ -110,8 +111,11 @@ function toBlocks(body: string): { lines: string[]; blocks: Block[] } {
 
 const finish = (slots: Slot[]) => { for (const s of slots) s.text = s.paragraphs.map((p) => p.lines.join("\n")).join("\n\n"); };
 
+// The plan Slot a list reads as when its header is missing or is an ask header: numbered lines are milestones.
+const listPlan = (line: string) => (NUMBERED.test(line) ? "milestones" : "deliverables");
+
 // Deterministic segmentation per "Finding Slots in plain text" in catalogue/verify.md.
-export function segment(body: string, { headers, planSlot }: { headers: Record<string, string>; planSlot: string }): Segmentation {
+export function segment(body: string, { headers, planSlots }: { headers: Record<string, string>; planSlots: string[] }): Segmentation {
   const { lines, blocks } = toBlocks(body);
   const errors: string[] = [];
   const slots: Slot[] = [];
@@ -119,6 +123,7 @@ export function segment(body: string, { headers, planSlot }: { headers: Record<s
   const push = (slot: Slot) => { slots.push(slot); return slot; };
   const mk = (id: string, block: Block, { header = null as string | null, contentLines = block.lines, start = block.start } = {}): Slot =>
     ({ id, header, demand: null, paragraphs: [{ start, end: block.end, lines: contentLines }], headerLine: header ? block.start : null, text: "" });
+  const isPlan = (id: string) => planSlots.includes(id);
 
   if (blocks.length < 6) {
     errors.push(`too few blocks (${blocks.length}); a Letter has at least greeting, hook, the plan Slot, terms, closing, sign-off`);
@@ -140,7 +145,7 @@ export function segment(body: string, { headers, planSlot }: { headers: Record<s
       const key = first.trim().toLowerCase();
       let id = headerMap.get(key) ?? "answers";
       // an ask header over a list is the plan Slot answering that ask (Slot catalogue, Ask headers)
-      if (id === "answers" && b.lines.length > 1 && LIST_LINE.test(b.lines[1]) && !slots.some((s) => s.id === planSlot)) id = planSlot;
+      if (id === "answers" && b.lines.length > 1 && LIST_LINE.test(b.lines[1]) && !slots.some((s) => isPlan(s.id))) id = listPlan(b.lines[1]);
       if (id !== "answers" && slots.some((s) => s.id === id)) errors.push(`Slot ${id} appears twice (second header on line ${b.start})`);
       if (b.lines.length === 1) errors.push(`header "${first.trim()}" on line ${b.start} has no content under it`);
       const slot = push(mk(id, b, { header: first.trim(), contentLines: b.lines.slice(1), start: b.start + 1 }));
@@ -148,31 +153,14 @@ export function segment(body: string, { headers, planSlot }: { headers: Record<s
       current = slot;
     } else if (LIST_LINE.test(first)) {
       // a list without its header: the plan Slot lost its header line
-      const slot = push(mk(planSlot, b));
+      const slot = push(mk(listPlan(first), b));
       slot.headerMissing = true;
       current = slot;
     } else if (!current) {
       errors.push(`block at lines ${b.start}-${b.end} has no header and follows the hook directly`);
-    } else if (current.id === "deliverables" || current.id === "milestones" || current.id === "working_model") {
-      // prose after the plan block: follow_on (audit); slot/extra reports it for other Families
-      current = push(mk("follow_on", b));
     } else {
+      // prose after the plan list is the plan block's own prose; prose after any other Slot continues it
       current.paragraphs.push({ start: b.start, end: b.end, lines: b.lines });
-    }
-  }
-  // trailing prose lines inside a list block are follow_on too (no blank line before them)
-  for (const slot of [...slots]) {
-    if (slot.id !== "deliverables" && slot.id !== "milestones") continue;
-    const p = slot.paragraphs[0];
-    let lastList = -1;
-    p.lines.forEach((l, i) => { if (LIST_LINE.test(l)) lastList = i; });
-    if (lastList >= 0 && lastList < p.lines.length - 1) {
-      const tailLines = p.lines.slice(lastList + 1);
-      const start = p.start + lastList + 1;
-      p.lines = p.lines.slice(0, lastList + 1);
-      p.end = start - 1;
-      const at = slots.indexOf(slot);
-      slots.splice(at + 1, 0, { id: "follow_on", header: null, demand: null, headerLine: null, paragraphs: [{ start, end: p.end + tailLines.length, lines: tailLines }], text: "" });
     }
   }
   const tailIds = ["terms", "closing", "sign_off"];
@@ -195,7 +183,7 @@ export function segment(body: string, { headers, planSlot }: { headers: Record<s
 }
 
 // The cover letter has no headers, so its Slots are found by position (catalogue/verify.md): greeting,
-// intro, relevant_work, then gaps and terms when present, closing, sign_off.
+// intro, relevant_work, then terms when present, closing, sign_off.
 export function segmentEmployment(body: string): Segmentation {
   const { lines, blocks } = toBlocks(body);
   const errors: string[] = [];
@@ -205,16 +193,13 @@ export function segmentEmployment(body: string): Segmentation {
     errors.push(`too few blocks (${blocks.length}); a cover letter has at least greeting, intro, relevant work, closing, sign-off`);
     return { lines, blocks, slots, greeting: blocks[0] ?? null, errors };
   }
-  if (blocks.length > 7) errors.push(`too many blocks (${blocks.length}); a cover letter has at most greeting, intro, relevant work, gaps, terms, closing, sign-off`);
+  if (blocks.length > 6) errors.push(`too many blocks (${blocks.length}); a cover letter has at most greeting, intro, relevant work, terms, closing, sign-off`);
   const greeting = blocks[0];
   if (greeting.lines.length > 1) errors.push(`block 1 (lines ${greeting.start}-${greeting.end}) is the greeting and must be one line`);
   for (const b of blocks) if (isHeader(b.lines[0]) && b !== greeting) errors.push(`line ${b.start} opens with a header; a cover letter has none`);
   const middle = blocks.slice(2, -2);
-  const ids = middle.length === 3 ? ["relevant_work", "gaps", "terms"]
-    : middle.length === 2 ? ["relevant_work", TERMS_CUE.test(middle[1].lines.join(" ")) ? "terms" : "gaps"]
-    : ["relevant_work"];
   slots.push(mk("intro", blocks[1]));
-  middle.slice(0, 3).forEach((b, i) => slots.push(mk(ids[i], b)));
+  middle.slice(0, 2).forEach((b, i) => slots.push(mk(i === 0 ? "relevant_work" : "terms", b)));
   const last = blocks[blocks.length - 1];
   slots.push(mk("closing", blocks[blocks.length - 2]), mk("sign_off", last));
   if (last.lines.length > 1) errors.push(`sign-off (lines ${last.start}-${last.end}) must be one line`);
@@ -232,38 +217,7 @@ function lineOwner(seg: Segmentation): (l: number) => string {
   return (l) => owner.get(l) ?? "?";
 }
 
-// The posting's role noun: the title without seniority words, a parenthesis, or what follows a dash, a bar or a comma.
-const SENIORITY = /^(?:senior|sr\.?|junior|jr\.?|lead|staff|principal|mid(?:-level)?|middle)\s+/i;
-export function roleNoun(title: unknown): string | null {
-  let t = String(title ?? "").replace(/\([^)]*\)/g, " ").split(/\s[-–—|]\s|,/)[0].replace(/\s+/g, " ").trim();
-  while (SENIORITY.test(t)) t = t.replace(SENIORITY, "");
-  return t || null;
-}
-function normRole(s: string): string {
-  return String(s).toLowerCase().replace(/\b(front|back)[- ]end\b/g, "$1end").replace(/\bfull[- ]stack\b/g, "fullstack").replace(/\s+/g, " ");
-}
-
-export interface Finding { id: string; severity: "fail" | "warn"; fix: string; slot: string; detail: string; pass: "version" | "letter" }
-export interface VersionPassResult { name: string | null; source: string | null; requirements: number; role_noun: string | null; findings: Finding[] }
-
-// Version pass (catalogue/verify.md, version): every requirement the Version sent does not carry, and
-// the role noun its summary lacks. Both warn; the Version is the human's document.
-export function versionPass(job: Job, version: VersionText | null | undefined, skillNames: string[]): VersionPassResult {
-  const findings: Finding[] = [];
-  const add = (id: string, detail: string) => findings.push({ id, severity: "warn", fix: "none", slot: "version", detail, pass: "version" });
-  const requirements: string[] = job.frontmatter?.requirements ?? [];
-  const text = version?.text ?? "";
-  const inText = (term: string) => Boolean(text) && phraseRe(term).test(text);
-  const named = new Set((version?.skills ?? []).map((s) => s.toLowerCase()));
-  for (const req of requirements) {
-    const covered = inText(req) || skillsIn(skillNames, req).some((name) => named.has(name.toLowerCase()) || inText(name));
-    if (!covered) add("version/keyword-coverage", `"${req}" is not in ${version?.source ?? "the Version"}`);
-  }
-  const noun = roleNoun(job.frontmatter?.title);
-  if (!version?.summary) add("version/title-in-summary", `no summary to check: ${version?.source ?? "the Version"} is missing or invalid`);
-  else if (noun && !normRole(version.summary).includes(normRole(noun))) add("version/title-in-summary", `"${noun}" from the title "${job.frontmatter?.title}" is absent from the summary (${version.source})`);
-  return { name: version?.name ?? null, source: version?.source ?? null, requirements: requirements.length, role_noun: noun, findings };
-}
+export interface Finding { id: string; severity: "fail" | "warn"; fix: string; slot: string; detail: string }
 
 function escapeRe(s: string): string { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
 function phraseRe(p: string): RegExp {
@@ -271,6 +225,22 @@ function phraseRe(p: string): RegExp {
   return new RegExp(`${a}${escapeRe(p)}${z}`, "i");
 }
 function stripQuotes(line: string): string { return line.replace(/"[^"]*"|“[^”]*”/g, " "); }
+const tokens = (text: string): string[] => text.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").split(/\s+/).filter(Boolean);
+
+// L5: the runs of COPY_RUN words a line shares with the posting, as the first such run per line.
+export function copiedRun(line: string, postingRuns: Set<string>): string | null {
+  const t = tokens(line);
+  for (let i = 0; i + COPY_RUN <= t.length; i++) {
+    const run = t.slice(i, i + COPY_RUN).join(" ");
+    if (postingRuns.has(run)) return run;
+  }
+  return null;
+}
+export function postingRuns(body: string): Set<string> {
+  const t = tokens(body), runs = new Set<string>();
+  for (let i = 0; i + COPY_RUN <= t.length; i++) runs.add(t.slice(i, i + COPY_RUN).join(" "));
+  return runs;
+}
 
 // The Project facts a Letter may cite, harvested from the meta, the Bullets (by key, with the Story
 // that holds them) and the Notes: the model's fact table traces every Letter fact to one of these lines.
@@ -283,52 +253,47 @@ export function projectFacts(p: Project) {
   };
 }
 
-export interface Analysis { findings: Finding[]; version: VersionPassResult | null; letter_skipped: boolean; slots: Any[]; counts: Any | null; brief: Any; fails: number; warns: number }
+export interface Analysis { findings: Finding[]; letter_skipped: boolean; slots: Any[]; counts: Any | null; brief: Any; fails: number; warns: number }
 
-export function analyse({ candidate, letter, job, profile: profileMeta, skillNames = [], voice, projects, version = null }: Inputs): Analysis {
+export function analyse({ candidate, letter, job, profile: profileMeta, skillNames = [], voice, projects, answers = [], version = null }: Inputs): Analysis {
   const route: string = job.frontmatter?.route ?? "freelance";
   const employment = route === "employment";
-  const family: string | null = employment ? null : letter.frontmatter?.family ?? null;
-  const cat = loadCatalogues(route, family);
-  const letterCap: Any = cat.template?.cap ?? {};
+  const cat = loadCatalogues(route);
+  const letterCap: Any = cat.template.cap ?? {};
   const checkMeta = new Map<string, Any>((cat.verify.checks as Any[]).map((c) => [c.id, c]));
   const onRoute = (meta: Any) => !meta.routes || meta.routes.includes(route);
-  const vp = employment ? versionPass(job, version, skillNames) : null;
-  const findings: Finding[] = (vp?.findings ?? []).filter((f) => onRoute(checkMeta.get(f.id) ?? {}));
+  const findings: Finding[] = [];
   // a Check whose routes lack this route is skipped (catalogue/verify.md)
   const add = (id: string, slot: string, detail: string) => {
     const meta = checkMeta.get(id) ?? { severity: "fail", fix: "none" };
-    if (onRoute(meta)) findings.push({ id, severity: meta.severity, fix: meta.fix, slot, detail, pass: "letter" });
+    if (onRoute(meta)) findings.push({ id, severity: meta.severity, fix: meta.fix, slot, detail });
   };
+  const flags: string[] = employment ? [] : (job.frontmatter?.flags ?? []);
+  const alertLevel = compute({ route, flags }).alert_level;
+  const planSlots: string[] = cat.slots.plan_slots ?? [];
 
   const body = letter.body.replace(/\s+$/, "");
   if (employment && !body.trim()) {
-    const brief = { route, template: cat.templateName, family: null, cv_only: true };
-    return { findings, version: vp, letter_skipped: true, slots: [], counts: null, brief, fails: 0, warns: findings.length };
+    const brief = { route, template: cat.templateName, resume_only: true, version: version ? { name: version.name, source: version.source, summary: version.summary } : null };
+    return { findings, letter_skipped: true, slots: [], counts: null, brief, fails: 0, warns: 0 };
   }
-  const planSlot: string = employment ? "" : cat.slots.plan_slot[family!];
-  const seg = employment ? segmentEmployment(body) : segment(body, { headers: cat.slots.headers, planSlot });
+  const seg = employment ? segmentEmployment(body) : segment(body, { headers: cat.slots.headers, planSlots });
   const own = lineOwner(seg);
   const lines = seg.lines;
   const at = (l: number) => `line ${l}`;
 
-  // slot/parse and slot/family-mismatch stop the run; everything else still reports so the human sees it all
+  // slot/parse stops the run; everything else still reports so the human sees it all
   for (const e of seg.errors) add("slot/parse", "letter", e);
-  if (!cat.template) add("slot/parse", "letter", `no template ${cat.templateName} for route ${route}`);
-  const letterFile = letterFileFor(route);
-  const v: Any = job.frontmatter?.verdict ?? {};
-  if (!employment && v.family && v.family !== family) add("slot/family-mismatch", "letter", `letter.md family ${family}, job.md verdict.family ${v.family}`);
-  const m = /^(\d{4}-\d{2}-\d{2})-(.+)$/.exec(candidate ?? "");
-  if (m && letter.frontmatter?.slug !== m[2]) add("slot/family-mismatch", "letter", `${letterFile} slug ${letter.frontmatter?.slug}, folder slug ${m[2]}`);
-  if (m && letter.frontmatter?.date !== m[1]) add("slot/family-mismatch", "letter", `${letterFile} date ${letter.frontmatter?.date}, folder date ${m[1]}`);
 
-  const templateSlots: Any[] = (cat.template?.slots ?? []).map((s: Any) => (typeof s === "string" ? { id: s } : s));
+  const templateSlots: Any[] = (cat.template.slots ?? []).map((s: Any) => (typeof s === "string" ? { id: s } : s));
   const templateIds = new Set(templateSlots.map((s) => s.id));
   const jobAsks = new Set(templateSlots.filter((s) => s.when === "job asks").map((s) => s.id));
   const present = new Set(seg.slots.map((s) => s.id));
+  const planPresent = seg.slots.filter((s) => planSlots.includes(s.id)).map((s) => s.id);
+  const planSlot = planPresent[0] ?? planSlots[0] ?? null;
 
   // slot
-  if (planSlot && !present.has(planSlot)) add("slot/missing", planSlot, `the ${family} plan Slot "${cat.slots.headers[planSlot]}" is absent (or its header line is missing)`);
+  if (!employment && planPresent.length !== 1) add("slot/plan-count", "letter", planPresent.length ? `${planPresent.length} plan Slots (${planPresent.join(", ")}); a Letter carries exactly one of ${planSlots.join(", ")}` : `no plan Slot; a Letter carries exactly one of ${planSlots.join(", ")} (or its header line is missing)`);
   for (const s of seg.slots) {
     if (s.headerMissing) add("slot/header-missing", s.id, `list at ${at(s.paragraphs[0].start)} opens without "${cat.slots.headers[s.id]}"`);
     if (s.header && s.header.endsWith(":") && /\byou(?:r|'ve|'re|rs)?\b/i.test(s.header)) add("slot/header-second-person", s.id, `header "${s.header}" addresses the reader; reword in first person`);
@@ -337,9 +302,13 @@ export function analyse({ candidate, letter, job, profile: profileMeta, skillNam
 
   // voice
   const banned: string[] = [...(cat.voiceRules.banned ?? []), ...(voice.banned_extra ?? [])].filter((p: string) => !(voice.allowed_extra ?? []).some((a: string) => a.toLowerCase() === p.toLowerCase()));
+  const selfDeprecation: string[] = cat.voiceRules.self_deprecation ?? [];
+  const runs = postingRuns(job.body);
+  const headerLines = new Set(seg.slots.map((s) => s.headerLine).filter((n): n is number => n !== null));
   lines.forEach((line, i) => {
     const n = i + 1, slot = own(n);
     for (const p of banned) if (phraseRe(p).test(line)) add("voice/banned-phrase", slot, `"${p}" at ${at(n)}`);
+    for (const p of selfDeprecation) if (phraseRe(p).test(line)) add("voice/self-deprecation", slot, `"${p}" at ${at(n)}`);
     for (const w of cat.voiceRules.soft_banned ?? []) if (phraseRe(w).test(line)) add("voice/soft-banned", slot, `"${w}" at ${at(n)}`);
     if (line.includes("!")) add("voice/exclamation", slot, at(n));
     if ((line.match(/;/g) ?? []).length >= 2) add("voice/semicolon-chain", slot, `${(line.match(/;/g) ?? []).length} semicolons at ${at(n)}`);
@@ -347,6 +316,7 @@ export function analyse({ candidate, letter, job, profile: profileMeta, skillNam
     for (const hit of unquoted.matchAll(WE)) if (hit[1] !== "US") add("voice/first-person-plural", slot, `"${hit[1]}" at ${at(n)}`);
     const self = SELF_WORDS.exec(unquoted);
     if (self) add("voice/self-descriptive", slot, `"${self[0]}" at ${at(n)}`);
+    if (!headerLines.has(n)) { const run = copiedRun(line, runs); if (run) add("voice/posting-copy", slot, `"${run}" at ${at(n)} is copied from the posting`); }
   });
 
   // format
@@ -378,9 +348,8 @@ export function analyse({ candidate, letter, job, profile: profileMeta, skillNam
     if (/\bwww\.[^\s]+/.test(noUrl)) add("format/url-count", slot, `bare www address at ${at(n)}; only https:// URLs`);
   });
   for (const u of urls) if (!u.url.startsWith("https://")) add("format/url-count", u.slot, `${u.url} at ${at(u.line)} is not https://`);
-  if (urls.length) add("format/url-list", "letter", `${urls.length} URLs: ${urls.map((u) => u.url).join(" ")}`);
-  const charCap = cat.template ? required(letterCap.chars, `${cat.templateName} cap.chars`) : null;
-  if (charCap !== null && body.length > charCap) add("format/char-ceiling", "letter", `${body.length} characters, ${cat.templateName} cap ${charCap}`);
+  const charCap = required(letterCap.chars, `${cat.templateName} cap.chars`);
+  if (body.length > charCap) add("format/char-ceiling", "letter", `${body.length} characters, ${cat.templateName} cap ${charCap}`);
 
   // length: the Letter caps come from the route's template; a cap the template lacks is not checked
   const hasHook = templateIds.has("hook");
@@ -388,7 +357,7 @@ export function analyse({ candidate, letter, job, profile: profileMeta, skillNam
   const hookChars = hook ? hook.text.length : 0;
   const hookMax = hasHook ? required(slotCap(cat.slots, "hook").chars, "letter-slots hook.cap.chars") : null;
   if (hasHook && hookMax !== null && hookChars > hookMax) add("length/hook", "hook", `${hookChars} characters, cap ${hookMax}`);
-  const wordCap: number | null = letterCap.prose_words === undefined ? null : profileMeta.word_cap ?? required(letterCap.prose_words, `${cat.templateName} cap.prose_words`);
+  const wordCap: number | null = letterCap.prose_words === undefined ? null : required(letterCap.prose_words, `${cat.templateName} cap.prose_words`);
   const ceiling = letterCap.total_words === undefined ? null : required(letterCap.total_words, `${cat.templateName} cap.total_words`);
   let prose = 0, total = 0;
   const perSlot: Record<string, number> = {};
@@ -397,11 +366,9 @@ export function analyse({ candidate, letter, job, profile: profileMeta, skillNam
     const w = words(line);
     total += w;
     perSlot[slot] = (perSlot[slot] ?? 0) + w;
-    const s = seg.slots.find((x) => x.id === slot);
-    const isHeaderLine = s?.headerLine === n;
-    if (!isHeaderLine && !LIST_LINE.test(line) && slot !== "answers") prose += w;
+    if (!headerLines.has(n) && !LIST_LINE.test(line) && slot !== "answers") prose += w;
   });
-  if (wordCap !== null && prose > wordCap) add("length/prose-cap", "letter", `${prose} prose words, word cap ${wordCap}`);
+  if (wordCap !== null && prose > wordCap) add("length/prose-cap", "letter", `${prose} prose words, cap ${wordCap}`);
   if (ceiling !== null && total > ceiling) add("length/total-ceiling", "letter", `${total} words, ceiling ${ceiling}`);
   const listRuns: { start: number; count: number; slot: string }[] = [];
   let run: { start: number; count: number; slot: string } | null = null;
@@ -427,60 +394,58 @@ export function analyse({ candidate, letter, job, profile: profileMeta, skillNam
   const closing = seg.slots.find((s) => s.id === "closing");
   if (closing && /\b(?:call|walk ?through|walk you through|screen ?share|zoom|google meet|video|demo)\b/i.test(closing.text)) add("closing/call", "closing", "offers a call or a walkthrough; questions are answered in writing");
 
-  // brief for the model pass
-  const flagById = new Map(flagsFor(job.frontmatter?.route).map((f) => [f.id, f]));
-  const safeguards = ((v.flags ?? []) as string[]).map((id) => flagById.get(id)).filter((f) => f && (!f.kind || f.kind === "risk") && f.slot && f.slot !== "none")
+  // brief for the model pass: Safeguards from the stored Flags (freelance), `plan` resolved to the plan Slot present
+  const flagById = new Map(flagsFor(route).map((f) => [f.id, f]));
+  const safeguards = flags.map((id) => flagById.get(id)).filter((f) => f && (!f.kind || f.kind === "risk") && f.slot && f.slot !== "none")
     .map((f) => ({ id: f!.id, level: f!.level, slot: f!.slot === "plan" ? planSlot : f!.slot!, safeguard: f!.safeguard }))
-    .filter((f) => templateIds.has(f.slot));
+    .filter((f) => f.slot && templateIds.has(f.slot));
   const counts = { chars: body.length, char_cap: charCap, words: total, prose_words: prose, word_cap: wordCap, total_ceiling: ceiling, hook_chars: hookChars, hook_max: hookMax, urls: urls.length, lists: listRuns.length, per_slot: perSlot };
   const brief = {
-    route, template: cat.templateName, family, plan_slot: planSlot || null, alert_level: v.alert_level ?? null, safeguards,
+    route, template: cat.templateName, plan_slot: employment ? null : planSlot, alert_level: alertLevel, flags, safeguards,
     job_asks_present: seg.slots.filter((s) => jobAsks.has(s.id)).map((s) => s.id),
     template_slots: templateSlots, terms: profileMeta.terms ?? {}, projects: projects.map(projectFacts),
-    mandatory_keyword: ((v.flags ?? []) as string[]).includes("mandatory-keyword"),
+    answers,
+    version: version ? { name: version.name, source: version.source, summary: version.summary } : null,
+    mandatory_keyword: flags.includes("mandatory-keyword"),
     skills: skillNames,
   };
   const slots = seg.slots.map((s) => ({ id: s.id, header: s.header, demand: s.demand, header_line: s.headerLine, paragraphs: s.paragraphs.map((p) => [p.start, p.end]), words: words(s.text), chars: s.text.length }));
   const order = { fail: 0, warn: 1 };
-  // the Version pass prints first, then the Letter pass, fails before warns within each
-  findings.sort((a, b) => (a.pass === b.pass ? 0 : a.pass === "version" ? -1 : 1) || order[a.severity] - order[b.severity]);
-  return { findings, version: vp, letter_skipped: false, slots, counts, brief, fails: findings.filter((f) => f.severity === "fail").length, warns: findings.filter((f) => f.severity === "warn").length };
+  findings.sort((a, b) => order[a.severity] - order[b.severity]);
+  return { findings, letter_skipped: false, slots, counts, brief, fails: findings.filter((f) => f.severity === "fail").length, warns: findings.filter((f) => f.severity === "warn").length };
 }
 
-export function render(r: Analysis, frontmatterLines?: number): string {
-  const off = frontmatterLines ?? 0;
+export function render(r: Analysis): string {
   const out: string[] = [];
-  if (r.version) {
-    const v = r.version, vf = r.findings.filter((f) => f.pass === "version");
-    out.push(`version pass: ${vf.length} warn (version ${v.name ?? "?"} from ${v.source ?? "?"}; ${v.requirements} requirements in job.md${v.requirements ? "" : ", keyword coverage not checked"}; role noun ${v.role_noun ?? "none"})`);
-    for (const f of vf) out.push(`  ${f.severity} ${f.id} ${f.detail} -> ${f.fix}`);
-    out.push("");
-  }
   if (r.letter_skipped) {
-    out.push("letter pass: skipped, the cover-letter.md body is empty (a CV-only application)");
+    out.push("letter pass: skipped, letter.md is empty (a resume-only application)");
+    if (r.brief.version) out.push(`version: ${r.brief.version.name} (${r.brief.version.source})`);
     return out.join("\n");
   }
-  const letterFindings = r.findings.filter((f) => f.pass === "letter");
-  out.push(`script: ${r.fails} fail, ${letterFindings.length - r.fails} warn (line numbers count from the start of the file; the Letter body starts on line ${off + 1})`);
-  for (const f of letterFindings) out.push(`  ${f.severity} ${f.id} [${f.slot}] ${f.detail.replace(/line (\d+)/g, (_, n) => `line ${Number(n) + off}`)} -> ${f.fix}`);
+  out.push(`script: ${r.fails} fail, ${r.warns} warn (line numbers count from the start of letter.md)`);
+  for (const f of r.findings) out.push(`  ${f.severity} ${f.id} [${f.slot}] ${f.detail} -> ${f.fix}`);
   out.push("", "slots:");
   for (const s of r.slots) {
-    const range = s.paragraphs.map(([a, b]: number[]) => (a === b ? `${a + off}` : `${a + off}-${b + off}`)).join(", ");
-    out.push(`  ${s.id}${s.demand ? ` (${s.demand})` : ""}: lines ${range}${s.header_line ? `, header line ${s.header_line + off}` : ""}, ${s.words} words${s.id === "hook" ? `, ${s.chars} chars` : ""}`);
+    const range = s.paragraphs.map(([a, b]: number[]) => (a === b ? `${a}` : `${a}-${b}`)).join(", ");
+    out.push(`  ${s.id}${s.demand ? ` (${s.demand})` : ""}: lines ${range}${s.header_line ? `, header line ${s.header_line}` : ""}, ${s.words} words${s.id === "hook" ? `, ${s.chars} chars` : ""}`);
   }
   const c = r.counts!;
-  const parts = [`${c.chars} chars (cap ${c.char_cap ?? "?"})`, `${c.words} words${c.total_ceiling === null ? "" : ` (ceiling ${c.total_ceiling})`}`];
+  const parts = [`${c.chars} chars (cap ${c.char_cap})`, `${c.words} words${c.total_ceiling === null ? "" : ` (ceiling ${c.total_ceiling})`}`];
   if (c.word_cap !== null) parts.push(`${c.prose_words} prose words (cap ${c.word_cap})`);
   if (c.hook_max !== null) parts.push(`hook ${c.hook_chars}/${c.hook_max} chars`);
   parts.push(`${c.urls} URLs`, `${c.lists} list${c.lists === 1 ? "" : "s"}`);
   out.push("", `counts: ${parts.join(", ")}`);
   const b = r.brief;
-  out.push("", `brief: route ${b.route}, template ${b.template}${b.family ? `, family ${b.family}, plan Slot ${b.plan_slot}` : ""}, Alert Level ${b.alert_level ?? "?"}`);
+  out.push("", `brief: route ${b.route}, template ${b.template}${b.plan_slot ? `, plan Slot ${b.plan_slot}` : ""}, Alert Level ${b.alert_level}, Flags: ${b.flags.join(", ") || "none"}`);
+  if (b.version) out.push(`  Version sent: ${b.version.name} (${b.version.source}); summary: ${b.version.summary ?? "does not read"}`);
   out.push(`  safeguards to find (${b.safeguards.length}):`);
   for (const mit of b.safeguards) out.push(`    ${mit.id} (level ${mit.level}) in ${mit.slot}: ${mit.safeguard}`);
   out.push(`  when-job-asks Slots present: ${b.job_asks_present.join(", ") || "none"}`);
   out.push(`  mandatory-keyword Flag: ${b.mandatory_keyword ? "triggered, the keyword must appear nowhere in the Letter" : "no"}`);
   out.push(`  Profile terms: ${JSON.stringify(b.terms)}`);
+  out.push(`  Answers (a Letter source, cited as "Answer <slug>"; a question block matching none is printed after verify as a draft Answer):`);
+  for (const a of b.answers) out.push(`    ${a.slug}: ${a.question}`);
+  if (!b.answers.length) out.push("    none");
   out.push(`  Projects (facts the Letter may cite: Bullets by key, then Notes):`);
   for (const p of b.projects) {
     out.push(`    ${p.slug}: ${p.name}${p.url ? ` (${p.url})` : ""}, ${p.role}, ${p.employment}, ${p.period}, naming ${p.naming}, ${p.bullets.length} Bullets, ${p.notes.length} Notes`);
@@ -499,7 +464,6 @@ if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).
   let inputs: Inputs;
   try { inputs = loadInputs(candidate); } catch (e) { console.error(`autotriage: verify script: ${(e as Error).message}`); process.exit(2); }
   const r = analyse(inputs);
-  const fmLines = inputs.letter.raw === null ? 0 : inputs.letter.raw.split("\n").length + 2;
-  console.log(json ? JSON.stringify({ ...r, frontmatter_lines: fmLines }, null, 2) : render(r, fmLines));
+  console.log(json ? JSON.stringify(r, null, 2) : render(r));
   process.exit(r.fails ? 1 : 0);
 }

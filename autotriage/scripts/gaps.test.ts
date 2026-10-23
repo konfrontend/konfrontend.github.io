@@ -14,6 +14,7 @@ test("ledger counts Candidates once per Skill and adds Gaps for unproved require
   assert.deepEqual(rows.map((r) => [r.name, r.level, r.seen]), [["Steam", "gap", 2], ["Punched cards", "shipped", 1], ["Writing", "shipped", 1], ["Bernoulli numbers", "shipped", 0]]);
   const out = renderLedger(rows);
   assert.match(out, /\| Steam \| 2 \|/);
-  assert.match(out, /\| Writing \| 1 \| notes \|/);
+  assert.match(out, /\| Writing \| 1 \|/);
+  assert.ok(out.indexOf("Gaps (1)") < out.indexOf("Skills seen (2)"), "Gaps first");
   assert.doesNotMatch(out, /Bernoulli/, "a Skill no Job asked for is not printed");
 });
