@@ -16,7 +16,7 @@ test("version creates cover-letter.md with frontmatter only, version general, an
   const { root, candidate } = withJob();
   const r = run(root, "version.ts", CANDIDATE);
   assert.equal(r.status, 0, r.stderr);
-  assert.match(r.stdout, /^version: general\nNext: \/autotriage:proposal 2026-10-17-acme-frontend, or stop here/);
+  assert.match(r.stdout, /^version: general\nNext: \/route-proposal 2026-10-17-acme-frontend, or stop here/);
   assert.equal(fs.readFileSync(path.join(candidate(CANDIDATE), "cover-letter.md"), "utf8"), cover("general"), "slug and date from job.md, empty body");
   assert.equal(fs.readFileSync(path.join(candidate(CANDIDATE), "job.md"), "utf8"), employmentJob(), "job.md is not written");
   assert.ok(!fs.existsSync(path.join(candidate(CANDIDATE), "version.md")));
@@ -57,7 +57,7 @@ test("the version Guard requires a valid job.md, route employment, and decision 
 
 test("the proposal Guard on employment needs cover-letter.md, version.md on tailored, and a Version that reads", () => {
   const none = run(withJob().root, "guard.ts", "proposal", CANDIDATE);
-  assert.match(none.stdout, /proposal refused\. .*cover-letter\.md is missing\.\nRun \/autotriage:version 2026-10-17-acme-frontend first\./);
+  assert.match(none.stdout, /proposal refused\. .*cover-letter\.md is missing\.\nRun \/route-version 2026-10-17-acme-frontend first\./);
 
   const nv = run(withJob(employmentJob(), { "cover-letter.md": cover(null) }).root, "guard.ts", "proposal", CANDIDATE);
   assert.match(nv.stdout, /cover-letter\.md is invalid:\n  .*version/);

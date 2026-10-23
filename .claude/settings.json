@@ -1,11 +1,11 @@
 {
-  "extraKnownMarketplaces": {
-    "konfrontend": {
-      "source": { "source": "directory", "path": "./autotriage" }
-    }
-  },
-  "enabledPlugins": {
-    "autotriage@konfrontend": true
+  "hooks": {
+    "PreToolUse": [
+      { "matcher": "Skill", "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/autotriage/scripts/hooks/pre-tool-use.ts\"" }] }
+    ],
+    "PostToolUse": [
+      { "matcher": "Write|Edit", "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/autotriage/scripts/hooks/post-tool-use.ts\"" }] }
+    ]
   },
   "permissions": {
     "allow": [

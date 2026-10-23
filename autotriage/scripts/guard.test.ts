@@ -1,4 +1,4 @@
-// The Guard as a transition table: the Profile gate reads the Profile through @konfrontend/profile, a
+// The Guard as a transition table: the Profile gate reads the Profile through profile/lib, a
 // refusal is printed on stdout with exit 0 so the model always sees it, the PreToolUse hook turns the
 // same Refusal into a deny, and the write hook validates every Profile, Candidate and Version file.
 // Run: npm test
@@ -8,14 +8,11 @@ import fs from "node:fs";
 import path from "node:path";
 import { fixture, run, hook, project, VOICE, PROFILE, employmentJob, freelanceJob, cover } from "./fixture.ts";
 
-test("the route gate passes on a valid Profile and status reports every file valid", () => {
+test("the route gate passes on a valid Profile", () => {
   const { root } = fixture();
   const r = run(root, "guard.ts", "route");
   assert.equal(r.status, 0, r.stderr);
   assert.equal(r.stdout.trim(), "Profile gate passed.");
-  const st = run(root, "profile.ts", "status");
-  assert.match(st.stdout, /1 Projects, 1 Stories, 0 Answers, every file valid/);
-  assert.match(st.stdout, /triage gate .*: pass\nproposal gate .*: pass/);
 });
 
 test("a refusal is printed on stdout with exit 0 and names the Profile errors", () => {
@@ -23,8 +20,7 @@ test("a refusal is printed on stdout with exit 0 and names the Profile errors", 
   const r = run(root, "guard.ts", "route");
   assert.equal(r.status, 0);
   assert.equal(r.stderr, "");
-  assert.match(r.stdout, /^autotriage: route refused\. the Profile has 1 error:\n  projects\/acme\.md: Story without a key: "Built the admin without a key\."\nRun \/autotriage:setup or fix the file by hand\./);
-  assert.match(run(root, "profile.ts", "status").stdout, /proposal gate .*: fail/);
+  assert.match(r.stdout, /^autotriage: route refused\. the Profile has 1 error:\n  projects\/acme\.md: Story without a key: "Built the admin without a key\."\nFix the file by hand\./);
 });
 
 test("triage needs only profile.md; the Letter States need every Profile file", () => {
@@ -40,8 +36,8 @@ test("triage needs only profile.md; the Letter States need every Profile file", 
 
 test("an unknown State and a missing Candidate argument refuse with the fix named", () => {
   const { root } = fixture({ candidates: { "2026-10-16-acme-fix": { "job.md": freelanceJob() } } });
-  assert.match(run(root, "guard.ts", "bogus").stdout, /^autotriage: bogus refused\. unknown State\. Known: setup, route, intake, triage, version, proposal, verify\./);
-  assert.match(run(root, "guard.ts", "triage").stdout, /triage refused\. needs a Candidate folder name as argument\.\nKnown Candidates:\n  2026-10-16-acme-fix\nUsage: \/autotriage:triage <YYYY-MM-DD-slug>/);
+  assert.match(run(root, "guard.ts", "bogus").stdout, /^autotriage: bogus refused\. unknown State\. Known: route, intake, triage, version, proposal, verify\./);
+  assert.match(run(root, "guard.ts", "triage").stdout, /triage refused\. needs a Candidate folder name as argument\.\nKnown Candidates:\n  2026-10-16-acme-fix\nUsage: \/route-triage <YYYY-MM-DD-slug>/);
   assert.match(run(root, "guard.ts", "triage", "2026-10-16-nope").stdout, /no Candidate folder private\/candidates\/2026-10-16-nope\./);
 });
 
@@ -49,17 +45,17 @@ test("intake prints today and the known Candidates; triage refuses once the Lett
   const { root } = fixture({ candidates: { "2026-10-17-acme-frontend": { "job.md": employmentJob(), "cover-letter.md": cover("general") } } });
   assert.match(run(root, "guard.ts", "intake").stdout.trim(), /^Today: \d{4}-\d{2}-\d{2}\nKnown Candidates:\n  2026-10-17-acme-frontend$/);
   const t = run(root, "guard.ts", "triage", "2026-10-17-acme-frontend");
-  assert.match(t.stdout, /cover-letter\.md already exists; the Route has passed triage\.\nRun \/autotriage:verify 2026-10-17-acme-frontend/);
+  assert.match(t.stdout, /cover-letter\.md already exists; the Route has passed triage\.\nRun \/route-verify 2026-10-17-acme-frontend/);
 });
 
 test("the PreToolUse hook denies a refused State and stays silent on a passing one", () => {
   const { root } = fixture();
-  const deny = hook(root, "pre-tool-use.ts", { tool_input: { skill: "autotriage:triage", args: "" } });
+  const deny = hook(root, "pre-tool-use.ts", { tool_input: { skill: "route-triage", args: "" } });
   assert.equal(deny.status, 0, deny.stderr);
   const out = JSON.parse(deny.stdout);
   assert.equal(out.hookSpecificOutput.permissionDecision, "deny");
   assert.match(out.hookSpecificOutput.permissionDecisionReason, /triage refused\. needs a Candidate folder name/);
-  assert.equal(hook(root, "pre-tool-use.ts", { tool_input: { skill: "autotriage:route", args: "" } }).stdout, "");
+  assert.equal(hook(root, "pre-tool-use.ts", { tool_input: { skill: "route", args: "" } }).stdout, "");
   assert.equal(hook(root, "pre-tool-use.ts", { tool_input: { skill: "other:thing" } }).stdout, "");
 });
 

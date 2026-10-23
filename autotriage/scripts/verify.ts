@@ -9,7 +9,7 @@
 //   exit 0 when no script Check fails, 1 when one does, 2 on usage or a missing input.
 import fs from "node:fs";
 import path from "node:path";
-import { readArtifact, loadCatalogue, flagsFor, candidateDir, letterFileFor, templateFor, versionFile, profile, skills, readVersion, selection, versionSkillTerms, PLUGIN_ROOT, type Artifact, type Profile, type Project } from "./lib.ts";
+import { readArtifact, loadCatalogue, flagsFor, candidateDir, letterFileFor, templateFor, versionFile, profile, skills, readVersion, selection, versionSkillTerms, AUTOTRIAGE_ROOT, type Artifact, type Profile, type Project } from "./lib.ts";
 import { skillsIn } from "./skills.ts";
 
 const LIST_LINE = /^(?:-|\d+[.)])\s/;
@@ -62,9 +62,9 @@ export function readVersionText(dir: string, name: unknown, p: Profile): Version
 function loadCatalogues(route: string, family: string | null) {
   const verify = loadCatalogue("verify") as Any;
   const voiceRules = loadCatalogue("voice") as Any;
-  const slots = readArtifact(path.join(PLUGIN_ROOT, "catalogue", "templates", "letter-slots.md"))!.frontmatter as Any;
+  const slots = readArtifact(path.join(AUTOTRIAGE_ROOT, "catalogue", "templates", "letter-slots.md"))!.frontmatter as Any;
   const templateName = templateFor(route, family);
-  const templateFile = path.join(PLUGIN_ROOT, "catalogue", "templates", `${templateName}.md`);
+  const templateFile = path.join(AUTOTRIAGE_ROOT, "catalogue", "templates", `${templateName}.md`);
   const template = fs.existsSync(templateFile) ? (readArtifact(templateFile)!.frontmatter as Any) : null;
   return { verify, voiceRules, slots, template, templateName };
 }

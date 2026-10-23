@@ -2,6 +2,6 @@
 /interview/
 /.claude/worktrees/
 /private/
-/resume/renderer/out/
+/resume/scripts/out/
 node_modules/
 .DS_Store

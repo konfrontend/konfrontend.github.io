@@ -39,7 +39,7 @@ export function setVersion(candidate: string | undefined, { tailor = false } = {
       out.push(`Created private/candidates/${candidate}/version.md from resume/versions/general.md. Tailor its selection and summary before the proposal.`);
     }
   } else if (fs.existsSync(target)) out.push(`Note: private/candidates/${candidate}/version.md exists but is not used; proposal reads it only on version: tailored.`);
-  out.push(`Next: /autotriage:proposal ${candidate}, or stop here to send the Version without a Letter`);
+  out.push(`Next: /route-proposal ${candidate}, or stop here to send the Version without a Letter`);
   return out.join("\n");
 }
 
