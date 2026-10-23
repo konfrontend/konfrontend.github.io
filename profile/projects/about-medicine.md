@@ -6,7 +6,11 @@ employment: freelance
 start: 2018-03
 end: 2019-01
 naming: public
-domain: medical education
 description: Educational website on medical topics.
 keywords: [JavaScript, Node.js, Express, MongoDB, three.js, WebGL, HTML, CSS]
 ---
+## Stories
+
+## Bullets
+
+## Notes
