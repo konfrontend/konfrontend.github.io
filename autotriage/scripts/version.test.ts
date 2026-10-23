@@ -67,7 +67,7 @@ test("the proposal Guard on employment needs cover-letter.md, version.md on tail
   fs.writeFileSync(path.join(tailored.candidate(CANDIDATE), "version.md"), version("Tailored summary."));
   const tOk = run(tailored.root, "guard.ts", "proposal", CANDIDATE);
   assert.match(tOk.stdout, /^Version: tailored\nIntro summary \(the summary of version\.md in the Candidate folder\): Tailored summary\./, tOk.stdout);
-  fs.writeFileSync(path.join(tailored.candidate(CANDIDATE), "version.md"), version("Tailored summary.", ["Core: React"], { acme: ["nope"] }));
+  fs.writeFileSync(path.join(tailored.candidate(CANDIDATE), "version.md"), version("Tailored summary.", ["Core: React"], { acme: ["[nope] Built nothing."] }));
   assert.match(run(tailored.root, "guard.ts", "proposal", CANDIDATE).stdout, /the Version sent does not read: version\.md: acme has no Bullet \[nope\]\nFix private\/candidates\/2026-10-17-acme-frontend\/version\.md\./);
 
   const general = run(withJob(employmentJob(), { "cover-letter.md": cover("general") }).root, "guard.ts", "proposal", CANDIDATE);

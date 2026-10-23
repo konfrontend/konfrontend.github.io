@@ -59,8 +59,8 @@ test("cover-letter.md has its own schema and the write hook finds every artifact
   assert.equal(schemaForPath(path.join(folder, "cover-letter.md")), "cover-letter");
   assert.equal(schemaForPath(path.join(folder, "job.md")), "job");
   assert.equal(schemaForPath(path.join(folder, "letter.md")), "letter");
-  assert.equal(schemaForPath(path.join(folder, "version.md")), "version", "a tailored Version is a selection");
-  assert.equal(schemaForPath(path.join(VERSIONS_DIR, "general.md")), "version");
+  assert.equal(schemaForPath(path.join(folder, "version.md")), null, "a Version is generated prose, checked by render.ts");
+  assert.equal(schemaForPath(path.join(VERSIONS_DIR, "general.md")), null);
   assert.equal(schemaForPath(path.join(PROFILE_ROOT, "profile.md")), "profile");
   assert.equal(schemaForPath(path.join(PROFILE_ROOT, "projects", "acme.md")), "project");
   assert.equal(schemaForPath(path.join(PROFILE_ROOT, "skills.md")), null, "generated files have no schema");

@@ -125,13 +125,14 @@ export function parseProject(body: string): ProjectBody {
 export const DUTY_OPENERS = ["responsible", "helped", "assisted", "participated", "worked", "involved", "tasked", "duties"];
 export const MAX_NUMBERS = 3;
 const NUMBER = /(?<![\w.])\d[\d,.]*(?:\+|%)?(?:[–-]\d[\d,.]*(?:\+|%)?)?(?![\w])/g;
+export const numbersIn = (text: string): string[] => text.match(NUMBER) ?? [];
 const PAST_IRREGULAR = ["built", "rebuilt", "wrote", "rewrote", "took", "cut", "ran", "chose", "made", "led", "set", "split", "drove", "kept", "read", "sent", "found", "held", "won", "grew", "brought", "gave", "got", "put", "sold", "taught", "thought", "spent", "met", "left", "lent", "laid", "began", "drew", "redrew", "ran", "shrank", "sped", "bound", "fed", "hid", "hit", "let", "lit", "shut", "slid", "stood", "struck", "swept", "threw", "undid", "wound", "sat", "overcame", "became", "came", "rose", "fell", "saw", "went", "did", "had", "paid", "said", "told", "understood", "withdrew", "broke", "froze", "ground", "clung", "flew", "forgave", "forbade", "hung", "knew", "lost", "shook", "shot", "sought", "sang", "stuck", "strove", "swung", "trod", "woke", "wove", "tore", "bore", "spun", "sprang", "stole"];
 export function checkBullet(b: Bullet): { errors: string[]; warnings: string[] } {
   const errors: string[] = [];
   const warnings: string[] = [];
   const first = (b.text.match(/^[A-Za-z]+/)?.[0] ?? "").toLowerCase();
   if (DUTY_OPENERS.includes(first)) errors.push(`[${b.key}] opens with a duty, not an active verb: "${b.text.slice(0, 40)}"`);
-  const numbers = b.text.match(NUMBER) ?? [];
+  const numbers = numbersIn(b.text);
   if (numbers.length > MAX_NUMBERS) warnings.push(`[${b.key}] has ${numbers.length} numbers (at most ${MAX_NUMBERS}): ${numbers.join(", ")}`);
   if (first && !first.endsWith("ed") && !PAST_IRREGULAR.includes(first)) warnings.push(`[${b.key}] may not open in the past tense: "${first}"`);
   return { errors, warnings };

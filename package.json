@@ -4,7 +4,7 @@
   "type": "module",
   "engines": { "node": ">=24" },
   "scripts": {
-    "test": "node --test profile/lib/*.test.ts autotriage/scripts/*.test.ts && tsc --noEmit",
+    "test": "node --test profile/lib/*.test.ts resume/scripts/*.test.ts autotriage/scripts/*.test.ts && tsc --noEmit",
     "build": "node profile/lib/cli.ts build"
   },
   "dependencies": {

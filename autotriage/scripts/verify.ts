@@ -9,7 +9,7 @@
 //   exit 0 when no script Check fails, 1 when one does, 2 on usage or a missing input.
 import fs from "node:fs";
 import path from "node:path";
-import { readArtifact, loadCatalogue, flagsFor, candidateDir, letterFileFor, templateFor, versionFile, profile, skills, readVersion, selection, versionSkillTerms, AUTOTRIAGE_ROOT, type Artifact, type Profile, type Project } from "./lib.ts";
+import { readArtifact, loadCatalogue, flagsFor, candidateDir, letterFileFor, templateFor, versionFile, profile, skills, readVersion, versionSkillTerms, AUTOTRIAGE_ROOT, type Artifact, type Profile, type Project } from "./lib.ts";
 import { skillsIn } from "./skills.ts";
 
 const LIST_LINE = /^(?:-|\d+[.)])\s/;
@@ -49,13 +49,13 @@ export function loadInputs(candidate: string): Inputs {
   return { candidate, letter, job, profile: p.profile ?? {}, skillNames, voice: p.voice ?? {}, projects, version };
 }
 
-// The Version the Candidate is sent with (cover-letter.md `version`), read through the Profile.
+// The Version the Candidate is sent with (cover-letter.md `version`): its title, summary, Skills lines and Bullets, read from its body.
 export function readVersionText(dir: string, name: unknown, p: Profile): VersionText {
   const file = versionFile(dir, name);
   const source = name === "tailored" ? "version.md in the Candidate folder" : "resume/versions/general.md";
   const v = readVersion(file, p);
   if (v.errors.length) return { name: String(name), source, summary: null, skills: [], text: null };
-  const leads = selection(v, p).flatMap((s) => s.bullets.map((b) => b.text));
+  const leads = v.bullets.map((b) => b.text);
   return { name: String(name), source, summary: v.summary || null, skills: versionSkillTerms(v.skills), text: [v.title, v.summary, ...v.skills, ...leads].join("\n") };
 }
 
