@@ -120,8 +120,8 @@ export function parseProject(body: string): ProjectBody {
   return { stories, bullets, notes, errors };
 }
 
-// The Profile check on a Bullet (profile/bullet-rules.md): the opener and the number count fail, the
-// tense warns. A number is a digit run standing alone (100,000; 3.6; 10+; 2-person; a range 10–50 once), not 3D or i18n.
+// The Profile check on a Bullet (profile/bullet-rules.md): the opener fails, the number count and the
+// tense warn. A number is a digit run standing alone (100,000; 3.6; 10+; 2-person; a range 10–50 once), not 3D or i18n.
 export const DUTY_OPENERS = ["responsible", "helped", "assisted", "participated", "worked", "involved", "tasked", "duties"];
 export const MAX_NUMBERS = 3;
 const NUMBER = /(?<![\w.])\d[\d,.]*(?:\+|%)?(?:[–-]\d[\d,.]*(?:\+|%)?)?(?![\w])/g;
@@ -132,7 +132,7 @@ export function checkBullet(b: Bullet): { errors: string[]; warnings: string[] }
   const first = (b.text.match(/^[A-Za-z]+/)?.[0] ?? "").toLowerCase();
   if (DUTY_OPENERS.includes(first)) errors.push(`[${b.key}] opens with a duty, not an active verb: "${b.text.slice(0, 40)}"`);
   const numbers = b.text.match(NUMBER) ?? [];
-  if (numbers.length > MAX_NUMBERS) errors.push(`[${b.key}] has ${numbers.length} numbers (at most ${MAX_NUMBERS}): ${numbers.join(", ")}`);
+  if (numbers.length > MAX_NUMBERS) warnings.push(`[${b.key}] has ${numbers.length} numbers (at most ${MAX_NUMBERS}): ${numbers.join(", ")}`);
   if (first && !first.endsWith("ed") && !PAST_IRREGULAR.includes(first)) warnings.push(`[${b.key}] may not open in the past tense: "${first}"`);
   return { errors, warnings };
 }

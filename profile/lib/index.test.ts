@@ -40,12 +40,12 @@ test("parseProject reports a Bullet without a key, a duplicate key, an unknown s
   assert.deepEqual(p.errors, ['text outside the sections: "Stray."', 'unknown section "## Themes"', 'Bullet without a key: "No key."', "duplicate Bullet key [a]", 'Stories holds text before the first "### <story>": "Prose first."']);
 });
 
-test("checkBullet fails a duty opener and more than three numbers, warns on a present-tense opener", () => {
+test("checkBullet fails a duty opener, warns on more than three numbers and on a present-tense opener", () => {
   const b = (text: string) => checkBullet({ key: "k", text, story: null });
   assert.deepEqual(b("Built 314 of the 332 components on a 2-person team."), { errors: [], warnings: [] });
   assert.match(b("Responsible for the admin.").errors[0], /opens with a duty/);
-  assert.match(b("Scaled it from 1 to 2,600 positions at 10–50 samples in 40 ms to 15 s.").errors[0], /has 5 numbers \(at most 3\): 1, 2,600, 10–50, 40, 15/);
-  assert.deepEqual(b("Rendered 3D roofs in i18n-ready UI with Vue 3.").errors, [], "3D and i18n are not numbers");
+  assert.match(b("Scaled it from 1 to 2,600 positions at 10–50 samples in 40 ms to 15 s.").warnings[0], /has 5 numbers \(at most 3\): 1, 2,600, 10–50, 40, 15/);
+  assert.deepEqual(b("Rendered 3D roofs in i18n-ready UI with Vue 3.").warnings, [], "3D and i18n are not numbers");
   assert.match(b("Builds the admin.").warnings[0], /past tense/);
 });
 
@@ -66,7 +66,7 @@ test("readProfile names a resume_order slug with no Project file, a Project miss
   const p = readProfile(root);
   assert.ok(p.errors.includes("profile.md: resume_order lacks the Project extra"));
   assert.ok(p.errors.includes('projects/extra.md: [x] opens with a duty, not an active verb: "Helped with 1, 2, 3 and 4."'));
-  assert.ok(p.errors.some((e) => e.startsWith("projects/extra.md: [x] has 4 numbers")));
+  assert.ok(p.warnings.some((e) => e.startsWith("projects/extra.md: [x] has 4 numbers")));
   assert.equal(p.profile, null);
 });
 

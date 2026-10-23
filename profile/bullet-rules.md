@@ -1,6 +1,6 @@
 # The Bullet rules
 
-What a Bullet is written by: an agent drafts it from its Story, the person reviews it. Folded from the resumeskills audit, landing place 1 (M1 to M13 in `docs/research/resumeskills-fold-in.md`). The Profile check (`npm run build`) scripts three of them: the opener (rule 2) and the number count (rule 7) fail, the tense (rule 1) warns; the rest are judged by the writer and the reviewer.
+What a Bullet is written by: an agent drafts it from its Story, the person reviews it. Folded from the resumeskills audit, landing place 1 (M1 to M13 in `docs/research/resumeskills-fold-in.md`). The Profile check (`npm run build`) scripts three of them: the opener (rule 2) fails, the number count (rule 7) and the tense (rule 1) warn; the rest are judged by the writer and the reviewer.
 
 ## Input
 
