@@ -12,5 +12,5 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["profile/lib/**/*.ts", "autotriage/scripts/**/*.ts", "resume/renderer/**/*.ts"]
+  "include": ["profile/lib/**/*.ts", "autotriage/scripts/**/*.ts", "resume/scripts/**/*.ts"]
 }

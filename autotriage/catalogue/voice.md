@@ -74,7 +74,7 @@ Rhythm, density, and the quality of the opening Slot (Hook Slot or intro) are mo
 
 ## Profile `voice.md`
 
-Hard rules and preferences only (`scripts/schemas/voice.schema.json`):
+Hard rules and preferences only (`profile/schemas/voice.schema.json`):
 
 ```yaml
 language: en-US          # en-US | en-GB

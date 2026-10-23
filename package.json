@@ -3,10 +3,14 @@
   "private": true,
   "type": "module",
   "engines": { "node": ">=24" },
-  "workspaces": ["profile", "autotriage", "resume/renderer"],
   "scripts": {
-    "test": "npm test --workspaces --if-present && tsc --noEmit",
-    "build": "npm run build -w profile"
+    "test": "node --test profile/lib/*.test.ts autotriage/scripts/*.test.ts && tsc --noEmit",
+    "build": "node profile/lib/cli.ts build"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "marked": "^18.1.0",
+    "yaml": "^2.8.0"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

@@ -1,15 +1,23 @@
 // Shared helpers for the Guard, the hooks and the State scripts. The Profile is read through
-// @konfrontend/profile, never parsed here; this file owns the Candidate artifacts and the catalogue.
+// profile/lib, never parsed here; this file owns the Candidate artifacts and the catalogue.
 import fs from "node:fs";
 import path from "node:path";
-import { registerSchemaDir, readArtifact, readProfile, validate as validateSchema, schemaFor, type Artifact, type Frontmatter, type Profile } from "@konfrontend/profile";
-import { PLUGIN_ROOT, PROFILE_ROOT, CANDIDATES_DIR, VERSIONS_DIR, GENERAL_VERSION } from "./paths.ts";
+import { fileURLToPath } from "node:url";
+import { registerSchemaDir, readArtifact, readProfile, validate as validateSchema, schemaFor, type Artifact, type Frontmatter, type Profile } from "../../profile/lib/index.ts";
 
-registerSchemaDir(path.join(PLUGIN_ROOT, "scripts", "schemas"));
+// Where the catalogue and the schemas live, and where the data lives: the project the session runs in,
+// with the Profile in `profile/`, the Candidates in `private/candidates/`, the Versions in `resume/versions/`.
+export const AUTOTRIAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+export const PROJECT_DIR = path.resolve(process.env.CLAUDE_PROJECT_DIR || process.cwd());
+export const PROFILE_ROOT = path.join(PROJECT_DIR, "profile");
+export const CANDIDATES_DIR = path.join(PROJECT_DIR, "private", "candidates");
+export const VERSIONS_DIR = path.join(PROJECT_DIR, "resume", "versions");
+export const GENERAL_VERSION = path.join(VERSIONS_DIR, "general.md");
 
-export * from "./paths.ts";
-export { readArtifact, writeArtifact, splitFrontmatter, readProfile, readVersion, selection, skills, skillFor, versionSkillTerms } from "@konfrontend/profile";
-export type { Artifact, Frontmatter, Profile, Project, Story, Skill, Version } from "@konfrontend/profile";
+registerSchemaDir(path.join(AUTOTRIAGE_ROOT, "schemas"));
+
+export { readArtifact, writeArtifact, splitFrontmatter, readProfile, readVersion, selection, skills, skillFor, versionSkillTerms } from "../../profile/lib/index.ts";
+export type { Artifact, Frontmatter, Profile, Project, Story, Skill, Version } from "../../profile/lib/index.ts";
 
 export class Refusal extends Error {
   constructor(message: string) {
@@ -101,7 +109,7 @@ export function schemaForPath(file: string): string | null {
 }
 
 export function loadCatalogue(name: string): Frontmatter {
-  const file = path.join(PLUGIN_ROOT, "catalogue", `${name}.md`);
+  const file = path.join(AUTOTRIAGE_ROOT, "catalogue", `${name}.md`);
   const art = readArtifact(file);
   if (!art?.frontmatter) throw new Error(`catalogue/${name}.md is missing or has no frontmatter`);
   return art.frontmatter;

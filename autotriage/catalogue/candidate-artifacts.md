@@ -10,7 +10,7 @@ A Candidate is one folder under `private/candidates/`, gitignored. `job.md` is t
 
 Written by `intake`; `triage` adds `requirements` and the `verdict` block; the human sets `decision` and, once the Letter or the Version went out, `outcome`. Body is the posting verbatim, nothing parsed out, nothing dropped. `intake` reads `route` from the human or infers it (a parameter line with a budget is freelance; a job ad is employment) and marks an inferred value in its report. The route is not a Family; `family` stays a freelance term.
 
-Freelance route (`scripts/schemas/job-freelance.schema.json`):
+Freelance route (`schemas/job-freelance.schema.json`):
 
 ```yaml
 slug: clinic-booking-mvp
@@ -38,7 +38,7 @@ verdict:                          # absent until triage runs
 outcome: null                     # human; sent | replied | interview | offer | hired | rejected | withdrawn; non-null only on decision go
 ```
 
-Employment route (`scripts/schemas/job-employment.schema.json`):
+Employment route (`schemas/job-employment.schema.json`):
 
 ```yaml
 slug: heymondo-senior-frontend
@@ -91,7 +91,7 @@ date: 2026-09-19
 
 ## `cover-letter.md` (employment route)
 
-What went out on the employment route (`scripts/schemas/cover-letter.schema.json`): the Version, always, and the Letter when one was written. Created by the `version` State with frontmatter only and an empty body; a re-run rewrites `version` and leaves the body alone. `proposal` writes the Letter into the body from `catalogue/templates/letter-employment.md` and keeps the frontmatter; `verify` checks it. Body is the cover letter as sent: plain text, no Markdown, within the template's 500 characters. An empty body is valid: the Version went out without a Letter, a CV-only application.
+What went out on the employment route (`schemas/cover-letter.schema.json`): the Version, always, and the Letter when one was written. Created by the `version` State with frontmatter only and an empty body; a re-run rewrites `version` and leaves the body alone. `proposal` writes the Letter into the body from `catalogue/templates/letter-employment.md` and keeps the frontmatter; `verify` checks it. Body is the cover letter as sent: plain text, no Markdown, within the template's 500 characters. An empty body is valid: the Version went out without a Letter, a CV-only application.
 
 ```yaml
 slug: heymondo-senior-frontend
@@ -107,4 +107,4 @@ The tailored Version's source, created by `version --tailor` as a copy of `resum
 
 ## Tracker
 
-The Tracker is not stored: `node scripts/tracker.ts print`, behind `/autotriage:tracker`, prints it from every Candidate's `job.md` frontmatter, `version` from `cover-letter.md`, and never writes. One table for both routes, columns `date | candidate | route | decision | family | version | outcome`; `family` is empty on employment rows, `version` empty on freelance rows. Open Candidates come first, then closed (`decision: no-go` or a terminal `outcome`), each by intake date descending; a `hired` Candidate stays listed. The print warns on `outcome: sent` with no letter file (`letter.md` or `cover-letter.md`) in the folder, and skips any folder under `private/candidates/` that is not a dated Candidate, such as the archive. No history is committed.
+The Tracker is not stored: `node scripts/tracker.ts print`, behind `/tracker`, prints it from every Candidate's `job.md` frontmatter, `version` from `cover-letter.md`, and never writes. One table for both routes, columns `date | candidate | route | decision | family | version | outcome`; `family` is empty on employment rows, `version` empty on freelance rows. Open Candidates come first, then closed (`decision: no-go` or a terminal `outcome`), each by intake date descending; a `hired` Candidate stays listed. The print warns on `outcome: sent` with no letter file (`letter.md` or `cover-letter.md`) in the folder, and skips any folder under `private/candidates/` that is not a dated Candidate, such as the archive. No history is committed.
