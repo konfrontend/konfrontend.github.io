@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { readProfile, parseStories, skills, skillFor, ledger, renderLedger, master, readVersion, selection, writeArtifact } from "./index.ts";
+import { readProfile, parseProject, checkBullet, skills, skillFor, renderSkills, writeArtifact } from "./index.ts";
 
 function fixture(): string {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "profile-"));
@@ -11,74 +11,69 @@ function fixture(): string {
     identity: { name: "Ada Lovelace", timezone: "Europe/London", constraints: [] },
     contact: { location: "London (UTC+0)", email: "ada@example.com", github: "https://github.com/ada" },
     resume_order: ["engine", "notes"],
-    refused_stacks: [], family_precedence: ["audit", "build", "maintenance", "fix"], word_cap: 350,
-    terms: { rate: 60, rate_floor: 40, budget_floor: 0, billing: "hourly-caps" },
+    terms: { rate: 60, rate_floor: 40 },
   });
   writeArtifact(path.join(root, "voice.md"), { language: "en-US", greeting: { freelance: "Hi,", employment: "Hello," }, sign_off: "Ada" });
   writeArtifact(path.join(root, "projects", "engine.md"), {
     name: "Analytical Engine", url: "https://example.com/engine", role: "Programmer", employment: "contract", start: "1842-01", end: "1843-09", naming: "public", description: "A mechanical computer.", keywords: ["Punched cards", "Bernoulli numbers"],
-  }, "**Programs**\n\n- [bernoulli] Wrote the first program, computing Bernoulli numbers.\n  Published as Note G.\n- [loops] Described loops and conditional branches.\n");
+  }, "## Stories\n\n### Note G\n\nThe Engine had no program. I wrote one.\n\n- [bernoulli] Wrote the first program, computing Bernoulli numbers.\n\n## Bullets\n\n- [loops] Described loops and conditional branches.\n\n## Notes\n\n- Published in 1843.\n");
   writeArtifact(path.join(root, "projects", "notes.md"), {
     name: "Notes", role: "Author", employment: "independent", start: "1843-01", naming: "public", description: "Translation notes.", keywords: ["punched cards", "Writing"],
-  }, "- [translation] Translated Menabrea's memoir with notes three times its length.\n");
+  }, "## Bullets\n\n- [translation] Translated Menabrea's memoir with notes three times its length.\n");
   fs.mkdirSync(path.join(root, "answers"));
   writeArtifact(path.join(root, "answers", "why.md"), { question: "Why compute?" }, "Because the Engine can.\n");
   return root;
 }
 
-test("parseStories reads keys, Bullets, Facts and Themes, and reports a Story without a key", () => {
-  const { themes, errors } = parseStories("**T**\n\n- [a] One.\n  Fact one.\n- Two without key.\n- [a] Three.\n");
-  assert.equal(themes[0].name, "T");
-  assert.deepEqual(themes[0].stories.map((s) => [s.key, s.lead, s.context]), [["a", "One.", "Fact one."], ["a", "Three.", null]]);
-  assert.deepEqual(errors, ['Story without a key: "Two without key."', "duplicate Story key [a]"]);
+test("parseProject reads the Stories with their prose and Bullets, the Bullets with no Story, and the Notes", () => {
+  const body = "## Stories\n\n### Admin\n\nProblem.\n\nSolution and outcome.\n\n- [rbac] Built the RBAC admin.\n- [saml] Added SAML login,\n  the second line.\n\n## Bullets\n\n- [feed] Built the feed.\n\n## Notes\n\n- Raw line one.\n- Raw line two.\n";
+  const p = parseProject(body);
+  assert.deepEqual(p.errors, []);
+  assert.deepEqual(p.stories.map((s) => [s.name, s.text, s.bullets.map((b) => b.key)]), [["Admin", "Problem.\n\nSolution and outcome.", ["rbac", "saml"]]]);
+  assert.deepEqual(p.bullets.map((b) => [b.key, b.text, b.story]), [["rbac", "Built the RBAC admin.", "Admin"], ["saml", "Added SAML login, the second line.", "Admin"], ["feed", "Built the feed.", null]]);
+  assert.deepEqual(p.notes, ["Raw line one.", "Raw line two."]);
+  assert.deepEqual(parseProject("").errors, []);
+});
+
+test("parseProject reports a Bullet without a key, a duplicate key, an unknown section and text outside the sections", () => {
+  const p = parseProject("Stray.\n\n## Themes\n\n## Bullets\n\n- No key.\n- [a] One.\n- [a] Two.\n\n## Stories\n\nProse first.\n");
+  assert.deepEqual(p.errors, ['text outside the sections: "Stray."', 'unknown section "## Themes"', 'Bullet without a key: "No key."', "duplicate Bullet key [a]", 'Stories holds text before the first "### <story>": "Prose first."']);
+});
+
+test("checkBullet fails a duty opener and more than three numbers, warns on a present-tense opener", () => {
+  const b = (text: string) => checkBullet({ key: "k", text, story: null });
+  assert.deepEqual(b("Built 314 of the 332 components on a 2-person team."), { errors: [], warnings: [] });
+  assert.match(b("Responsible for the admin.").errors[0], /opens with a duty/);
+  assert.match(b("Scaled it from 1 to 2,600 positions at 10–50 samples in 40 ms to 15 s.").errors[0], /has 5 numbers \(at most 3\): 1, 2,600, 10–50, 40, 15/);
+  assert.deepEqual(b("Rendered 3D roofs in i18n-ready UI with Vue 3.").errors, [], "3D and i18n are not numbers");
+  assert.match(b("Builds the admin.").warnings[0], /past tense/);
 });
 
 test("readProfile validates every file, orders Projects by resume_order and reads Answers", () => {
   const p = readProfile(fixture());
   assert.deepEqual(p.errors, []);
+  assert.deepEqual(p.warnings, []);
   assert.deepEqual(p.projects.map((x) => x.slug), ["engine", "notes"]);
-  assert.equal(p.projects[0].stories.length, 2);
+  assert.equal(p.projects[0].stories.length, 1);
+  assert.equal(p.projects[0].bullets.length, 2);
+  assert.deepEqual(p.projects[0].notes, ["Published in 1843."]);
   assert.deepEqual(p.answers.map((a) => [a.question, a.text]), [["Why compute?", "Because the Engine can."]]);
 });
 
-test("readProfile names a resume_order slug with no Project file and a Project missing from the order", () => {
+test("readProfile names a resume_order slug with no Project file, a Project missing from the order, and a Bullet that breaks a rule", () => {
   const root = fixture();
-  writeArtifact(path.join(root, "projects", "extra.md"), { name: "X", role: "R", employment: "independent", start: "1850-01", naming: "public", description: "D", keywords: ["Writing"] }, "");
+  writeArtifact(path.join(root, "projects", "extra.md"), { name: "X", role: "R", employment: "independent", start: "1850-01", naming: "public", description: "D", keywords: ["Writing"] }, "## Bullets\n\n- [x] Helped with 1, 2, 3 and 4.\n");
   const p = readProfile(root);
   assert.ok(p.errors.includes("profile.md: resume_order lacks the Project extra"));
+  assert.ok(p.errors.includes('projects/extra.md: [x] opens with a duty, not an active verb: "Helped with 1, 2, 3 and 4."'));
+  assert.ok(p.errors.some((e) => e.startsWith("projects/extra.md: [x] has 4 numbers")));
   assert.equal(p.profile, null);
 });
 
-test("skills derive from keywords: canonical spelling from the first Project in resume order, exact match only", () => {
+test("skills derive from keywords: canonical spelling from the first Project in resume order, exact match only; skills.md lists them", () => {
   const p = readProfile(fixture());
   assert.deepEqual(skills(p).map((s) => [s.name, s.evidence]), [["Punched cards", ["engine", "notes"]], ["Bernoulli numbers", ["engine"]], ["Writing", ["notes"]]]);
   assert.equal(skillFor(p, "punched CARDS")?.name, "Punched cards");
   assert.equal(skillFor(p, "cards"), null);
-});
-
-test("ledger counts Candidates once per Skill and adds Gaps for unproved requirements, Gaps first", () => {
-  const p = readProfile(fixture());
-  const rows = ledger(p, [
-    { candidate: "c1", requirements: ["Writing", "writing", "Steam"] },
-    { candidate: "c2", requirements: ["steam", "Punched cards"] },
-  ]);
-  assert.deepEqual(rows.map((r) => [r.name, r.level, r.seen]), [["Steam", "gap", 2], ["Punched cards", "shipped", 1], ["Writing", "shipped", 1], ["Bernoulli numbers", "shipped", 0]]);
-  assert.match(renderLedger(rows), /\| Steam \| 2 \|/);
-});
-
-test("master lists the contact line, every Skill, and every Story by key under its Project in resume order", () => {
-  const md = master(readProfile(fixture()));
-  assert.match(md, /^# Ada Lovelace\n\nLondon \(UTC\+0\) • \[ada@example.com\]\(mailto:ada@example.com\) • \[github.com\/ada\]/);
-  assert.match(md, /## Professional Experience\n\n### \[Analytical Engine\]\(https:\/\/example.com\/engine\) \| Programmer \(Contract\) \| Jan 1842 – Sep 1843\n\nA mechanical computer.\n\n\*\*Programs\*\*\n\n- \[bernoulli\] Wrote/);
-  assert.match(md, /## Projects\n\n### Notes \| Author \| Jan 1843 – Present/);
-});
-
-test("readVersion refuses unknown Skills terms, Projects and Story keys, and selection follows resume order", () => {
-  const root = fixture();
-  const p = readProfile(root);
-  const file = path.join(root, "general.md");
-  writeArtifact(file, { title: "Programmer", summary: "First programmer.", skills: ["Core: Punched cards, Steam"], projects: { notes: ["translation"], engine: ["loops", "nope"], ghost: ["x"] } });
-  const v = readVersion(file, p);
-  assert.deepEqual(v.errors, ["general.md: Skills term is not a Project keyword: Steam", "general.md: engine has no Story [nope]", "general.md: no Project file for ghost"]);
-  assert.deepEqual(selection(v, p).map((s) => [s.project.slug, s.stories.map((x) => x.key)]), [["engine", ["loops"]], ["notes", ["translation"]]]);
+  assert.match(renderSkills(p), /3 Skills\.\n\n\| skill \| evidence \|\n\| --- \| --- \|\n\| Bernoulli numbers \| engine \|\n\| Punched cards \| engine, notes \|\n\| Writing \| notes \|\n$/);
 });

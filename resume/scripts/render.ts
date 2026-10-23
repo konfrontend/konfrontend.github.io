@@ -1,5 +1,5 @@
-// Renders a Version to PDF: the selection is read through profile/lib and assembled from the
-// Project files, turned into HTML with resume.css, printed by headless Chrome, then checked.
+// Renders a Version to PDF: the selection is read by version.ts and assembled from the Project files
+// through profile/lib, turned into HTML with resume.css, printed by headless Chrome, then checked.
 // The input path is the first argument, relative to the repo root. The default, resume/versions/general.md,
 // writes Konstantin_Dolbilov_Resume.pdf at the root; any other input writes a PDF of the same base name
 // next to itself. The target PDF is replaced only when every check passes. Work files go to resume/scripts/out/.
@@ -9,7 +9,8 @@ import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { marked } from "marked";
-import { readProfile, readVersion, selection, contactLine, projectName, roleLine, period, isExperience, type Profile, type Version } from "../../profile/lib/index.ts";
+import { readProfile, type Profile } from "../../profile/lib/index.ts";
+import { readVersion, selection, contactLine, projectName, roleLine, period, isExperience, type Version } from "./version.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "..", "..");
@@ -40,13 +41,13 @@ export function toHtml(version: Version, profile: Profile): Rendered {
     const entries = picked.filter(({ project }) => test(project.meta));
     if (!entries.length) continue;
     html.push(`<h2>${title}</h2>`);
-    for (const { project, stories } of entries) {
+    for (const { project, bullets } of entries) {
       const m = project.meta;
       html.push(`<h3>${inline(projectName(m))} <span class="desc">– ${inline(m.description)}</span></h3>`);
       const role = roleLine(m), dates = period(m);
       roles.push([role, dates]);
       html.push(`<p class="role"><span class="title">${inline(role)}</span> <span class="dates">${dates}</span></p>`);
-      html.push("<ul>", ...stories.map((s) => `<li>${inline(s.lead)}</li>`), "</ul>");
+      html.push("<ul>", ...bullets.map((b) => `<li>${inline(b.text)}</li>`), "</ul>");
     }
   }
   return { title: meta.identity.name, body: nowrapHyphens(html.join("\n")), roles };

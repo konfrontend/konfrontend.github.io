@@ -63,7 +63,7 @@ test("cover-letter.md has its own schema and the write hook finds every artifact
   assert.equal(schemaForPath(path.join(VERSIONS_DIR, "general.md")), "version");
   assert.equal(schemaForPath(path.join(PROFILE_ROOT, "profile.md")), "profile");
   assert.equal(schemaForPath(path.join(PROFILE_ROOT, "projects", "acme.md")), "project");
-  assert.equal(schemaForPath(path.join(PROFILE_ROOT, "master.md")), null, "generated files have no schema");
+  assert.equal(schemaForPath(path.join(PROFILE_ROOT, "skills.md")), null, "generated files have no schema");
   assert.equal(schemaForPath(path.join(PROFILE_ROOT, "answers", "why.md")), null);
 });
 
@@ -122,8 +122,7 @@ test("job.md carries requirements on both routes; the Profile may state a salary
   assert.ok(validate("job", { ...employment, recorded_skills: ["Vue"] }).length, "the ledger marker is gone: the ledger derives from requirements");
   const profile = {
     identity: { name: "A", timezone: "Europe/Berlin", constraints: [] }, contact: { location: "Berlin", email: "a@b.de" }, resume_order: ["x"],
-    refused_stacks: [], family_precedence: ["audit", "build", "maintenance", "fix"], word_cap: 350,
-    terms: { rate: 50, rate_floor: 40, budget_floor: 500, billing: "hourly-caps" },
+    terms: { rate: 50, rate_floor: 40 },
   };
   assert.deepEqual(validate("profile", profile), [], "salary_floor is optional");
   assert.deepEqual(validate("profile", { ...profile, terms: { ...profile.terms, salary_floor: { type: "annual", amount: 60000, currency: "EUR" } } }), []);

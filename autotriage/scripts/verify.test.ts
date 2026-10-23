@@ -18,11 +18,11 @@ const profile = {
 };
 const skillNames = ["TypeScript", "React", "Postgres"];
 const voice = { language: "en-US", greeting: { freelance: "Hi,", employment: "Hello," }, sign_off: "Kon", banned_extra: ["synergy"], allowed_extra: ["leverage"], cite_role_period: false };
-const story = { key: "rbac-admin", theme: "Admin", lead: "Built the RBAC admin and the SAML login.", context: "Collaborator and admin roles." };
+const bullet = { key: "rbac-admin", story: null, text: "Built the RBAC admin and the SAML login." };
 const projects: Project[] = [{
   slug: "acme", file: "acme.md", errors: [],
   meta: { name: "Acme", url: "https://acme.example", role: "Full Stack Developer", employment: "contract", start: "2021-02", naming: "public", description: "B2B dashboard.", keywords: ["TypeScript"] },
-  themes: [{ name: "Admin", stories: [story] }], stories: [story],
+  stories: [], bullets: [bullet], notes: ["Collaborator and admin roles."], warnings: [],
 }];
 const job = (family: string | null, flags = ["regulated-domain"], alert = 2) => ({
   frontmatter: { slug: "acme-audit", verdict: { family, flags, alert_level: alert } },
@@ -69,8 +69,8 @@ test("clean audit Letter passes the script Checks", () => {
   assert.deepEqual(r.slots.map((s) => s.id), ["hook", "deliverables", "follow_on", "relevant_work", "gaps", "billing", "terms", "closing", "sign_off"]);
   assert.equal(r.brief.safeguards[0].slot, "deliverables");
   assert.deepEqual(r.brief.skills, ["TypeScript", "React", "Postgres"], "the brief lists the Profile's Skills");
-  assert.deepEqual(r.brief.projects.map((p: any) => [p.slug, p.name, p.url, p.period, p.stories.length]), [["acme", "Acme", "https://acme.example", "2021-02 – present", 1]], "the brief harvests the Project facts from the meta and the Stories");
-  assert.deepEqual(r.brief.projects[0].stories[0], { key: "rbac-admin", theme: "Admin", bullet: "Built the RBAC admin and the SAML login.", context: "Collaborator and admin roles." });
+  assert.deepEqual(r.brief.projects.map((p: any) => [p.slug, p.name, p.url, p.period, p.bullets.length, p.notes]), [["acme", "Acme", "https://acme.example", "2021-02 – present", 1, ["Collaborator and admin roles."]]], "the brief harvests the Project facts from the meta, the Bullets and the Notes");
+  assert.deepEqual(r.brief.projects[0].bullets[0], { key: "rbac-admin", story: null, text: "Built the RBAC admin and the SAML login." });
   assert.match(render(r, 0), /- \[rbac-admin\] Built the RBAC admin/);
 });
 

@@ -16,11 +16,11 @@ test("the route gate passes on a valid Profile", () => {
 });
 
 test("a refusal is printed on stdout with exit 0 and names the Profile errors", () => {
-  const { root } = fixture({ project: project(["React"], "- Built the admin without a key.\n") });
+  const { root } = fixture({ project: project(["React"], "## Bullets\n\n- Built the admin without a key.\n") });
   const r = run(root, "guard.ts", "route");
   assert.equal(r.status, 0);
   assert.equal(r.stderr, "");
-  assert.match(r.stdout, /^autotriage: route refused\. the Profile has 1 error:\n  projects\/acme\.md: Story without a key: "Built the admin without a key\."\nFix the file by hand\./);
+  assert.match(r.stdout, /^autotriage: route refused\. the Profile has 1 error:\n  projects\/acme\.md: Bullet without a key: "Built the admin without a key\."\nFix the file by hand\./);
 });
 
 test("triage needs only profile.md; the Letter States need every Profile file", () => {
@@ -63,14 +63,14 @@ test("the write hook validates Profile, Candidate and Version files by their pat
   const { root, candidate } = fixture({ candidates: { "2026-10-17-acme-frontend": { "job.md": employmentJob() } } });
   const write = (file: string) => hook(root, "post-tool-use.ts", { tool_input: { file_path: file } });
   assert.equal(write(path.join(root, "profile", "profile.md")).stdout, "", "a valid file passes");
-  fs.writeFileSync(path.join(root, "profile", "profile.md"), PROFILE.replace("word_cap: 350\n", ""));
+  fs.writeFileSync(path.join(root, "profile", "profile.md"), PROFILE.replace("resume_order: [acme]\n", ""));
   const blocked = JSON.parse(write(path.join(root, "profile", "profile.md")).stdout);
   assert.equal(blocked.decision, "block");
-  assert.match(blocked.reason, /does not match the profile schema:\n  \/ must have required property 'word_cap'/);
+  assert.match(blocked.reason, /does not match the profile schema:\n  \/ must have required property 'resume_order'/);
   fs.writeFileSync(path.join(candidate("2026-10-17-acme-frontend"), "job.md"), employmentJob().replace("remote: remote\n", ""));
   assert.match(JSON.parse(write(path.join(candidate("2026-10-17-acme-frontend"), "job.md")).stdout).reason, /job-employment schema/);
   fs.writeFileSync(path.join(root, "resume", "versions", "general.md"), "---\ntitle: X\n---\n");
   assert.match(JSON.parse(write(path.join(root, "resume", "versions", "general.md")).stdout).reason, /version schema/);
   assert.equal(write(path.join(root, "README.md")).stdout, "");
-  assert.equal(write(path.join(root, "profile", "master.md")).stdout, "", "generated files have no schema");
+  assert.equal(write(path.join(root, "profile", "skills.md")).stdout, "", "generated files have no schema");
 });

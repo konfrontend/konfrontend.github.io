@@ -18,20 +18,16 @@ export const PROFILE = `---
 identity: { name: Kon, timezone: Europe/Madrid, constraints: [] }
 contact: { location: "Gijon, Spain (UTC+2)", email: kon@example.com, github: https://github.com/kon }
 resume_order: [acme]
-refused_stacks: []
-family_precedence: [audit, build, maintenance, fix]
-word_cap: 350
-terms: { rate: 60, rate_floor: 40, budget_floor: 0, billing: hourly-caps }
+terms: { rate: 60, rate_floor: 40 }
 ---
 `;
 export const VOICE = `---
 language: en-US
 greeting: { freelance: "Hi,", employment: "Hello," }
 sign_off: Kon
-cite_role_period: false
 ---
 `;
-export const project = (keywords: string[], body = "**Admin**\n\n- [rbac-admin] Built the RBAC admin and the SAML login.\n  Collaborator and admin roles.\n") => `---
+export const project = (keywords: string[], body = "## Bullets\n\n- [rbac-admin] Built the RBAC admin and the SAML login.\n\n## Notes\n\n- Collaborator and admin roles.\n") => `---
 name: Acme
 url: https://acme.example
 role: Full Stack Developer

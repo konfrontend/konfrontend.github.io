@@ -16,8 +16,10 @@ export const GENERAL_VERSION = path.join(VERSIONS_DIR, "general.md");
 
 registerSchemaDir(path.join(AUTOTRIAGE_ROOT, "schemas"));
 
-export { readArtifact, writeArtifact, splitFrontmatter, readProfile, readVersion, selection, skills, skillFor, versionSkillTerms } from "../../profile/lib/index.ts";
-export type { Artifact, Frontmatter, Profile, Project, Story, Skill, Version } from "../../profile/lib/index.ts";
+export { readArtifact, writeArtifact, splitFrontmatter, readProfile, skills, skillFor } from "../../profile/lib/index.ts";
+export type { Artifact, Frontmatter, Profile, Project, Story, Bullet, Skill } from "../../profile/lib/index.ts";
+// The stored Version is the resume scripts' format; it is read there until the Version becomes prose.
+export { readVersion, selection, versionSkillTerms, type Version } from "../../resume/scripts/version.ts";
 
 export class Refusal extends Error {
   constructor(message: string) {

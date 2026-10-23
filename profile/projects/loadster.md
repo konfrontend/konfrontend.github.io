@@ -25,7 +25,7 @@ keywords: [TypeScript, Java, SQL, Object-Oriented Programming (OOP), Vue.js, Vue
 - [mcp-harness] Built an MCP test harness: 16 probe prompts against 7 Node.js fixture servers, 6 with planted faults, recording each tool call and its context-token cost.
 - [rate-limit-recovery] Added automatic recovery from API rate limits: Spring Boot sends Retry-After, and the dashboard backs off and retries.
 - [claude-workflow] Designed the team's Claude Code workflow as engineering infrastructure: layered instruction files, per-module glossaries, path-scoped conventions, a documentation skill, and build, CI, runtime, and design docs; merged pull requests rose from 22.5 to 31.5 a month (12-month averages).
-- [vitest-intro] Introduced Vitest to the dashboard and Node.js runtimes and wrote 101 of its 207 test cases on a 2-person team, plus 376 JUnit test cases across the Java backend.
+- [vitest-intro] Introduced Vitest to the dashboard and Node.js runtimes and wrote 101 of its 207 test cases, plus 376 JUnit test cases across the Java backend.
 - [dashboard-architecture] Designed the dashboard architecture: a cross-product common layer, a composables layer, separate live and report views, Vue Router nested routes with route-level layouts, and npm workspaces with the Node.js runtimes.
 - [vue3-migration] Migrated the Vue.js dashboard from Vue 2 to Vue 3 and from webpack to Vite, cutting builds from minutes to seconds, moved it to the Composition API, and introduced TypeScript incrementally.
 - [recorder-rewrite] Rewrote the Loadster Recorder extension in TypeScript on the WebExtension API and Chrome DevTools Protocol: one codebase generates Playwright Test code live in Chrome and Firefox.

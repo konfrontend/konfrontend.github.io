@@ -1,7 +1,7 @@
 // The Profile reader: the one implementation that parses the authored Markdown (profile.md, voice.md,
-// answers/, projects/), derives the Skills from the Projects' keywords, and builds the Master and the
-// Skill ledger as pure functions. Every consumer (the autotriage scripts, the resume renderer) imports
-// from here and never parses a Profile file itself.
+// answers/, projects/), derives the Skills from the Projects' keywords, and runs the Profile check.
+// Every consumer (the autotriage scripts, the resume scripts) imports from here and never parses a
+// Profile file itself. This module reads the Profile only: never private/, never resume/.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -32,8 +32,8 @@ export function writeArtifact(file: string, frontmatter: Frontmatter, body = "")
   fs.writeFileSync(file, `---\n${fm}\n---\n${body}`);
 }
 
-// Schemas: profile, project, voice, version live in profile/schemas; a consumer may register its own.
-export type SchemaName = "profile" | "project" | "voice" | "version" | (string & {});
+// Schemas: profile, project and voice live in profile/schemas; a consumer registers its own directory.
+export type SchemaName = "profile" | "project" | "voice" | (string & {});
 const ajv = new Ajv({ allErrors: true, strict: false, useDefaults: false });
 const compiled = new Map<string, ValidateFunction & { body: string | null }>();
 const schemaDirs = [SCHEMAS_DIR];
@@ -67,47 +67,88 @@ export function validateArtifact(name: SchemaName, art: Pick<Artifact, "frontmat
   return errors;
 }
 
-// Stories: `**Theme**` lines group them; each Story is `- [key] Bullet`, its Facts the indented lines beneath.
-export interface Story { key: string; theme: string | null; lead: string; context: string | null }
-export interface Theme { name: string | null; stories: Story[] }
+// A Project file's body: `## Stories` (each `### <name>`, its prose, then its canonical Bullets),
+// `## Bullets` (Bullets with no Story yet) and `## Notes` (raw lines for future Stories). A Bullet is
+// `- [key] text`; an indented line beneath continues it. Any section may be empty or absent.
+export interface Bullet { key: string; text: string; story: string | null }
+export interface Story { name: string; text: string; bullets: Bullet[] }
+export interface ProjectBody { stories: Story[]; bullets: Bullet[]; notes: string[]; errors: string[] }
 const KEY = /^\[([a-z0-9]+(?:-[a-z0-9]+)*)\]\s+(.*)$/s;
+const SECTIONS = ["Stories", "Bullets", "Notes"] as const;
+type Section = (typeof SECTIONS)[number];
 
-export function parseStories(body: string): { themes: Theme[]; errors: string[] } {
-  const themes: Theme[] = [];
+function items(block: string): string[] {
+  return block.split(/\n(?=- )/).map((item) => item.replace(/^- /, "").split(/\n\s+/).map((l) => l.trim()).join(" "));
+}
+
+export function parseProject(body: string): ProjectBody {
+  const stories: Story[] = [];
+  const bullets: Bullet[] = [];
+  const notes: string[] = [];
   const errors: string[] = [];
   const keys = new Set<string>();
+  let section: Section | null = null;
+  let story: Story | null = null;
+  const bullet = (item: string, owner: Story | null) => {
+    const km = KEY.exec(item);
+    if (!km) { errors.push(`Bullet without a key: "${item.slice(0, 60)}"`); return; }
+    if (keys.has(km[1])) errors.push(`duplicate Bullet key [${km[1]}]`);
+    keys.add(km[1]);
+    const b = { key: km[1], text: km[2].trim(), story: owner?.name ?? null };
+    bullets.push(b);
+    owner?.bullets.push(b);
+  };
   for (const block of (body ?? "").trim().split(/\n\s*\n+/)) {
-    const m = /^\*\*([^*]+)\*\*$/.exec(block.trim());
-    if (m) { themes.push({ name: m[1], stories: [] }); continue; }
-    if (!/^- /.test(block)) continue;
-    if (!themes.length) themes.push({ name: null, stories: [] });
-    const theme = themes[themes.length - 1];
-    for (const item of block.split(/\n(?=- )/)) {
-      const [first, ...rest] = item.replace(/^- /, "").split(/\n\s+/);
-      const km = KEY.exec(first.trim());
-      if (!km) { errors.push(`Story without a key: "${first.trim().slice(0, 60)}"`); continue; }
-      if (keys.has(km[1])) errors.push(`duplicate Story key [${km[1]}]`);
-      keys.add(km[1]);
-      theme.stories.push({ key: km[1], theme: theme.name, lead: km[2].trim(), context: rest.map((l) => l.trim()).join(" ") || null });
+    const text = block.trim();
+    if (!text) continue;
+    const h2 = /^## (.+)$/.exec(text);
+    if (h2) {
+      const name = h2[1].trim() as Section;
+      if (!SECTIONS.includes(name)) { errors.push(`unknown section "## ${h2[1].trim()}"`); section = null; continue; }
+      section = name; story = null; continue;
     }
+    if (section === null) { errors.push(`text outside the sections: "${text.slice(0, 60)}"`); continue; }
+    const h3 = /^### (.+)$/.exec(text);
+    if (section === "Stories" && h3) { story = { name: h3[1].trim(), text: "", bullets: [] }; stories.push(story); continue; }
+    const list = /^- /.test(text);
+    if (section === "Notes") { if (list) notes.push(...items(block)); else errors.push(`Notes holds a line that is not a list item: "${text.slice(0, 60)}"`); continue; }
+    if (section === "Bullets") { if (list) for (const item of items(block)) bullet(item, null); else errors.push(`Bullets holds a line that is not a Bullet: "${text.slice(0, 60)}"`); continue; }
+    if (!story) { errors.push(`Stories holds text before the first "### <story>": "${text.slice(0, 60)}"`); continue; }
+    if (list) for (const item of items(block)) bullet(item, story);
+    else story.text = story.text ? `${story.text}\n\n${text}` : text;
   }
-  return { themes, errors };
+  return { stories, bullets, notes, errors };
+}
+
+// The Profile check on a Bullet (profile/bullet-rules.md): the opener and the number count fail, the
+// tense warns. A number is a digit run standing alone (100,000; 3.6; 10+; 2-person; a range 10–50 once), not 3D or i18n.
+export const DUTY_OPENERS = ["responsible", "helped", "assisted", "participated", "worked", "involved", "tasked", "duties"];
+export const MAX_NUMBERS = 3;
+const NUMBER = /(?<![\w.])\d[\d,.]*(?:\+|%)?(?:[–-]\d[\d,.]*(?:\+|%)?)?(?![\w])/g;
+const PAST_IRREGULAR = ["built", "rebuilt", "wrote", "rewrote", "took", "cut", "ran", "chose", "made", "led", "set", "split", "drove", "kept", "read", "sent", "found", "held", "won", "grew", "brought", "gave", "got", "put", "sold", "taught", "thought", "spent", "met", "left", "lent", "laid", "began", "drew", "redrew", "ran", "shrank", "sped", "bound", "fed", "hid", "hit", "let", "lit", "shut", "slid", "stood", "struck", "swept", "threw", "undid", "wound", "sat", "overcame", "became", "came", "rose", "fell", "saw", "went", "did", "had", "paid", "said", "told", "understood", "withdrew", "broke", "froze", "ground", "clung", "flew", "forgave", "forbade", "hung", "knew", "lost", "shook", "shot", "sought", "sang", "stuck", "strove", "swung", "trod", "woke", "wove", "tore", "bore", "spun", "sprang", "stole"];
+export function checkBullet(b: Bullet): { errors: string[]; warnings: string[] } {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+  const first = (b.text.match(/^[A-Za-z]+/)?.[0] ?? "").toLowerCase();
+  if (DUTY_OPENERS.includes(first)) errors.push(`[${b.key}] opens with a duty, not an active verb: "${b.text.slice(0, 40)}"`);
+  const numbers = b.text.match(NUMBER) ?? [];
+  if (numbers.length > MAX_NUMBERS) errors.push(`[${b.key}] has ${numbers.length} numbers (at most ${MAX_NUMBERS}): ${numbers.join(", ")}`);
+  if (first && !first.endsWith("ed") && !PAST_IRREGULAR.includes(first)) warnings.push(`[${b.key}] may not open in the past tense: "${first}"`);
+  return { errors, warnings };
 }
 
 export type Employment = "full-time" | "part-time" | "contract" | "freelance" | "independent";
 export interface ProjectMeta {
   name: string; url?: string; role: string; employment: Employment; start: string; end?: string;
-  naming: "public" | "first-name-only" | "nda"; domain?: string; description: string; keywords: string[];
+  naming: "public" | "first-name-only" | "nda"; description: string; keywords: string[];
 }
-export interface Project { slug: string; file: string; meta: ProjectMeta; themes: Theme[]; stories: Story[]; errors: string[] }
+export interface Project extends ProjectBody { slug: string; file: string; meta: ProjectMeta; warnings: string[] }
 export interface Answer { file: string; question: string; text: string }
 export interface Contact { location: string; email: string; github?: string; linkedin?: string }
 export interface ProfileMeta {
   identity: { name: string; location?: string; timezone: string; constraints: string[] };
   contact: Contact;
   resume_order: string[];
-  refused_stacks: string[]; niche?: string[]; interests?: string[]; avoid?: string[];
-  family_precedence: string[]; word_cap: number;
   terms: Record<string, unknown>;
 }
 export interface Profile {
@@ -118,6 +159,7 @@ export interface Profile {
   projects: Project[];
   answers: Answer[];
   errors: string[];
+  warnings: string[];
 }
 
 export function profilePaths(root: string) {
@@ -127,21 +169,21 @@ export function profilePaths(root: string) {
     voice: path.join(root, "voice.md"),
     answers: path.join(root, "answers"),
     projects: path.join(root, "projects"),
-    master: path.join(root, "master.md"),
-    ledger: path.join(root, "skills.md"),
+    skills: path.join(root, "skills.md"),
   };
 }
 
 export function readProject(file: string): Project {
   const slug = path.basename(file, ".md");
+  const empty = { stories: [], bullets: [], notes: [], warnings: [] };
   const art = readArtifact(file);
-  const errors: string[] = [];
-  if (!art) return { slug, file, meta: null as unknown as ProjectMeta, themes: [], stories: [], errors: [`${file}: missing`] };
-  if (art.frontmatter === null) errors.push("no YAML frontmatter");
-  else errors.push(...validate("project", art.frontmatter));
-  const { themes, errors: storyErrors } = errors.length ? { themes: [], errors: [] } : parseStories(art.body);
-  errors.push(...storyErrors);
-  return { slug, file, meta: (art.frontmatter ?? {}) as unknown as ProjectMeta, themes, stories: themes.flatMap((t) => t.stories), errors: errors.map((e) => `projects/${slug}.md: ${e}`) };
+  if (!art) return { slug, file, meta: null as unknown as ProjectMeta, ...empty, errors: [`${file}: missing`] };
+  const errors: string[] = art.frontmatter === null ? ["no YAML frontmatter"] : validate("project", art.frontmatter);
+  const body = errors.length ? { ...empty, errors: [] } : parseProject(art.body);
+  const warnings: string[] = [];
+  for (const b of body.bullets) { const c = checkBullet(b); body.errors.push(...c.errors); warnings.push(...c.warnings); }
+  const tag = (e: string) => `projects/${slug}.md: ${e}`;
+  return { slug, file, meta: (art.frontmatter ?? {}) as unknown as ProjectMeta, ...body, errors: [...errors, ...body.errors].map(tag), warnings: warnings.map(tag) };
 }
 
 export function readProfile(root = DEFAULT_ROOT): Profile {
@@ -172,12 +214,12 @@ export function readProfile(root = DEFAULT_ROOT): Profile {
     for (const p of projects) if (!meta.resume_order.includes(p.slug)) errors.push(`profile.md: resume_order lacks the Project ${p.slug}`);
   }
   const ordered = meta?.resume_order ? [...projects].sort((a, b) => meta.resume_order.indexOf(a.slug) - meta.resume_order.indexOf(b.slug)) : projects;
-  return { root, files, profile: meta && !errors.some((e) => e.startsWith("profile.md")) ? meta : null, voice: voiceArt?.frontmatter ?? null, projects: ordered, answers, errors };
+  return { root, files, profile: meta && !errors.some((e) => e.startsWith("profile.md")) ? meta : null, voice: voiceArt?.frontmatter ?? null, projects: ordered, answers, errors, warnings: projects.flatMap((p) => p.warnings) };
 }
 
 // Skills derive from the Projects' keywords: the canonical name is the keyword as the first Project in
 // resume order spells it. A term names a Skill by exact, case-insensitive equality; nothing else.
-export interface Skill { name: string; level: "shipped" | "gap"; evidence: string[]; seen: number }
+export interface Skill { name: string; evidence: string[] }
 
 export function skills(profile: Profile): Skill[] {
   const byKey = new Map<string, Skill>();
@@ -185,7 +227,7 @@ export function skills(profile: Profile): Skill[] {
     if (p.errors.length) continue;
     for (const term of p.meta.keywords ?? []) {
       const k = term.toLowerCase();
-      const row = byKey.get(k) ?? { name: term, level: "shipped" as const, evidence: [], seen: 0 };
+      const row = byKey.get(k) ?? { name: term, evidence: [] };
       if (!row.evidence.includes(p.slug)) row.evidence.push(p.slug);
       byKey.set(k, row);
     }
@@ -198,119 +240,10 @@ export function skillFor(profile: Profile, term: string): Skill | null {
   return skills(profile).find((s) => s.name.toLowerCase() === k) ?? null;
 }
 
-export interface Requirement { candidate: string; requirements: string[] }
-
-// Seen counts Candidates, not mentions; a requirement no Project proves is a Gap, spelled as first seen.
-export function ledger(profile: Profile, reqs: Requirement[]): Skill[] {
-  const rows = skills(profile);
-  const byKey = new Map(rows.map((r) => [r.name.toLowerCase(), r]));
-  for (const { requirements } of reqs) {
-    const once = new Set<string>();
-    for (const term of requirements ?? []) {
-      const k = String(term).trim().toLowerCase();
-      if (!k || once.has(k)) continue;
-      once.add(k);
-      let row = byKey.get(k);
-      if (!row) { row = { name: String(term).trim(), level: "gap", evidence: [], seen: 0 }; byKey.set(k, row); rows.push(row); }
-      row.seen += 1;
-    }
-  }
-  const order = (a: Skill, b: Skill) => (a.level === b.level ? 0 : a.level === "gap" ? -1 : 1) || b.seen - a.seen || a.name.localeCompare(b.name);
-  return rows.sort(order);
-}
-
-export function renderLedger(rows: Skill[]): string {
-  const gaps = rows.filter((r) => r.level === "gap");
-  const shipped = rows.filter((r) => r.level === "shipped");
-  const out = ["# Skill ledger", "", "Generated by `npm run build` from the Projects' `keywords` and the Candidates' `requirements`. Do not edit; nothing reads this file.", ""];
-  out.push(`## Gaps (${gaps.length})`, "", "Required by a Candidate, proved by no Project.", "", "| skill | seen |", "| --- | --- |");
-  for (const r of gaps) out.push(`| ${r.name} | ${r.seen} |`);
-  out.push("", `## Shipped (${shipped.length})`, "", "| skill | seen | evidence |", "| --- | --- | --- |");
-  for (const r of shipped) out.push(`| ${r.name} | ${r.seen} | ${r.evidence.join(", ")} |`);
+// skills.md: every Skill with the Projects that prove it, by name. Generated; nothing reads it.
+export function renderSkills(profile: Profile): string {
+  const rows = skills(profile).sort((a, b) => a.name.localeCompare(b.name));
+  const out = ["# Skills", "", "Generated by `npm run build` from the Projects' `keywords`. Do not edit; nothing reads this file.", "", `${rows.length} Skills.`, "", "| skill | evidence |", "| --- | --- |"];
+  for (const r of rows) out.push(`| ${r.name} | ${r.evidence.join(", ")} |`);
   return out.join("\n") + "\n";
-}
-
-// Candidate requirements, read from every dated Candidate folder's job.md; autotriage owns the schema,
-// this reads one field.
-export function readCandidateRequirements(candidatesRoot: string): { requirements: Requirement[]; warnings: string[] } {
-  const requirements: Requirement[] = [];
-  const warnings: string[] = [];
-  if (!fs.existsSync(candidatesRoot)) return { requirements, warnings };
-  for (const candidate of fs.readdirSync(candidatesRoot).filter((d) => /^\d{4}-\d{2}-\d{2}-/.test(d)).sort()) {
-    const job = readArtifact(path.join(candidatesRoot, candidate, "job.md"));
-    if (!job || job.frontmatter === null) { warnings.push(`${candidate}: job.md is missing or has no frontmatter`); continue; }
-    const req = job.frontmatter.requirements;
-    requirements.push({ candidate, requirements: Array.isArray(req) ? req.map(String) : [] });
-  }
-  return { requirements, warnings };
-}
-
-// Entry heading rules (docs/format-rules.md): the role suffix by employment, the period as
-// `Mon YYYY – Mon YYYY`, `Present` when the Project has no end.
-export const SUFFIX: Record<Employment, string> = { "full-time": "", "part-time": "", contract: " (Contract)", freelance: " (Freelance)", independent: "" };
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-export const month = (ym: string): string => `${MONTHS[Number(ym.slice(5, 7)) - 1]} ${ym.slice(0, 4)}`;
-export const period = (meta: Pick<ProjectMeta, "start" | "end">): string => `${month(String(meta.start))} – ${meta.end ? month(String(meta.end)) : "Present"}`;
-export const roleLine = (meta: ProjectMeta): string => `${meta.role}${SUFFIX[meta.employment] ?? ""}`;
-export const projectName = (meta: ProjectMeta): string => (meta.naming === "nda" ? "NDA client" : meta.naming === "public" && meta.url ? `[${meta.name}](${meta.url})` : meta.name);
-export const isExperience = (meta: ProjectMeta): boolean => meta.employment !== "independent";
-export const contactLine = (c: Contact): string => [c.location, `[${c.email}](mailto:${c.email})`, c.github && `[${c.github.replace(/^https?:\/\//, "")}](${c.github})`, c.linkedin && `[${c.linkedin.replace(/^https?:\/\/(www\.)?/, "")}](${c.linkedin})`].filter(Boolean).join(" • ");
-
-// The Master: every Story of every Project in resume order, the contact line and every Skill. Generated;
-// a Version selects from it by Story key.
-export function master(profile: Profile): string {
-  const meta = profile.profile;
-  if (!meta) throw new Error(`profile.md is missing or invalid:\n  ${profile.errors.join("\n  ")}`);
-  const out = [`# ${meta.identity.name}`, "", contactLine(meta.contact), "", "## Skills", "", skills(profile).map((s) => s.name).join(", "), ""];
-  const section = (title: string, projects: Project[]) => {
-    if (!projects.length) return;
-    out.push(`## ${title}`, "");
-    for (const p of projects) {
-      out.push(`### ${projectName(p.meta)} | ${roleLine(p.meta)} | ${period(p.meta)}`, "", p.meta.description, "");
-      for (const t of p.themes) {
-        if (t.name) out.push(`**${t.name}**`, "");
-        for (const s of t.stories) out.push(`- [${s.key}] ${s.lead}`);
-        if (t.stories.length) out.push("");
-      }
-    }
-  };
-  const valid = profile.projects.filter((p) => !p.errors.length);
-  section("Professional Experience", valid.filter((p) => isExperience(p.meta)));
-  section("Projects", valid.filter((p) => !isExperience(p.meta)));
-  return out.join("\n").replace(/\n{3,}/g, "\n\n").trimEnd() + "\n";
-}
-
-// A Version: a selection over the Profile, validated against it.
-export interface Version { file: string; title: string; summary: string; skills: string[]; projects: Record<string, string[]>; errors: string[] }
-
-export function versionSkillTerms(lines: string[]): string[] {
-  return lines.flatMap((l) => l.replace(/^[^:]+: /, "").split(", ").map((t) => t.trim()).filter(Boolean));
-}
-
-export function readVersion(file: string, profile: Profile): Version {
-  const art = readArtifact(file);
-  const errors: string[] = [];
-  const rel = path.basename(file);
-  if (!art) return { file, title: "", summary: "", skills: [], projects: {}, errors: [`${rel}: missing`] };
-  errors.push(...validateArtifact("version", art).map((e) => `${rel}: ${e}`));
-  const fm = (art.frontmatter ?? {}) as Partial<Version>;
-  const projects = (fm.projects ?? {}) as Record<string, string[]>;
-  if (!errors.length) {
-    const known = skills(profile).map((s) => s.name.toLowerCase());
-    for (const term of versionSkillTerms(fm.skills ?? [])) if (!known.includes(term.toLowerCase())) errors.push(`${rel}: Skills term is not a Project keyword: ${term}`);
-    for (const [slug, keys] of Object.entries(projects)) {
-      const p = profile.projects.find((x) => x.slug === slug);
-      if (!p) { errors.push(`${rel}: no Project file for ${slug}`); continue; }
-      for (const k of keys) if (!p.stories.some((s) => s.key === k)) errors.push(`${rel}: ${slug} has no Story [${k}]`);
-    }
-  }
-  return { file, title: String(fm.title ?? ""), summary: String(fm.summary ?? "").trim(), skills: fm.skills ?? [], projects, errors };
-}
-
-// The selected Stories of a Version, in resume order, each Project with its meta.
-export function selection(version: Version, profile: Profile): { project: Project; stories: Story[] }[] {
-  return profile.projects.filter((p) => version.projects[p.slug]).map((project) => ({
-    project,
-    stories: version.projects[project.slug].map((k) => project.stories.find((s) => s.key === k)!).filter(Boolean),
-  }));
 }
