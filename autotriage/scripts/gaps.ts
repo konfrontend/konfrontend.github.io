@@ -1,21 +1,22 @@
 // The Gap print: every Gap and every proved Skill a Job asked for, with how many Candidates asked.
 // Reads the Candidates' `requirements` (one field of job.md, every dated folder, no-go included) and
-// the Skills through profile/lib; nothing is stored. Where a Gap was seen is not printed; a search answers that.
+// the Skills through profile/lib; nothing is stored. An invalid job.md is warned about and still counted.
+// Where a Gap was seen is not printed; a search answers that.
 // CLI: node scripts/gaps.ts print
-import fs from "node:fs";
 import path from "node:path";
-import { readArtifact, skills, profile, listCandidates, CANDIDATES_DIR, type Profile } from "./lib.ts";
+import { skills, profile, type Profile } from "./lib.ts";
+import { candidatesDir, listCandidates, readJob } from "./candidate.ts";
 
 export interface Requirement { candidate: string; requirements: string[] }
 export interface Row { name: string; level: "shipped" | "gap"; seen: number }
 
-export function readCandidateRequirements(candidatesRoot = CANDIDATES_DIR): { requirements: Requirement[]; warnings: string[] } {
+export function readCandidateRequirements(candidatesRoot = candidatesDir()): { requirements: Requirement[]; warnings: string[] } {
   const requirements: Requirement[] = [];
   const warnings: string[] = [];
-  if (!fs.existsSync(candidatesRoot)) return { requirements, warnings };
   for (const candidate of listCandidates(candidatesRoot)) {
-    const job = readArtifact(path.join(candidatesRoot, candidate, "job.md"));
+    const job = readJob(path.join(candidatesRoot, candidate));
     if (!job || job.frontmatter === null) { warnings.push(`${candidate}: job.md is missing or has no frontmatter`); continue; }
+    if (job.errors.length) warnings.push(`${candidate}: job.md is invalid: ${job.errors.join("; ")}`);
     const req = job.frontmatter.requirements;
     requirements.push({ candidate, requirements: Array.isArray(req) ? req.map(String) : [] });
   }

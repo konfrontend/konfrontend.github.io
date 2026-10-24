@@ -6,9 +6,9 @@
 // An empty letter.md on the employment route is a resume-only application: nothing to check.
 // CLI: node scripts/verify.ts <candidate> [--json]
 //   exit 0 when no script Check fails, 1 when one does, 2 on usage or a missing input.
-import fs from "node:fs";
 import path from "node:path";
-import { readArtifact, loadCatalogue, flagsFor, candidateDir, templateFor, versionFile, versionName, profile, skills, readVersion, versionSkillTerms, AUTOTRIAGE_ROOT, LETTER_FILE, type Profile, type Project } from "./lib.ts";
+import { readArtifact, loadCatalogue, flagsFor, templateFor, profile, skills, readVersion, versionSkillTerms, AUTOTRIAGE_ROOT, type Profile, type Project } from "./lib.ts";
+import { candidateDir, readJob, readLetter, versionFile, versionName } from "./candidate.ts";
 import { compute } from "./verdict.ts";
 
 const LIST_LINE = /^(?:-|\d+[.)])\s/;
@@ -35,14 +35,12 @@ export interface VersionText { name: string; source: string; summary: string | n
 export interface Answer { slug: string; question: string }
 export interface Inputs { candidate: string; letter: Letter; job: Job; profile: Any; skillNames: string[]; voice: Any; projects: Project[]; answers?: Answer[]; version?: VersionText | null }
 
+// The verify Guard has already checked job.md and letter.md; only their absence stops here.
 export function loadInputs(candidate: string): Inputs {
   const dir = candidateDir(candidate);
-  if (!dir || !fs.existsSync(dir)) throw new Error(`no Candidate folder for "${candidate}"`);
-  const job = readArtifact(path.join(dir, "job.md"));
-  if (!job) throw new Error(`private/candidates/${candidate} lacks job.md`);
-  const letter = readArtifact(path.join(dir, LETTER_FILE));
-  if (!letter) throw new Error(`private/candidates/${candidate} lacks letter.md`);
-  if (letter.frontmatter !== null) throw new Error(`private/candidates/${candidate}/letter.md carries frontmatter; a Letter is body only`);
+  const job = dir && readJob(dir);
+  const letter = dir && readLetter(dir);
+  if (!dir || !job || !letter) throw new Error(`private/candidates/${candidate} has no job.md and letter.md; run the verify Guard first`);
   const p = profile();
   const projects = p.projects.filter((x) => !x.errors.length);
   const skillNames = skills(p).map((s) => s.name);

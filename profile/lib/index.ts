@@ -9,8 +9,14 @@ import YAML from "yaml";
 import { Ajv, type ValidateFunction } from "ajv";
 
 export const LIB_ROOT = path.dirname(fileURLToPath(import.meta.url));
-export const DEFAULT_ROOT = path.resolve(LIB_ROOT, "..");
-export const SCHEMAS_DIR = path.join(DEFAULT_ROOT, "schemas");
+export const SCHEMAS_DIR = path.resolve(LIB_ROOT, "..", "schemas");
+
+// The one repo root: CLAUDE_PROJECT_DIR when set (the session's project, or a test fixture), else the repo
+// this module sits in; read on each call. Data (the Profile, the Candidates, the Versions) resolves from it;
+// code and what ships with it (the catalogue, the schemas, the templates, resume.css) from its own module.
+export function repoRoot(): string {
+  return path.resolve(process.env.CLAUDE_PROJECT_DIR || path.join(LIB_ROOT, "..", ".."));
+}
 
 export type Frontmatter = Record<string, unknown>;
 export interface Artifact { file: string; frontmatter: Frontmatter | null; body: string; raw: string | null }
@@ -187,7 +193,7 @@ export function readProject(file: string): Project {
   return { slug, file, meta: (art.frontmatter ?? {}) as unknown as ProjectMeta, ...body, errors: [...errors, ...body.errors].map(tag), warnings: warnings.map(tag) };
 }
 
-export function readProfile(root = DEFAULT_ROOT): Profile {
+export function readProfile(root = path.join(repoRoot(), "profile")): Profile {
   const files = profilePaths(root);
   const errors: string[] = [];
   const profileArt = readArtifact(files.profile);

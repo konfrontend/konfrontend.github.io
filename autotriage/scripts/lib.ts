@@ -1,18 +1,12 @@
-// Shared helpers for the Guard, the hooks and the State scripts. The Profile is read through
-// profile/lib, never parsed here; this file owns the Candidate artifacts and the catalogue.
-import fs from "node:fs";
+// Shared helpers for the Guard, the hooks and the State scripts: refusals, the Routes, route inference,
+// the Flags and the catalogue. The Profile is read through profile/lib, never parsed here; the Candidates
+// through candidate.ts.
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { registerSchemaDir, readArtifact, readProfile, validate as validateSchema, type Artifact, type Frontmatter, type Profile } from "../../profile/lib/index.ts";
+import { registerSchemaDir, readArtifact, readProfile, repoRoot, validate as validateSchema, type Frontmatter, type Profile } from "../../profile/lib/index.ts";
 
-// Where the catalogue and the schemas live, and where the data lives: the project the session runs in,
-// with the Profile in `profile/`, the Candidates in `private/candidates/`, the Versions in `resume/versions/`.
+// The catalogue and the schemas ship with this module; the data resolves from the repo root.
 export const AUTOTRIAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-export const PROJECT_DIR = path.resolve(process.env.CLAUDE_PROJECT_DIR || process.cwd());
-export const PROFILE_ROOT = path.join(PROJECT_DIR, "profile");
-export const CANDIDATES_DIR = path.join(PROJECT_DIR, "private", "candidates");
-export const VERSIONS_DIR = path.join(PROJECT_DIR, "resume", "versions");
-export const GENERAL_VERSION = path.join(VERSIONS_DIR, "general.md");
 
 registerSchemaDir(path.join(AUTOTRIAGE_ROOT, "schemas"));
 
@@ -36,11 +30,6 @@ export function refuse(state: string, reason: string, next?: string | null): nev
 export type Route = "freelance" | "employment";
 export const ROUTES: Route[] = ["freelance", "employment"];
 
-// The Candidate's files (catalogue/candidate-artifacts.md): job.md, letter.md on both routes, version.md when tailored.
-export const JOB_FILE = "job.md";
-export const LETTER_FILE = "letter.md";
-export const VERSION_FILE = "version.md";
-
 // The Letter template a route fills.
 export function templateFor(route: unknown): "letter-freelance" | "letter-employment" {
   return route === "employment" ? "letter-employment" : "letter-freelance";
@@ -49,14 +38,6 @@ export function templateFor(route: unknown): "letter-freelance" | "letter-employ
 // Returns [] when valid, else human-readable error lines.
 export function validate(name: string, data: unknown): string[] {
   return validateSchema(name, data);
-}
-
-// A Letter is body only: its "frontmatter" validates as null against letter.schema.json, so a Letter that
-// carries frontmatter fails there. Every other artifact needs frontmatter.
-export function validateArtifact(name: string, art: Pick<Artifact, "frontmatter" | "body">): string[] {
-  if (name === "letter") return art.frontmatter === null ? [] : ["letter.md carries frontmatter; a Letter is body only"];
-  if (art.frontmatter === null) return ["no YAML frontmatter"];
-  return validateSchema(name, art.frontmatter);
 }
 
 // Route inference for intake, the way it infers the timezone: a paste whose first line is the
@@ -79,23 +60,14 @@ export function inferRoute(text: string): { route: Route; inferred: boolean } | 
   return null;
 }
 
-// Which schema an artifact path validates against, or null when the path is not an artifact.
-export function schemaForPath(file: string): string | null {
-  const abs = path.resolve(file);
-  const under = (root: string) => { const rel = path.relative(root, abs).split(path.sep).join("/"); return rel.startsWith("..") || path.isAbsolute(rel) ? null : rel; };
-  const p = under(PROFILE_ROOT);
-  if (p !== null) {
-    if (p === "profile.md") return "profile";
-    if (p === "voice.md") return "voice";
-    if (/^projects\/[^/]+\.md$/.test(p)) return "project";
-    return null;
-  }
-  const c = under(CANDIDATES_DIR);
-  if (c !== null) {
-    if (/^[^/]+\/job\.md$/.test(c)) return "job";
-    if (/^[^/]+\/letter\.md$/.test(c)) return "letter";
-    return null;
-  }
+// Which Profile schema a path validates against, or null when the path is not a Profile file. The
+// Candidate half is candidateSchemaForPath in candidate.ts.
+export function schemaForPath(file: string): "profile" | "voice" | "project" | null {
+  const rel = path.relative(path.join(repoRoot(), "profile"), path.resolve(file)).split(path.sep).join("/");
+  if (rel.startsWith("..") || path.isAbsolute(rel)) return null;
+  if (rel === "profile.md") return "profile";
+  if (rel === "voice.md") return "voice";
+  if (/^projects\/[^/]+\.md$/.test(rel)) return "project";
   return null;
 }
 
@@ -114,27 +86,8 @@ export function flagsFor(route: unknown): Flag[] {
   return (loadCatalogue("flags").flags as Flag[]).filter((f) => (f.routes ?? []).includes(r));
 }
 
-export function candidateDir(candidate: string | undefined): string | null {
-  if (!candidate || !/^\d{4}-\d{2}-\d{2}-[a-z0-9-]+$/.test(candidate)) return null;
-  return path.join(CANDIDATES_DIR, candidate);
-}
-
-export function listCandidates(dir = CANDIDATES_DIR): string[] {
-  if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir).filter((d) => /^\d{4}-\d{2}-\d{2}-/.test(d)).sort();
-}
-
 let cached: Profile | null = null;
 // The Profile of the project, read once per process.
 export function profile(): Profile {
-  return (cached ??= readProfile(PROFILE_ROOT));
-}
-
-// The Version a Candidate is sent with: its own version.md when one was tailored, else the general Version.
-export function versionFile(dir: string): string {
-  const own = path.join(dir, VERSION_FILE);
-  return fs.existsSync(own) ? own : GENERAL_VERSION;
-}
-export function versionName(dir: string): "tailored" | "general" {
-  return fs.existsSync(path.join(dir, VERSION_FILE)) ? "tailored" : "general";
+  return (cached ??= readProfile());
 }

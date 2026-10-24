@@ -3,7 +3,7 @@
 // CLI: node lib/cli.ts build|check [--root <profile dir>]
 import fs from "node:fs";
 import path from "node:path";
-import { DEFAULT_ROOT, readProfile, renderSkills, skills } from "./index.ts";
+import { readProfile, renderSkills, repoRoot, skills } from "./index.ts";
 
 function flag(args: string[], name: string): string | undefined {
   const i = args.indexOf(name);
@@ -12,10 +12,10 @@ function flag(args: string[], name: string): string | undefined {
 
 const args = process.argv.slice(2);
 const cmd = args[0];
-const root = path.resolve(flag(args, "--root") ?? DEFAULT_ROOT);
+const root = flag(args, "--root");
 
 if (cmd === "check" || cmd === "build") {
-  const profile = readProfile(root);
+  const profile = readProfile(root === undefined ? undefined : path.resolve(root));
   for (const w of profile.warnings) console.error(`warning: ${w}`);
   if (profile.errors.length) {
     console.error(`profile: ${profile.errors.length} error${profile.errors.length === 1 ? "" : "s"}\n  ${profile.errors.join("\n  ")}`);
@@ -24,7 +24,7 @@ if (cmd === "check" || cmd === "build") {
   const count = `${profile.projects.length} Projects, ${profile.projects.reduce((n, p) => n + p.stories.length, 0)} Stories, ${profile.projects.reduce((n, p) => n + p.bullets.length, 0)} Bullets, ${skills(profile).length} Skills, ${profile.answers.length} Answers`;
   if (cmd === "build") {
     fs.writeFileSync(profile.files.skills, renderSkills(profile));
-    console.log(`Wrote ${path.relative(process.cwd(), profile.files.skills)} (${count})`);
+    console.log(`Wrote ${path.relative(repoRoot(), profile.files.skills)} (${count})`);
   } else {
     console.log(`profile ok: ${count}`);
   }

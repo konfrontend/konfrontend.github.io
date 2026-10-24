@@ -5,16 +5,16 @@
 //      node resume/scripts/generate.ts --refresh <version.md>   (base Versions only)
 // Refresh rewrites every sourced line (name, contact line, headings, role rows, Bullets) and keeps the
 // selection, its order, the title, the summary and the Skills lines; a hand edit to a Bullet is overwritten
-// and reported. Paths are relative to the repo root.
+// and reported. Paths are relative to the repo root, which follows CLAUDE_PROJECT_DIR.
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { readProfile } from "../../profile/lib/index.ts";
-import { assemble, planOf, projectOf, canonical, isBase, readVersion, REPO_ROOT, type Plan } from "./version.ts";
+import { readProfile, repoRoot } from "../../profile/lib/index.ts";
+import { assemble, planOf, projectOf, canonical, isBase, readVersion, type Plan } from "./version.ts";
 import { pages } from "./render.ts";
 
-const resolve = (p: string) => path.resolve(REPO_ROOT, p);
-const rel = (p: string) => path.relative(REPO_ROOT, resolve(p));
+const resolve = (p: string) => path.resolve(repoRoot(), p);
+const rel = (p: string) => path.relative(repoRoot(), resolve(p));
 
 export function planErrors(plan: Plan, profile: ReturnType<typeof readProfile>): string[] {
   const errors: string[] = [];

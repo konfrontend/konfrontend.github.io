@@ -4,8 +4,8 @@
 // fills it) and leaves an existing letter.md alone. With --tailor it names the skill to invoke next.
 // CLI: node scripts/version.ts <candidate> [--tailor]
 import fs from "node:fs";
-import path from "node:path";
-import { readArtifact, readVersion, candidateDir, versionFile, versionName, profile, Refusal, LETTER_FILE, VERSION_FILE, type Profile } from "./lib.ts";
+import { readVersion, profile, Refusal, type Profile } from "./lib.ts";
+import { candidateDir, candidateFiles, readJob, versionFile, versionName } from "./candidate.ts";
 
 // The text the intro Slot starts from: the summary of the Version sent. Returns { source, text }; text
 // is null when the Version file is missing or invalid.
@@ -18,13 +18,11 @@ export function introSummary(dir: string, p: Profile = profile()): { source: str
 export function setVersion(candidate: string | undefined, { tailor = false } = {}): string {
   const dir = candidateDir(candidate);
   if (!dir) throw new Refusal("autotriage: version refused. needs a Candidate folder name as argument.");
-  const job = readArtifact(path.join(dir, "job.md"));
-  if (!job?.frontmatter) throw new Refusal(`autotriage: version refused. private/candidates/${candidate}/job.md is missing.`);
+  if (!readJob(dir)?.frontmatter) throw new Refusal(`autotriage: version refused. private/candidates/${candidate}/job.md is missing.`);
   const out: string[] = [];
-  const letter = path.join(dir, LETTER_FILE);
+  const { letter, version: own } = candidateFiles(dir);
   if (fs.existsSync(letter)) out.push(`private/candidates/${candidate}/letter.md exists; left as it is.`);
   else { fs.writeFileSync(letter, ""); out.push(`Wrote private/candidates/${candidate}/letter.md, empty: a resume-only application until proposal fills it.`); }
-  const own = path.join(dir, VERSION_FILE);
   if (tailor && !fs.existsSync(own)) out.push(`Version: tailored, not yet generated. Invoke resume-version ${candidate}; it writes private/candidates/${candidate}/version.md from the Project files for this Job.`);
   else out.push(`Version: ${versionName(dir)}${fs.existsSync(own) ? ` (private/candidates/${candidate}/version.md)` : " (resume/versions/general.md)"}`);
   out.push(`Next: /route-proposal ${candidate}, or stop here to send the Version without a Letter`);

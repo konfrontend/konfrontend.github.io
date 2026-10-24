@@ -9,7 +9,6 @@ import { marked, type Tokens } from "marked";
 import { readArtifact, skills, numbersIn, type Contact, type Employment, type Profile, type Project, type ProjectMeta } from "../../profile/lib/index.ts";
 
 export const RESUME_SCRIPTS = path.dirname(fileURLToPath(import.meta.url));
-export const REPO_ROOT = path.resolve(RESUME_SCRIPTS, "..", "..");
 
 // The tailoring skill's output: the title, the summary, the Skills lines and one ranked list of Bullets across
 // every Project, best first; `text` is set only for a Variant. Passed to generate.ts, never stored.
@@ -127,7 +126,7 @@ const OBJECTIVE = /\b(seeking|looking for|hard-working|results-oriented|results-
 
 // The shared banned list of autotriage/catalogue/voice.md, with the Profile's own additions and permissions.
 export function bannedPhrases(profile: Profile): string[] {
-  const shared = (readArtifact(path.join(REPO_ROOT, "autotriage", "catalogue", "voice.md"))?.frontmatter?.banned as string[] | undefined) ?? [];
+  const shared = (readArtifact(path.resolve(RESUME_SCRIPTS, "..", "..", "autotriage", "catalogue", "voice.md"))?.frontmatter?.banned as string[] | undefined) ?? [];
   const extra = (profile.voice?.banned_extra as string[] | undefined) ?? [];
   const allowed = new Set(((profile.voice?.allowed_extra as string[] | undefined) ?? []).map((s) => s.toLowerCase()));
   return [...new Set([...shared, ...extra])].filter((b) => !allowed.has(b.toLowerCase()));

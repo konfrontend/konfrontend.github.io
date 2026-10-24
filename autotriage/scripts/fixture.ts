@@ -8,8 +8,9 @@ import { fileURLToPath } from "node:url";
 
 export const SCRIPTS = path.dirname(fileURLToPath(import.meta.url));
 
-export const run = (root: string, script: string, ...args: string[]) =>
-  spawnSync(process.execPath, [path.join(SCRIPTS, script), ...args], { encoding: "utf8", env: { ...process.env, CLAUDE_PROJECT_DIR: root } });
+export const pipe = (root: string, input: string, script: string, ...args: string[]) =>
+  spawnSync(process.execPath, [path.join(SCRIPTS, script), ...args], { encoding: "utf8", input, env: { ...process.env, CLAUDE_PROJECT_DIR: root } });
+export const run = (root: string, script: string, ...args: string[]) => pipe(root, "", script, ...args);
 
 export const hook = (root: string, script: string, input: unknown) =>
   spawnSync(process.execPath, [path.join(SCRIPTS, "hooks", script)], { encoding: "utf8", input: JSON.stringify(input), env: { ...process.env, CLAUDE_PROJECT_DIR: root } });
