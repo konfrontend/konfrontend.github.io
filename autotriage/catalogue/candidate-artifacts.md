@@ -1,110 +1,48 @@
 # Candidate artifacts
 
-A Candidate is one folder under `private/candidates/`, gitignored. `job.md` is the input on both routes; its required `route` field (`freelance | employment`) names the schema it validates against and the files beside it. A freelance Candidate holds `job.md` and `letter.md`; an employment Candidate holds `job.md`, `cover-letter.md`, and `version.md` only when a Version was tailored for this Job. No PDF: the human renders it outside the plugin. `job.md` is the posting for reference; `cover-letter.md` records what went out: the Version, always, and the Letter when one was written. Together they form the record that later work on Letter generation learns from. Nothing else is stored in the folder; everything a session prints (evidence, reasons, checklists) is thrown away. Nothing is written outside the folder: the Skill ledger derives from every Candidate's `requirements` when the Profile is built.
+A Candidate is one folder under `private/candidates/`, gitignored. It stores only what the person confirmed or what happened: `job.md` on both routes, `letter.md` on both routes, `version.md` only when the Version was tailored for this Job, and `interview.md` for the interview record when there was one (its contents are not yet specified). No PDF: `resume-pdf` renders it from the Version sent and the folder never stores it. Anything recomputable, derivable from the files, or inferable from absence is not stored: the scores, the Alert Level, the recommendation, the Safeguards and the evidence are session output and are thrown away. Nothing is written outside the folder; the Gap print and the Tracker derive from the Candidates at print time.
 
 ## Folder
 
-`private/candidates/YYYY-MM-DD-<slug>/`. Date is the day `intake` ran. Slug is two to four words from the posting title, chosen by `intake`. The full title stays in `title`.
+`private/candidates/YYYY-MM-DD-<slug>/`. The folder name is the only source of the intake date and the slug: the date is the day `intake` ran, the slug two to four words from the posting title, chosen by `intake`. The full title stays in `title`. `candidates/archive/` holds desk Candidates from before the Route and is read by nothing.
 
 ## `job.md`
 
-Written by `intake`; `triage` adds `requirements` and the `verdict` block; the human sets `decision` and, once the Letter or the Version went out, `outcome`. Body is the posting verbatim, nothing parsed out, nothing dropped. `intake` reads `route` from the human or infers it (a parameter line with a budget is freelance; a job ad is employment) and marks an inferred value in its report. The route is not a Family; `family` stays a freelance term.
-
-Freelance route (`schemas/job-freelance.schema.json`):
+One schema for both routes, `schemas/job.schema.json`, `route` required. The body is the paste verbatim, parameter line included, nothing parsed out and nothing dropped: the budget, the remote policy, the salary and the hours are read from it by whoever needs them. `intake` writes the identity fields; `triage` writes the Checkpoint fields once the person has answered, and nothing before; the person sets `outcome` by hand.
 
 ```yaml
-slug: clinic-booking-mvp
-title: "Full-Stack Developer - Clinic Booking MVP"
-date: 2026-09-19                  # intake date
-route: freelance                  # required; picks this schema
-timezone: America/New_York        # client, IANA; required
-budget: { type: hourly, min: 25, max: 100 }   # type hourly | fixed | none; fixed uses max only; none has no min or max
-extras:                           # optional, free-form; anything else the posting or the freelancer states
-  country: US
-  hours_per_week: "<30"
-  duration: "1-3 months"
-requirements: [React, Stripe Connect]   # triage; the Job's required items as the posting names them
-verdict:                          # absent until triage runs
-  family: audit                   # Family id; human may edit before proposal
-  family_runner_up: build         # Family id or null
-  flags: [non-technical-founder, regulated-domain, moderate-gauntlet, free-discovery, paid-first-milestone]
-  skill_fit: 3
-  interest_fit: 3
-  value: 5
-  alert_level: 3                  # script
-  hard_stops: []                  # script; hard stop ids
-  verdict: go                     # script; go | no-go | ask
-  decision: null                  # human; go | no-go
-outcome: null                     # human; sent | replied | interview | offer | hired | rejected | withdrawn; non-null only on decision go
-```
-
-Employment route (`schemas/job-employment.schema.json`):
-
-```yaml
-slug: heymondo-senior-frontend
-title: "Senior Frontend Developer"  # role title as posted
-date: 2026-10-14                  # intake date
-route: employment                 # required; picks this schema
-company: Heymondo                 # required; string, or null when the posting hides the employer
-employment: full-time             # required; full-time | part-time | contract (B2B is contract)
-remote: remote                    # required; remote | hybrid | on-site
-location: Barcelona               # optional, free string
-timezone: Europe/Madrid           # required, IANA
-salary: { type: annual, min: 50000, max: 60000, currency: EUR }  # optional; absent means not stated; type annual | monthly | hourly; currency ISO 4217
-source: linkedin                  # optional, free string
-extras:                           # optional, free-form
-  hours_per_day: 7.5
-requirements: [Vue 3, Nuxt 4, TypeScript, technical SEO, WCAG]   # triage; the Job's required items as the posting names them
-verdict:                          # absent until triage runs; no family, no family_runner_up
-  flags: [regulated-domain]
-  skill_fit: 4
-  interest_fit: 3
-  value: 3
-  alert_level: 2                  # script
-  hard_stops: []                  # script; never rate-below-floor on this route
-  verdict: go                     # script; go | no-go | ask
-  decision: null                  # human; go | no-go
-outcome: null                     # human; sent | replied | interview | offer | hired | rejected | withdrawn; non-null only on decision go
+title: "Full-Stack Developer - Clinic Booking MVP"   # the posting's own title
+route: freelance                  # required; freelance | employment
+timezone: America/New_York        # the client's or the office's zone, IANA; required
+location: New York                # optional; on freelance from the parameter line's country or city
+company: Heymondo                 # employment only, required, never null: an agency posting that hides the employer names the agency
+employment: full-time             # employment only, required: full-time | part-time | contract (B2B is contract)
+verdict: go                       # the Checkpoint, both routes: go | no-go
+requirements: [React, Stripe Connect]   # the Checkpoint, both routes: the Job's required Skill-shaped items
+flags: [non-technical-founder, paid-first-milestone]   # the Checkpoint, freelance only: the Flag ids triggered
+outcome: sent                     # by hand, only on verdict go: sent | interview | offer
 ```
 
 Rules:
 
-- `slug`, `title`, `date`, `route` identify the record on both routes. On the freelance route `timezone` and `budget` feed the hard stops; on the employment route `company`, `employment`, `remote`, `timezone` describe the terms, and `remote` is the evidence for an `unmet-constraint` stop Flag, not a rule of its own. Everything else optional goes under `extras`; no new top-level field without a consumer.
-- `requirements` is written by `triage` with the `verdict` block on both routes: the required items it listed for `skill_fit`, each a string as the posting names it, nice-to-haves left out. Two consumers: `verify`'s Version pass on the employment route, which looks for each entry in the Version sent, and the Profile build, which counts them into the Skill ledger as Seen and Gaps. A re-run of `triage` replaces it.
-- No money hard stop on the employment route: pay is unknown until the offer stage. `rate-below-floor` is not in its `hard_stops` enum.
-- `verdict` holds ids and numbers only. How they combine is in the Flag catalogue (`alert_level_steps`, `hard_stops`, `scores`, `verdict_mapping`). Evidence quotes, score reasons, matched cues, safeguards are session output.
-- `alert_level`, `hard_stops`, `verdict` are computed by a script from `flags`, the scores, and the Profile floors. The `proposal` guard recomputes them and rejects the file on mismatch.
-- `verdict` is the script's recommendation; `decision` is the human's call. `proposal` runs only on `decision: go`. `no-go` ends the Route. `ask` is a verdict, not a decision: the human still writes `go` or `no-go`.
-- `outcome` is where the Candidate stands once its Letter, or on the employment route its Version alone, went out, set by hand on both routes: `sent | replied | interview | offer | hired | rejected | withdrawn`, or `null` (or absent) before anything is sent. The schema allows a non-null value only when `verdict.decision` is `go`. `hired`, `rejected` and `withdrawn` are terminal; on `hired` the Project is created by hand. No offer field: an offer figure, when wanted, goes in `extras.offer` free-form.
+- `title`, `route`, `timezone` identify the record on both routes; `location` is optional. On the employment route `company` and `employment` are required; neither exists on the freelance route. No other top-level field: a fact the body carries is read from the body.
+- The Checkpoint fields are written by `triage` in one edit, once the person has answered go or no-go, on go and on no-go alike. If the person never answers, nothing is written. `verdict` is the go or no-go the person confirmed; the scores, the Flags' evidence and the script's recommendation behind it stay in the session. The `version`, `proposal` and `verify` Guards check `verdict: go` and recompute nothing; `no-go` ends the Route.
+- `requirements` holds only Skill-shaped items from the posting's required list: technologies and domain practices, never nice-to-haves, years of experience, spoken languages or degrees (a required degree is `unmet-constraint` evidence). Each is spelled as the Keyword when a Project's Keyword matches it, and as the posting spells it otherwise; that spelling becomes the Gap's name. Readers: the Gap print, `resume-version` when it tailors, and the Letter States.
+- `flags` is freelance only: the ids of every triggered Flag, green and stop Flags included. `proposal` reads it for the Safeguards; `verify` reads it for `flag/safeguard-missing`, `job/mandatory-keyword` and the Alert Level, which it recomputes from the ids. Employment Flags are not stored: every one has `slot: none`, so nothing reads them after the Checkpoint.
+- `outcome` is the furthest point the Candidate reached, set by hand on both routes once the Letter, or the Version alone, went out: `sent`, then `interview`, then `offer`. A missing next step is the negative outcome: a `sent` with no movement is no reply, by definition. No field for a rejection or a withdrawal. A win is the Project file the person creates by hand. The schema allows `outcome` only on `verdict: go`.
 
-## `letter.md` (freelance route)
+## `letter.md`
 
-Written by `proposal`, checked by `verify`. Body is the Letter as pasted into Upwork: plain text, no Markdown.
+Body only, no frontmatter, on both routes: the Letter as pasted, plain text, no Markdown. On the freelance route `proposal` writes it from `templates/letter-freelance.md`; on the employment route the `version` State writes it empty and `proposal` fills it from `templates/letter-employment.md`, within that template's 500 characters. An empty `letter.md` on the employment route is valid: the Version went out without a Letter, a resume-only application. `verify` checks the file and applies its Fixes in place; its result is not stored, since a Letter is final only after `verify` passes.
 
-```yaml
-slug: clinic-booking-mvp
-family: audit                     # template used
-date: 2026-09-19
-```
+## `version.md`
 
-`verify` result is not stored: a Letter is final only after `verify` passes, so a stored pass carries no information.
-
-## `cover-letter.md` (employment route)
-
-What went out on the employment route (`schemas/cover-letter.schema.json`): the Version, always, and the Letter when one was written. Created by the `version` State with frontmatter only and an empty body; a re-run rewrites `version` and leaves the body alone. `proposal` writes the Letter into the body from `catalogue/templates/letter-employment.md` and keeps the frontmatter; `verify` checks it. Body is the cover letter as sent: plain text, no Markdown, within the template's 500 characters. An empty body is valid: the Version went out without a Letter, a CV-only application.
-
-```yaml
-slug: heymondo-senior-frontend
-date: 2026-10-14
-version: general                  # the version State; general | tailored; tailored means version.md exists beside it
-```
-
-- `version` is written by `scripts/version.ts` (the `version` State, employment route, on `decision: go`): `general`, or `tailored` with `--tailor`. `proposal` reads the named Version's `summary` for the Intro Slot and refuses without `cover-letter.md`.
-
-## `version.md` (employment route)
-
-The tailored Version's source, created by `version --tailor` as a copy of `resume/versions/general.md` and edited by the human: a selection over the Profile (Story keys per Project, Skills lines, `summary`), validated against `profile/schemas/version.schema.json` on every write and read through the Profile, so a key no Project has or a Skills term no Project proves refuses the next State. It exists only when `cover-letter.md` says `version: tailored`. Its `summary` is what the Intro Slot reads.
+The tailored Version, written by `resume-version <candidate>` from the Project files for this Job's `title` and `requirements`: the Markdown twin of the PDF sent, in the shape `docs/format-rules.md` describes, with `[slug]` on headings and `[key]` on Bullets, and Variants where the Plan chose them. It exists only when the Version was tailored; its absence means the Candidate is sent with `resume/versions/general.md`. The `proposal` State reads the summary of the Version sent for the intro Slot. `resume-pdf private/candidates/<folder>/version.md` renders it next to itself. A Version is never hand-edited: a wrong line is fixed in the Profile and the Version regenerated.
 
 ## Tracker
 
-The Tracker is not stored: `node scripts/tracker.ts print`, behind `/tracker`, prints it from every Candidate's `job.md` frontmatter, `version` from `cover-letter.md`, and never writes. One table for both routes, columns `date | candidate | route | decision | family | version | outcome`; `family` is empty on employment rows, `version` empty on freelance rows. Open Candidates come first, then closed (`decision: no-go` or a terminal `outcome`), each by intake date descending; a `hired` Candidate stays listed. The print warns on `outcome: sent` with no letter file (`letter.md` or `cover-letter.md`) in the folder, and skips any folder under `private/candidates/` that is not a dated Candidate, such as the archive. No history is committed.
+The Tracker is not stored: `node scripts/tracker.ts print`, behind `/tracker`, prints it from every Candidate's `job.md` frontmatter and never writes. One table for both routes, columns `candidate | route | verdict | outcome`, sorted by folder name descending, so the newest Candidate is on top. No groups: a `no-go` or a Candidate with no movement reads from its columns. The print warns only on an invalid `job.md`, and skips any folder under `private/candidates/` that is not a dated Candidate, such as the archive.
+
+## Gap print
+
+Not stored either: `node scripts/gaps.ts print`, behind `/gaps`, reads every dated Candidate's `requirements`, no-go Candidates included (a Gap is often the reason for a no-go), plus the Projects' Keywords through `profile/lib`, and never writes. Two tables, columns `skill | seen`: the Gaps first, then the proved Skills a Job asked for, `seen` counting Candidates. Where a Gap was seen is not printed; a search over the Candidates answers that.

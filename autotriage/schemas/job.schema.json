@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "job.md frontmatter, both routes (catalogue/candidate-artifacts.md)",
+  "type": "object",
+  "required": ["title", "route", "timezone"],
+  "additionalProperties": false,
+  "allOf": [
+    { "if": { "properties": { "route": { "const": "employment" } } }, "then": { "required": ["company", "employment"], "not": { "required": ["flags"] } } },
+    { "if": { "properties": { "route": { "const": "freelance" } } }, "then": { "not": { "anyOf": [{ "required": ["company"] }, { "required": ["employment"] }] } } },
+    { "if": { "required": ["outcome"] }, "then": { "required": ["verdict"], "properties": { "verdict": { "const": "go" } } } },
+    { "if": { "anyOf": [{ "required": ["requirements"] }, { "required": ["flags"] }] }, "then": { "required": ["verdict"] } }
+  ],
+  "properties": {
+    "title": { "type": "string", "minLength": 1 },
+    "route": { "enum": ["freelance", "employment"] },
+    "timezone": { "type": "string", "pattern": "^[A-Za-z]+(/[A-Za-z_+-]+)+$|^UTC$" },
+    "location": { "type": "string", "minLength": 1 },
+    "company": { "type": "string", "minLength": 1 },
+    "employment": { "enum": ["full-time", "part-time", "contract"] },
+    "verdict": { "enum": ["go", "no-go"] },
+    "requirements": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "flags": { "type": "array", "items": { "type": "string", "pattern": "^[a-z0-9-]+$" }, "uniqueItems": true },
+    "outcome": { "enum": ["sent", "interview", "offer"] }
+  }
+}

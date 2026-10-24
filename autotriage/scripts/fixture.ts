@@ -57,39 +57,23 @@ ${skills.map((s) => `- ${s}`).join("\n")}
 
 ${Object.entries(bullets).map(([slug, lines]) => `### [${slug}] [Acme](https://acme.example) – B2B dashboard.\n\nFull Stack Developer (Contract) | Feb 2021 – Present\n\n${lines.map((l) => `- ${l}`).join("\n")}`).join("\n\n")}
 `;
-export const verdict = (decision: string, extra = "") => `verdict:
-  flags: []
-  skill_fit: 4
-  interest_fit: 3
-  value: 3
-  alert_level: 1
-  hard_stops: []
-  verdict: go
-  decision: ${decision}
-${extra}`;
-export const employmentJob = ({ title = "Senior Frontend Developer", decision = "go" as string | "absent", requirements = "" } = {}) => `---
-slug: acme-frontend
+// A job.md: the identity fields, then the Checkpoint fields when a verdict is given.
+export const employmentJob = ({ title = "Senior Frontend Developer", verdict = "go" as string | "absent", requirements = [] as string[] } = {}) => `---
 title: "${title}"
-date: 2026-10-17
 route: employment
 company: Acme
 employment: full-time
-remote: remote
 timezone: Europe/Madrid
-${requirements}${decision === "absent" ? "" : verdict(decision)}---
+${verdict === "absent" ? "" : `verdict: ${verdict}\nrequirements: [${requirements.join(", ")}]\n`}---
 Posting text.
 `;
-export const freelanceJob = ({ decision = "absent" as string } = {}) => `---
-slug: acme-fix
+export const freelanceJob = ({ verdict = "absent" as string, flags = [] as string[] } = {}) => `---
 title: Fix the admin
-date: 2026-10-16
 route: freelance
 timezone: America/New_York
-budget: { type: hourly, min: 30, max: 80 }
-${decision === "absent" ? "" : verdict(decision, "  family: build\n  family_runner_up: null\n")}---
+${verdict === "absent" ? "" : `verdict: ${verdict}\nrequirements: []\nflags: [${flags.join(", ")}]\n`}---
 Posting text.
 `;
-export const cover = (v: string | null, body = "") => `---\nslug: acme-frontend\ndate: 2026-10-17\n${v ? `version: ${v}\n` : ""}---\n${body}`;
 
 export interface Options { profile?: string; voice?: string; project?: string; version?: string; candidates?: Record<string, Record<string, string>> }
 

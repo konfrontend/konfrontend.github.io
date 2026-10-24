@@ -5,8 +5,7 @@
 // CLI: node scripts/guard.ts <state> [candidate]
 import fs from "node:fs";
 import path from "node:path";
-import { readArtifact, validate, validateArtifact, jobSchemaFor, letterFileFor, refuse, Refusal, candidateDir, listCandidates, profile, type Profile, type Artifact } from "./lib.ts";
-import { recompute } from "./verdict.ts";
+import { readArtifact, validate, validateArtifact, refuse, Refusal, candidateDir, listCandidates, profile, versionName, JOB_FILE, LETTER_FILE, VERSION_FILE, type Profile, type Artifact } from "./lib.ts";
 import { introSummary } from "./version.ts";
 
 export const STATES = ["route", "intake", "triage", "version", "proposal", "verify"] as const;
@@ -36,19 +35,28 @@ function candidateGate(state: State, candidate?: string): Gate {
       known.length ? `Known Candidates:\n  ${known.join("\n  ")}\nUsage: /route-${state} <YYYY-MM-DD-slug>` : "No Candidates yet. Run /route-intake first.");
   }
   if (!fs.existsSync(dir)) refuse(state, `no Candidate folder private/candidates/${candidate}.`, "Run /route-intake first.");
-  const job = readArtifact(path.join(dir, "job.md"));
+  const job = readArtifact(path.join(dir, JOB_FILE));
   if (!job) refuse(state, `private/candidates/${candidate}/job.md is missing.`, "Run /route-intake first.");
-  const errors = validate("job", job.frontmatter);
-  if (errors.length) refuse(state, `private/candidates/${candidate}/job.md is invalid against ${jobSchemaFor(job.frontmatter)}:\n  ${errors.join("\n  ")}`, "Run /route-intake again or fix the file by hand.");
+  const errors = validateArtifact("job", job);
+  if (errors.length) refuse(state, `private/candidates/${candidate}/job.md is invalid:\n  ${errors.join("\n  ")}`, "Run /route-intake again or fix the file by hand.");
   const fm = job.frontmatter as Record<string, any>;
   return { dir, job, route: String(fm.route), fm };
 }
 
-function decisionGate(state: State, candidate: string, fm: Record<string, any>): void {
-  const decision = fm.verdict?.decision;
-  if (decision === "go") return;
-  if (decision === "no-go") refuse(state, "decision is no-go. Route ended.", null);
-  refuse(state, fm.verdict ? "checkpoint pending: decision is not set." : "decision is not go.", fm.verdict ? `Answer go or no-go in /route-triage ${candidate}, or set verdict.decision in job.md by hand.` : `Run /route-triage ${candidate} first.`);
+// The Verdict the human confirmed at the Checkpoint. Nothing is recomputed: the scores and the
+// recommendation were session output.
+function verdictGate(state: State, candidate: string, fm: Record<string, any>): void {
+  if (fm.verdict === "go") return;
+  if (fm.verdict === "no-go") refuse(state, "the Verdict is no-go. Route ended.", null);
+  refuse(state, "no Verdict yet.", `Run /route-triage ${candidate} and answer go or no-go at the Checkpoint.`);
+}
+
+function letterGate(state: State, candidate: string, dir: string, next: string): Artifact {
+  const letter = readArtifact(path.join(dir, LETTER_FILE));
+  if (!letter) refuse(state, `private/candidates/${candidate}/letter.md is missing.`, next);
+  const errors = validateArtifact("letter", letter);
+  if (errors.length) refuse(state, `private/candidates/${candidate}/letter.md is invalid:\n  ${errors.join("\n  ")}`, "Drop the frontmatter: a Letter is body only.");
+  return letter;
 }
 
 const GUARDS: Record<State, Guard> = {
@@ -65,54 +73,43 @@ const GUARDS: Record<State, Guard> = {
   triage: ({ state, candidate, out }) => {
     profileGate(state, 1);
     const { dir, route, fm } = candidateGate(state, candidate);
-    const letterFile = letterFileFor(route);
-    if (fs.existsSync(path.join(dir, letterFile))) refuse(state, `private/candidates/${candidate}/${letterFile} already exists; the Route has passed triage.`, `Run /route-verify ${candidate} or start a new Candidate.`);
+    if (fs.existsSync(path.join(dir, LETTER_FILE))) refuse(state, `private/candidates/${candidate}/letter.md already exists; the Route has passed triage.`, `Run /route-verify ${candidate} or start a new Candidate.`);
     out.push(`Candidate: private/candidates/${candidate}`, `Route: ${route}`, `Title: ${fm.title}`);
-    if (route === "employment") out.push(`Company: ${fm.company ?? "unknown"}`, `Employment: ${fm.employment}, ${fm.remote}${fm.location ? `, ${fm.location}` : ""}`, `Salary: ${fm.salary ? JSON.stringify(fm.salary) : "not stated"}`, "Family: none on this route; skip the Family step.");
-    else out.push(`Budget: ${JSON.stringify(fm.budget)}`);
+    if (route === "employment") out.push(`Company: ${fm.company}`, `Employment: ${fm.employment}`);
     out.push(`Timezone: ${fm.timezone}`);
-    if (fm.verdict) out.push("Note: a verdict block already exists; triage will overwrite it.");
-    if (fm.requirements?.length) out.push(`Note: requirements already recorded (${fm.requirements.length}); triage rewrites them.`);
+    if (fm.location) out.push(`Location: ${fm.location}`);
+    if (fm.verdict) out.push(`Note: the Verdict is already ${fm.verdict}; the Checkpoint rewrites it.`);
+    if (fm.requirements?.length) out.push(`Note: requirements already recorded (${fm.requirements.length}); the Checkpoint rewrites them.`);
   },
   version: ({ state, candidate, out }) => {
     const { dir, route, fm } = candidateGate(state, candidate);
     if (route !== "employment") refuse(state, `private/candidates/${candidate} is on the ${route} route; the version State runs on employment only.`, `Run /route-proposal ${candidate}.`);
-    decisionGate(state, candidate!, fm);
-    out.push(`Candidate: private/candidates/${candidate}`, `Title: ${fm.title}`);
-    const current = readArtifact(path.join(dir, "cover-letter.md"))?.frontmatter?.version;
-    if (current) out.push(`Note: version is already ${current}; this run rewrites it and leaves the cover-letter.md body alone.`);
+    verdictGate(state, candidate!, fm);
+    out.push(`Candidate: private/candidates/${candidate}`, `Title: ${fm.title}`, `Requirements: ${(fm.requirements ?? []).join(", ") || "none recorded"}`);
+    if (fs.existsSync(path.join(dir, VERSION_FILE))) out.push("Note: version.md exists; the Candidate is sent with its tailored Version.");
+    const letter = readArtifact(path.join(dir, LETTER_FILE));
+    if (letter?.body.trim()) out.push("Note: letter.md already holds a Letter; this run leaves it alone.");
   },
   proposal: ({ state, candidate, out }) => {
     const p = profileGate(state, 2);
     const { dir, route, fm } = candidateGate(state, candidate);
-    const v = fm.verdict;
-    if (!v) refuse(state, `private/candidates/${candidate}/job.md has no verdict block.`, `Run /route-triage ${candidate} first.`);
-    const { mismatch } = recompute(candidate!);
-    if (mismatch.length) refuse(state, `stored verdict disagrees with the recomputation:\n  ${mismatch.join("\n  ")}`, `Run /route-triage ${candidate} again.`);
-    decisionGate(state, candidate!, fm);
+    verdictGate(state, candidate!, fm);
     if (route === "employment") {
-      const cover = readArtifact(path.join(dir, "cover-letter.md"));
-      if (!cover) refuse(state, `private/candidates/${candidate}/cover-letter.md is missing.`, `Run /route-version ${candidate} first.`);
-      const errors = validateArtifact("cover-letter", cover);
-      if (errors.length) refuse(state, `private/candidates/${candidate}/cover-letter.md is invalid:\n  ${errors.join("\n  ")}`, `Run /route-version ${candidate} again.`);
-      const version = cover.frontmatter!.version;
-      if (version === "tailored" && !fs.existsSync(path.join(dir, "version.md"))) refuse(state, `version is tailored but private/candidates/${candidate}/version.md is missing.`, `Run /route-version ${candidate} --tailor, or /route-version ${candidate} to send the general Version.`);
-      const intro = introSummary(dir, version, p);
-      if (intro.text === null) refuse(state, `the Version sent does not read: ${intro.errors.join("; ")}`, version === "tailored" ? `Fix private/candidates/${candidate}/version.md.` : "Fix resume/versions/general.md.");
-      out.push(`Version: ${version}`, `Intro summary (${intro.source}): ${intro.text}`);
-    }
-    out.push(`Candidate: private/candidates/${candidate}`, `Route: ${route}`, route === "employment" ? "Family: none on this route" : `Family: ${v.family} (runner-up: ${v.family_runner_up ?? "none"})`, `Verdict: ${v.verdict}, Alert Level ${v.alert_level}, flags: ${(v.flags ?? []).join(", ") || "none"}`, `Scores: skill_fit ${v.skill_fit}, interest_fit ${v.interest_fit}, value ${v.value}`);
+      letterGate(state, candidate!, dir, `Run /route-version ${candidate} first.`);
+      const intro = introSummary(dir, p);
+      if (intro.text === null) refuse(state, `the Version sent does not read: ${intro.errors.join("; ")}`, versionName(dir) === "tailored" ? `Run resume-version ${candidate} again.` : "Run resume-version to regenerate resume/versions/general.md.");
+      out.push(`Version: ${versionName(dir)}`, `Intro summary (${intro.source}): ${intro.text}`);
+    } else if (fs.existsSync(path.join(dir, LETTER_FILE))) out.push("Note: letter.md exists; this run rewrites it.");
+    out.push(`Candidate: private/candidates/${candidate}`, `Route: ${route}`, `Title: ${fm.title}`, `Requirements: ${(fm.requirements ?? []).join(", ") || "none recorded"}`);
+    if (route === "freelance") out.push(`Flags: ${(fm.flags ?? []).join(", ") || "none"}`);
   },
   verify: ({ state, candidate, out }) => {
     profileGate(state, 2);
     const { dir, route, fm } = candidateGate(state, candidate);
-    if (fm.verdict?.decision !== "go") refuse(state, "decision is not go.", `Run /route-triage ${candidate} first.`);
-    const letterFile = letterFileFor(route);
-    const letter = readArtifact(path.join(dir, letterFile));
-    if (!letter) refuse(state, `private/candidates/${candidate}/${letterFile} is missing.`, `Run /route-proposal ${candidate} first.`);
-    const errors = validateArtifact(letterFile.replace(/\.md$/, ""), letter);
-    if (errors.length) refuse(state, `private/candidates/${candidate}/${letterFile} is invalid:\n  ${errors.join("\n  ")}`, `Run /route-proposal ${candidate} again.`);
-    out.push(`Candidate: private/candidates/${candidate}`, `Route: ${route}`, `Letter: ${letterFile}`, ...(route === "employment" ? ["Template: letter-employment", `Version: ${letter.frontmatter!.version}`] : [`Family: ${letter.frontmatter!.family}`]));
+    verdictGate(state, candidate!, fm);
+    letterGate(state, candidate!, dir, `Run /route-proposal ${candidate} first.`);
+    out.push(`Candidate: private/candidates/${candidate}`, `Route: ${route}`, `Letter: letter.md`, `Template: ${route === "employment" ? "letter-employment" : "letter-freelance"}`);
+    if (route === "employment") out.push(`Version: ${versionName(dir)}`);
   },
 };
 
@@ -127,6 +124,7 @@ export function guard(state: string, candidate?: string): string {
   GUARDS[state](ctx);
   return ctx.out.join("\n");
 }
+
 
 if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
   const [state, candidate] = process.argv.slice(2);

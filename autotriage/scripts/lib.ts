@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { registerSchemaDir, readArtifact, readProfile, validate as validateSchema, schemaFor, type Artifact, type Frontmatter, type Profile } from "../../profile/lib/index.ts";
+import { registerSchemaDir, readArtifact, readProfile, validate as validateSchema, type Artifact, type Frontmatter, type Profile } from "../../profile/lib/index.ts";
 
 // Where the catalogue and the schemas live, and where the data lives: the project the session runs in,
 // with the Profile in `profile/`, the Candidates in `private/candidates/`, the Versions in `resume/versions/`.
@@ -18,7 +18,6 @@ registerSchemaDir(path.join(AUTOTRIAGE_ROOT, "schemas"));
 
 export { readArtifact, writeArtifact, splitFrontmatter, readProfile, skills, skillFor } from "../../profile/lib/index.ts";
 export type { Artifact, Frontmatter, Profile, Project, Story, Bullet, Skill } from "../../profile/lib/index.ts";
-// The stored Version is the resume scripts' format; it is read there until the Version becomes prose.
 export { readVersion, versionSkillTerms, type Version } from "../../resume/scripts/version.ts";
 
 export class Refusal extends Error {
@@ -37,33 +36,27 @@ export function refuse(state: string, reason: string, next?: string | null): nev
 export type Route = "freelance" | "employment";
 export const ROUTES: Route[] = ["freelance", "employment"];
 
-// The Letter file a route writes beside job.md (catalogue/candidate-artifacts.md); its base name is its schema.
-export function letterFileFor(route: unknown): "letter.md" | "cover-letter.md" {
-  return route === "employment" ? "cover-letter.md" : "letter.md";
+// The Candidate's files (catalogue/candidate-artifacts.md): job.md, letter.md on both routes, version.md when tailored.
+export const JOB_FILE = "job.md";
+export const LETTER_FILE = "letter.md";
+export const VERSION_FILE = "version.md";
+
+// The Letter template a route fills.
+export function templateFor(route: unknown): "letter-freelance" | "letter-employment" {
+  return route === "employment" ? "letter-employment" : "letter-freelance";
 }
 
-// The Letter template a route fills: the Family's on the freelance route, letter-employment on the employment route.
-export function templateFor(route: unknown, family: unknown): string {
-  return route === "employment" ? "letter-employment" : `letter-${String(family)}`;
-}
-
-// A job.md validates against the schema its route names. A missing or unknown route falls to the
-// freelance schema, whose required `route: freelance` then reports it.
-export function jobSchemaFor(frontmatter: Frontmatter | null | undefined): "job-employment" | "job-freelance" {
-  return frontmatter?.route === "employment" ? "job-employment" : "job-freelance";
-}
-
-// Returns [] when valid, else human-readable error lines. "job" resolves to the route's schema.
+// Returns [] when valid, else human-readable error lines.
 export function validate(name: string, data: unknown): string[] {
-  return validateSchema(name === "job" ? jobSchemaFor(data as Frontmatter) : name, data);
+  return validateSchema(name, data);
 }
 
+// A Letter is body only: its "frontmatter" validates as null against letter.schema.json, so a Letter that
+// carries frontmatter fails there. Every other artifact needs frontmatter.
 export function validateArtifact(name: string, art: Pick<Artifact, "frontmatter" | "body">): string[] {
+  if (name === "letter") return art.frontmatter === null ? [] : ["letter.md carries frontmatter; a Letter is body only"];
   if (art.frontmatter === null) return ["no YAML frontmatter"];
-  const schema = name === "job" ? jobSchemaFor(art.frontmatter) : name;
-  const errors = validateSchema(schema, art.frontmatter);
-  if (schemaFor(schema).body === "empty" && art.body.trim()) errors.push("body must be empty");
-  return errors;
+  return validateSchema(name, art.frontmatter);
 }
 
 // Route inference for intake, the way it infers the timezone: a paste whose first line is the
@@ -101,7 +94,6 @@ export function schemaForPath(file: string): string | null {
   if (c !== null) {
     if (/^[^/]+\/job\.md$/.test(c)) return "job";
     if (/^[^/]+\/letter\.md$/.test(c)) return "letter";
-    if (/^[^/]+\/cover-letter\.md$/.test(c)) return "cover-letter";
     return null;
   }
   return null;
@@ -138,7 +130,11 @@ export function profile(): Profile {
   return (cached ??= readProfile(PROFILE_ROOT));
 }
 
-// The Version file a Candidate is sent with: the Candidate's own version.md on `tailored`, else the general Version.
-export function versionFile(dir: string, version: unknown): string {
-  return version === "tailored" ? path.join(dir, "version.md") : GENERAL_VERSION;
+// The Version a Candidate is sent with: its own version.md when one was tailored, else the general Version.
+export function versionFile(dir: string): string {
+  const own = path.join(dir, VERSION_FILE);
+  return fs.existsSync(own) ? own : GENERAL_VERSION;
+}
+export function versionName(dir: string): "tailored" | "general" {
+  return fs.existsSync(path.join(dir, VERSION_FILE)) ? "tailored" : "general";
 }

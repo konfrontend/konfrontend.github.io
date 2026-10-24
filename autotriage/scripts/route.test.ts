@@ -1,70 +1,70 @@
-// Fixtures for the route split: the schema a job.md validates against is picked by its route,
-// intake's route inference reads the paste, and the Verdict arithmetic skips the money hard stop
-// and the Family rule on the employment route. Run: npm test
+// Fixtures for the Candidate record and the Route split: one job.md schema for both routes, intake's
+// route inference, the Verdict arithmetic from arguments, and the Flag sets per route. Run: npm test
 import test from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
-import { validate, jobSchemaFor, inferRoute, schemaForPath, flagsFor, loadCatalogue, CANDIDATES_DIR, PROFILE_ROOT, VERSIONS_DIR } from "./lib.ts";
+import { validate, validateArtifact, inferRoute, schemaForPath, flagsFor, loadCatalogue, templateFor, CANDIDATES_DIR, PROFILE_ROOT, VERSIONS_DIR } from "./lib.ts";
 import { compute } from "./verdict.ts";
+import { fixture, run } from "./fixture.ts";
 
-const freelance = {
-  slug: "clinic-booking-mvp", title: "Full-Stack Developer - Clinic Booking MVP", date: "2026-09-19", route: "freelance",
-  timezone: "America/New_York", budget: { type: "hourly", min: 25, max: 100 }, extras: { country: "US" },
-};
-const employment = {
-  slug: "heymondo-senior-frontend", title: "Senior Frontend Developer", date: "2026-10-14", route: "employment",
-  company: "Heymondo", employment: "full-time", remote: "remote", location: "Barcelona", timezone: "Europe/Madrid",
-  salary: { type: "annual", min: 50000, max: 60000, currency: "EUR" }, source: "linkedin", extras: { hours_per_day: 7.5 },
-};
-const block = (extra = {}) => ({ flags: [], skill_fit: 4, interest_fit: 3, value: 3, alert_level: 1, hard_stops: [], verdict: "go", decision: null, ...extra });
+const freelance = { title: "Full-Stack Developer - Clinic Booking MVP", route: "freelance", timezone: "America/New_York", location: "US" };
+const employment = { title: "Senior Frontend Developer", route: "employment", company: "Heymondo", employment: "full-time", location: "Barcelona", timezone: "Europe/Madrid" };
 const without = <T extends object>(obj: T, key: keyof T) => { const { [key]: _, ...rest } = obj; return rest; };
 
-test("the route picks the schema; a missing route fails on the freelance schema", () => {
-  assert.equal(jobSchemaFor(freelance), "job-freelance");
-  assert.equal(jobSchemaFor(employment), "job-employment");
-  assert.equal(jobSchemaFor({}), "job-freelance");
+test("one job.md schema: the identity fields per route, no field the body carries", () => {
   assert.deepEqual(validate("job", freelance), []);
   assert.deepEqual(validate("job", employment), []);
-  assert.ok(validate("job", without(freelance, "route")).some((e) => e.includes("route")), "route is required");
-  assert.ok(validate("job", { ...freelance, route: "employment" }).length, "a freelance record does not pass as employment");
-  assert.ok(validate("job", { ...employment, route: "freelance" }).length, "an employment record does not pass as freelance");
-});
-
-test("employment schema: required terms, optional salary shape, no family, no rate-below-floor", () => {
-  for (const k of ["company", "employment", "remote", "timezone"] as const) {
-    assert.ok(validate("job", without(employment, k)).some((e) => e.includes(k)), `${k} is required`);
-  }
-  assert.deepEqual(validate("job", { ...employment, company: null }), [], "company may be null");
-  const bare = (["salary", "location", "source", "extras"] as const).reduce((o, k) => without(o, k as never), employment as object);
-  assert.deepEqual(validate("job", bare), [], "salary, location, source, extras are optional");
+  assert.deepEqual(validate("job", without(freelance, "location")), [], "location is optional");
+  for (const k of ["title", "route", "timezone"] as const) assert.ok(validate("job", without(freelance, k)).some((e) => e.includes(k)), `${k} is required`);
+  for (const k of ["company", "employment"] as const) assert.ok(validate("job", without(employment, k)).some((e) => e.includes(k)), `${k} is required on employment`);
+  assert.ok(validate("job", { ...employment, company: null }).length, "company is never null");
+  assert.ok(validate("job", { ...freelance, company: "Acme" }).length, "no company on the freelance route");
   assert.ok(validate("job", { ...employment, employment: "freelance" }).length, "employment enum is closed");
-  assert.ok(validate("job", { ...employment, salary: { type: "annual", min: 1 } }).length, "salary needs a currency");
-  assert.ok(validate("job", { ...employment, salary: { type: "annual", currency: "EUR" } }).length, "salary needs min or max");
-  assert.deepEqual(validate("job", { ...employment, verdict: block() }), []);
-  assert.ok(validate("job", { ...employment, verdict: block({ family: "build", family_runner_up: null }) }).length, "no family on the employment route");
-  assert.ok(validate("job", { ...employment, verdict: block({ hard_stops: ["rate-below-floor"] }) }).length, "no rate-below-floor on the employment route");
-  assert.ok(validate("job", { ...freelance, verdict: block() }).length, "the freelance block still requires family");
-  assert.deepEqual(validate("job", { ...freelance, verdict: block({ family: "build", family_runner_up: null }) }), []);
+  for (const [k, v] of Object.entries({ slug: "x", date: "2026-10-14", budget: { type: "hourly", min: 1, max: 2 }, remote: "remote", salary: { type: "annual", min: 1, currency: "EUR" }, source: "linkedin", extras: {} })) {
+    assert.ok(validate("job", { ...employment, [k]: v }).length, `${k} is not a field; the folder name or the body carries it`);
+  }
 });
 
-test("cover-letter.md has its own schema and the write hook finds every artifact by path", () => {
-  const cover = { slug: "heymondo-senior-frontend", date: "2026-10-14", version: "general" };
-  assert.deepEqual(validate("cover-letter", cover), []);
-  assert.deepEqual(validate("cover-letter", { ...cover, version: "tailored" }), []);
-  assert.ok(validate("cover-letter", { slug: cover.slug, date: cover.date }).length, "version is required on the cover letter");
-  assert.ok(validate("cover-letter", { ...cover, version: "frontend" }).length, "one stored Version: general or tailored");
-  assert.ok(validate("job", { ...employment, version: "general" }).length, "version lives in cover-letter.md, not in job.md");
-  assert.ok(validate("cover-letter", { ...cover, family: "build" }).length, "no family on a cover letter");
+test("the Checkpoint fields: verdict go or no-go, requirements in Keyword spelling, flags on freelance only", () => {
+  assert.deepEqual(validate("job", { ...freelance, verdict: "go", requirements: ["React"], flags: ["regulated-domain", "paid-first-milestone"] }), []);
+  assert.deepEqual(validate("job", { ...employment, verdict: "no-go", requirements: ["Vue 3", "Nuxt 4"] }), []);
+  assert.ok(validate("job", { ...freelance, verdict: "ask" }).length, "ask is a recommendation, never a Verdict");
+  assert.ok(validate("job", { ...freelance, verdict: null }).length, "no pending Verdict: the field is absent until the Checkpoint");
+  assert.ok(validate("job", { ...freelance, requirements: ["React"] }).length, "requirements are written with the Verdict");
+  assert.ok(validate("job", { ...employment, verdict: "go", flags: ["role-sprawl"] }).length, "no flags on the employment route");
+  assert.ok(validate("job", { ...employment, verdict: "go", requirements: [""] }).length, "no empty requirement");
+  assert.ok(validate("job", { ...freelance, decision: "go" }).length, "decision is gone");
+});
+
+test("outcome is sent, interview or offer, only on verdict go", () => {
+  for (const job of [freelance, employment]) {
+    assert.deepEqual(validate("job", { ...job, verdict: "go", outcome: "sent" }), []);
+    assert.deepEqual(validate("job", { ...job, verdict: "go", outcome: "offer" }), []);
+    assert.ok(validate("job", { ...job, verdict: "go", outcome: "hired" }).length, "a win is a Project file, not an outcome");
+    assert.ok(validate("job", { ...job, verdict: "go", outcome: "replied" }).length, "no reply field: a missing next step is the negative outcome");
+    assert.ok(validate("job", { ...job, verdict: "go", outcome: null }).length, "absent, never null");
+    assert.ok(validate("job", { ...job, verdict: "no-go", outcome: "sent" }).length, "no outcome on no-go");
+    assert.ok(validate("job", { ...job, outcome: "sent" }).length, "no outcome without a Verdict");
+  }
+});
+
+test("letter.md is body only; the write hook finds every artifact by path", () => {
+  assert.deepEqual(validateArtifact("letter", { frontmatter: null, body: "Hi,\n" }), []);
+  assert.deepEqual(validateArtifact("letter", { frontmatter: null, body: "" }), [], "an empty Letter is a resume-only application");
+  assert.deepEqual(validateArtifact("letter", { frontmatter: { slug: "x" }, body: "Hi,\n" }), ["letter.md carries frontmatter; a Letter is body only"]);
+  assert.deepEqual(validateArtifact("job", { frontmatter: null, body: "" }), ["no YAML frontmatter"]);
   const folder = path.join(CANDIDATES_DIR, "2026-10-14-heymondo-senior-frontend");
-  assert.equal(schemaForPath(path.join(folder, "cover-letter.md")), "cover-letter");
   assert.equal(schemaForPath(path.join(folder, "job.md")), "job");
   assert.equal(schemaForPath(path.join(folder, "letter.md")), "letter");
+  assert.equal(schemaForPath(path.join(folder, "cover-letter.md")), null, "no such file any more");
   assert.equal(schemaForPath(path.join(folder, "version.md")), null, "a Version is generated prose, checked by render.ts");
   assert.equal(schemaForPath(path.join(VERSIONS_DIR, "general.md")), null);
   assert.equal(schemaForPath(path.join(PROFILE_ROOT, "profile.md")), "profile");
   assert.equal(schemaForPath(path.join(PROFILE_ROOT, "projects", "acme.md")), "project");
   assert.equal(schemaForPath(path.join(PROFILE_ROOT, "skills.md")), null, "generated files have no schema");
   assert.equal(schemaForPath(path.join(PROFILE_ROOT, "answers", "why.md")), null);
+  assert.equal(templateFor("freelance"), "letter-freelance");
+  assert.equal(templateFor("employment"), "letter-employment");
 });
 
 test("intake infers the route from the paste and marks it; a stated route is taken as given", () => {
@@ -77,49 +77,63 @@ test("intake infers the route from the paste and marks it; a stated route is tak
   assert.equal(inferRoute("Need a React developer."), null, "nothing to infer from: intake asks");
 });
 
-test("verdict arithmetic: no rate-below-floor and no Family rule on the employment route", () => {
-  const profile = { terms: { rate_floor: 40 } };
-  const low = { ...freelance, budget: { type: "hourly", min: 10, max: 20 } };
-  assert.deepEqual(compute({ flags: [], skill_fit: 4, family: "build" }, profile, low).hard_stops, ["rate-below-floor"]);
-  assert.equal(compute({ flags: [], skill_fit: 4, family: null }, profile, freelance).verdict, "ask", "no Family on freelance asks");
-  const emp = compute({ flags: [], skill_fit: 4 }, profile, { ...employment, budget: { type: "hourly", min: 10, max: 20 } });
+test("verdict arithmetic from arguments: the budget maximum feeds rate-below-floor on freelance only, no Family rule", () => {
+  assert.deepEqual(compute({ route: "freelance", flags: [], skill_fit: 4, budget_max: 20, rate_floor: 40 }).hard_stops, ["rate-below-floor"]);
+  assert.deepEqual(compute({ route: "freelance", flags: [], skill_fit: 4, budget_max: 20 }).hard_stops, [], "no floor given, no money stop");
+  assert.equal(compute({ route: "freelance", flags: [], skill_fit: 4 }).verdict, "go", "no Family to ask for");
+  const emp = compute({ route: "employment", flags: [], skill_fit: 4, budget_max: 20, rate_floor: 40 });
   assert.deepEqual(emp.hard_stops, []);
   assert.equal(emp.verdict, "go");
-  assert.equal(compute({ flags: ["refused-stack"], skill_fit: 4 }, profile, employment).verdict, "no-go", "stop Flags still stop on employment");
+  assert.equal(compute({ route: "employment", flags: ["unmet-constraint"], skill_fit: 4 }).verdict, "no-go", "the stop Flag stops on both routes");
+  assert.deepEqual(compute({ route: "freelance", flags: ["unmet-constraint"], skill_fit: 4 }), { alert_level: 1, hard_stops: ["unmet-constraint"], verdict: "no-go" });
+  assert.equal(compute({ route: "freelance", flags: [], skill_fit: 2 }).verdict, "ask");
+  assert.equal(compute({ route: "freelance", flags: ["refused-stack"], skill_fit: 4 }).verdict, "go", "refused-stack is gone: an unknown id counts for nothing");
 });
 
-test("Flags by route: each route reads only its own Flags; the stop Flags are on both", () => {
+test("the verdict CLI takes its inputs as arguments and reads no Candidate file", () => {
+  const { root } = fixture();
+  const r = run(root, "verdict.ts", "--route", "freelance", "--skill-fit", "4", "--flags", "regulated-domain,paid-first-milestone", "--budget-max", "20");
+  assert.equal(r.status, 0, r.stderr);
+  assert.deepEqual(JSON.parse(r.stdout), { alert_level: 1, hard_stops: ["rate-below-floor"], verdict: "no-go" }, "rate_floor 40 from the fixture Profile");
+  const ok = run(root, "verdict.ts", "--route", "employment", "--skill-fit", "3", "--flags", "role-sprawl,codebase-handover,unpaid-assignment");
+  assert.deepEqual(JSON.parse(ok.stdout), { alert_level: 4, hard_stops: [], verdict: "ask" });
+  assert.equal(run(root, "verdict.ts", "--route", "freelance").status, 2, "skill-fit is required");
+  assert.equal(run(root, "verdict.ts", "2026-10-16-acme-fix").status, 2, "no Candidate argument any more");
+});
+
+test("Flags by route: each route reads only its own Flags; vague-posting and the stop Flag are on both; no employment Safeguard Slot", () => {
   const all = loadCatalogue("flags").flags as { id: string; routes?: string[]; kind?: string; slot?: string }[];
   assert.equal(new Set(all.map((f) => f.id)).size, all.length, "Flag ids are unique across routes");
   for (const f of all) assert.ok(f.routes?.length && f.routes.every((r) => ["freelance", "employment"].includes(r)), `${f.id} names its routes`);
+  assert.ok(!all.some((f) => f.id === "refused-stack"), "refused-stack is gone");
   const ids = (route?: string) => new Set(flagsFor(route).map((f) => f.id));
   const free = ids("freelance"), emp = ids("employment");
-  for (const id of ["refused-stack", "unmet-constraint"]) assert.ok(free.has(id) && emp.has(id), `${id} on both routes`);
+  for (const id of ["unmet-constraint", "vague-posting"]) assert.ok(free.has(id) && emp.has(id), `${id} on both routes`);
   assert.ok(free.has("hostile-tone") && !emp.has("hostile-tone"));
-  assert.ok(emp.has("codebase-handover") && !free.has("codebase-handover"));
+  assert.ok(emp.has("codebase-handover") && emp.has("culture-hype") && !free.has("codebase-handover"));
   assert.deepEqual(ids(undefined), free, "a missing route reads as freelance");
-  const employmentSlots = ["intro", "relevant_work", "gaps", "terms", "closing", "none"];
-  for (const f of flagsFor("employment").filter((f) => !f.kind || f.kind === "risk")) assert.ok(employmentSlots.includes(f.slot!), `${f.id} targets a letter-employment Slot`);
+  for (const f of all.filter((f) => f.routes!.includes("employment") && !f.routes!.includes("freelance") && (!f.kind || f.kind === "risk"))) assert.equal(f.slot, "none", `${f.id} has no Safeguard Slot`);
+  const stop = all.filter((f) => f.kind === "stop");
+  assert.deepEqual(stop.map((f) => f.id), ["unmet-constraint"]);
+  assert.ok((stop[0] as any).cues.some((c: string) => /degree/.test(c)), "T5: a required degree is unmet-constraint evidence");
+  const cat = loadCatalogue("flags") as any;
+  assert.ok(!("interest_fit" in cat.scores), "interest_fit is gone");
+  assert.ok(!JSON.stringify(cat).match(/\bFamily\b|\bdecision\b/), "no Family, no decision in the catalogue");
 });
 
 test("verdict arithmetic counts only the Flags of the Candidate's route", () => {
-  const profile = { terms: { rate_floor: 40 } };
   // hostile-tone is freelance only: on employment it adds no level and no compound step
-  assert.equal(compute({ flags: ["hostile-tone"], skill_fit: 4 }, profile, employment).alert_level, 1);
-  assert.equal(compute({ flags: ["hostile-tone"], skill_fit: 4, family: "build" }, profile, freelance).alert_level, 4);
+  assert.equal(compute({ route: "employment", flags: ["hostile-tone"], skill_fit: 4 }).alert_level, 1);
+  assert.equal(compute({ route: "freelance", flags: ["hostile-tone"], skill_fit: 4 }).alert_level, 4);
   // codebase-handover is employment only
-  assert.equal(compute({ flags: ["codebase-handover"], skill_fit: 4 }, profile, employment).alert_level, 2);
-  assert.equal(compute({ flags: ["codebase-handover"], skill_fit: 4, family: "build" }, profile, freelance).alert_level, 1);
+  assert.equal(compute({ route: "employment", flags: ["codebase-handover"], skill_fit: 4 }).alert_level, 2);
+  assert.equal(compute({ route: "freelance", flags: ["codebase-handover"], skill_fit: 4 }).alert_level, 1);
   // employment green Flag lowers, level 5 Flag stops
-  assert.equal(compute({ flags: ["unpaid-assignment", "practices-stated"], skill_fit: 4 }, profile, employment).alert_level, 2);
-  assert.deepEqual(compute({ flags: ["recruitment-scam"], skill_fit: 4 }, profile, employment).hard_stops, ["alert-level-5", "level-5-flag"]);
+  assert.equal(compute({ route: "employment", flags: ["unpaid-assignment", "practices-stated"], skill_fit: 4 }).alert_level, 2);
+  assert.deepEqual(compute({ route: "employment", flags: ["recruitment-scam"], skill_fit: 4 }).hard_stops, ["alert-level-5", "level-5-flag"]);
 });
 
-test("job.md carries requirements on both routes; the Profile may state a salary_floor", () => {
-  assert.deepEqual(validate("job", { ...employment, requirements: ["Vue 3", "Nuxt 4"] }), []);
-  assert.deepEqual(validate("job", { ...freelance, requirements: ["React"] }), []);
-  assert.ok(validate("job", { ...employment, requirements: [""] }).length, "no empty requirement");
-  assert.ok(validate("job", { ...employment, recorded_skills: ["Vue"] }).length, "the ledger marker is gone: the ledger derives from requirements");
+test("the Profile may state a salary_floor; summaries left profile.md for the Version", () => {
   const profile = {
     identity: { name: "A", timezone: "Europe/Berlin", constraints: [] }, contact: { location: "Berlin", email: "a@b.de" }, resume_order: ["x"],
     terms: { rate: 50, rate_floor: 40 },

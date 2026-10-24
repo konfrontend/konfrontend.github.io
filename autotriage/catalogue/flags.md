@@ -3,7 +3,7 @@ scale: 1-5
 flags:
   # kind: risk (default), green, or stop. green = level 0, lowers the Alert Level. stop = Profile-fit failure: no level, no Alert Level effect, forces the hard stop of the same id.
   # routes: the routes the Flag is judged on, [freelance], [employment], or both. triage and verify read only the Flags of the Candidate's route.
-  # slot: where the safeguard is stated in the Letter. Freelance: hook | plan | billing | answers | none; `plan` is the Family's plan Slot (see the Slot catalogue). Employment: a Slot id of letter-employment.md (intro | relevant_work | gaps | terms | closing) or none.
+  # slot: where the safeguard is stated in the Letter. Freelance: hook | plan | billing | answers | none; `plan` is the plan Slot the Letter carries (see the Slot catalogue). Every employment Flag is `none`: a 500-character cover letter carries no Safeguard, and the person reads the Flag at the Checkpoint.
   - id: budget-scope-mismatch
     routes: [freelance]
     level: 1
@@ -12,10 +12,10 @@ flags:
     slot: plan
     value: "fewer competing bids from those who filter by posted budget"
   - id: vague-posting
-    routes: [freelance]
+    routes: [freelance, employment]
     level: 1
-    cues: ["one-paragraph brief", "enhance our web application using React and Node", "no scope, no deliverables"]
-    safeguard: "first exchange defines scope"
+    cues: ["one-paragraph brief", "enhance our web application using React and Node", "no scope, no deliverables", "a job ad with no responsibilities or requirements listed"]
+    safeguard: "first exchange defines scope; on the employment route the human asks for clarity before applying"
     slot: plan
     value: "depends on what surfaces"
   - id: non-technical-founder
@@ -186,44 +186,47 @@ flags:
     level: 0
     cues: ["our CTO", "existing dev team", "you will work with our backend developer"]
 
-  - id: refused-stack
-    routes: [freelance, employment]
-    kind: stop
-    cues: ["a stack item the Job requires (not merely lists as nice-to-have) is in Profile refused_stacks"]
   - id: unmet-constraint
     routes: [freelance, employment]
     kind: stop
-    cues: ["US-only", "must be based in <country>", "citizens only", "on-site", "hybrid", "relocate", "must be available <hours> in <timezone> with no overlap possible", "any location, identity, or working-arrangement requirement Profile identity.constraints cannot meet"]
+    cues: ["US-only", "must be based in <country>", "citizens only", "on-site", "hybrid", "relocate", "must be available <hours> in <timezone> with no overlap possible", "a required license, security clearance or degree stated as required", "any location, identity, credential or working-arrangement requirement Profile identity.constraints cannot meet"]
 
-  # Employment route. A cover letter carries little, so most Safeguards are relevant_work content or none.
+  # Employment route. A cover letter carries no Safeguard: every Flag is `slot: none`, read by the human at the Checkpoint.
   - id: regulated-product
     routes: [employment]
     level: 1
     cues: ["patient-facing applications", "mental healthcare platform", "clinical", "travel insurance", "health or financial data of end users"]
-    safeguard: "relevant_work names regulated-domain work the Profile holds; none when it holds none"
-    slot: relevant_work
+    safeguard: "none; relevant_work may name regulated-domain work the Profile holds"
+    slot: none
     value: "domain experience is a differentiator"
   - id: exclusion-list
     routes: [employment]
     level: 1
     cues: ["This role is not for you if", "do not apply if", "we are not looking for someone who"]
-    safeguard: "none; the list is fit criteria for the human at the checkpoint"
+    safeguard: "none; the list is fit criteria for the human at the Checkpoint"
     slot: none
     value: "states expectations openly"
+  - id: culture-hype
+    routes: [employment]
+    level: 1
+    cues: ["rockstar", "ninja", "guru", "like a family", "unlimited vacation"]
+    safeguard: "none; the human weighs the culture at the Checkpoint"
+    slot: none
+    value: "none"
 
   - id: role-sprawl
     routes: [employment]
     level: 2
-    cues: ["lead development, own technical SEO, ensure accessibility, mentor developers", "own the product end-to-end and analyse its metrics, plus backend fixes", "several specialist roles in one opening"]
-    safeguard: "relevant_work leads with the core stack and the two demands the Profile covers best; the rest waits for the interview"
-    slot: relevant_work
+    cues: ["lead development, own technical SEO, ensure accessibility, mentor developers", "own the product end-to-end and analyse its metrics, plus backend fixes", "several specialist roles in one opening", "wear many hats", "self-starter in ambiguous situations"]
+    safeguard: "none; relevant_work leads with the core stack and the two demands the Profile covers best"
+    slot: none
     value: "a broad role rewards a generalist"
   - id: codebase-handover
     routes: [employment]
     level: 2
     cues: ["take ownership of existing codebase areas after the departing engineer", "inherit a codebase", "stabilize and improve without slowing down the roadmap"]
-    safeguard: "relevant_work cites a Project where an existing codebase was taken over and stabilised"
-    slot: relevant_work
+    safeguard: "none; relevant_work may cite a Project where an existing codebase was taken over"
+    slot: none
     value: "a takeover is where seniority shows"
   - id: contract-as-employment
     routes: [employment]
@@ -251,7 +254,7 @@ flags:
   - id: equity-for-salary
     routes: [employment]
     level: 4
-    cues: ["equity instead of salary", "unpaid until funding", "deferred compensation"]
+    cues: ["equity instead of salary", "unpaid until funding", "deferred compensation", "commission-based, no base salary"]
     safeguard: "none"
     slot: none
     value: "none until funded"
@@ -289,35 +292,28 @@ hard_stops:
   - id: level-5-flag
     rule: "any level 5 risk Flag triggered"
   - id: rate-below-floor
-    rule: "freelance route only: Job states an hourly range whose ceiling is below Profile rate_floor; no money hard stop on the employment route, pay is unknown until the offer"
-  - id: refused-stack
-    rule: "stop Flag refused-stack triggered (a required stack item is in Profile refused_stacks)"
+    rule: "freelance route only: the Job states an hourly range whose ceiling is below Profile terms.rate_floor; no money hard stop on the employment route, pay is unknown until the offer"
   - id: unmet-constraint
-    rule: "stop Flag unmet-constraint triggered (Job requires a location, identity, or working arrangement that Profile identity.constraints cannot meet)"
+    rule: "stop Flag unmet-constraint triggered (the Job requires a location, identity, credential or working arrangement that Profile identity.constraints cannot meet)"
 
 scores:
   scale: 1-5
   skill_fit:
-    "1": "core stack or domain absent from Profile"
-    "2": "half or less of required items covered"
-    "3": "most items covered at shipped or used level, one gap in a secondary item"
-    "4": "all items covered at shipped level"
-    "5": "all items covered, plus Profile niche or Project matches the Job's domain"
-  interest_fit:
-    "1": "Job matches a Profile avoid list entry"
-    "2": "no overlap with Profile interests"
-    "3": "neutral"
-    "4": "matches one Profile interest"
-    "5": "matches a Profile niche"
+    "1": "core stack or domain absent from the Profile"
+    "2": "half or less of the required items covered"
+    "3": "most items covered, one Gap in a secondary item"
+    "4": "all items covered"
+    "5": "all items covered, plus a Project matches the Job's domain"
   value:
     freelance:
-      "1": "Family is last in precedence AND contract size under 10 hours at Profile rate"
-      "2": "Family late in precedence OR contract size small"
-      "3": "mid precedence, moderate size"
-      "4": "Family early in precedence OR size large with green Flags"
-      "5": "Family first in precedence AND size large AND paid-first-milestone triggered"
+      # contract size at Profile terms.rate (budget, hours and duration from the body), plus paid-first-milestone
+      "1": "contract size under 10 hours at the Profile rate"
+      "2": "contract size small"
+      "3": "moderate size"
+      "4": "size large, or moderate with green Flags"
+      "5": "size large and paid-first-milestone triggered"
     employment:
-      # posted salary against Profile terms.salary_floor, converted to the floor's period and currency. Not a hard stop.
+      # the posted salary against Profile terms.salary_floor, converted to the floor's period and currency. Not a hard stop.
       "1": "posted maximum below salary_floor"
       "2": "salary_floor inside the posted range"
       "3": "no salary stated, or no salary_floor in the Profile"
@@ -328,47 +324,36 @@ verdict_mapping:
   - "any hard stop -> no-go"
   - "skill_fit 1 -> no-go"
   - "skill_fit 2 -> ask"
-  - "no Family -> ask (freelance route; no Family on employment)"
   - "Alert Level 1-2 -> go"
   - "Alert Level 3 -> go; safeguards must be non-empty"
   - "Alert Level 4 -> ask; go only when skill_fit is 5, safeguards non-empty"
   - "Alert Level 5 -> no-go"
 
-verdict_fields:
-  # the `verdict` block of job.md; see catalogue/candidate-artifacts.md
-  family: one of the Family ids
-  family_runner_up: Family id or null
-  flags: list of triggered Flag ids, green and stop Flags included
-  skill_fit: 1-5
-  interest_fit: 1-5
-  value: 1-5
-  alert_level: 1-5, computed by script
-  hard_stops: list of hard stop ids triggered, may be empty
-  verdict: go | no-go | ask, computed by script
-  decision: null | go | no-go, human-set at the checkpoint
+checkpoint_fields:
+  # written into job.md at the Checkpoint, once the human has answered; see catalogue/candidate-artifacts.md
+  verdict: go | no-go, the human's answer
+  requirements: the Job's required Skill-shaped items, Keyword spelling where a Project matches
+  flags: freelance only; list of triggered Flag ids, green and stop Flags included
 ---
 
 # Flag catalogue
 
-A Flag is one named risk signal in a Job. Green Flags are signals the client or employer understands how engagements work. Stop Flags are Profile-fit failures (`refused-stack`, `unmet-constraint`): the client may be fine, the freelancer cannot take the Job. Portable across Profiles: nothing here is a personal preference. Floors, refused stacks, constraints, and interests live in the Profile; a stop Flag names the rule, the Profile supplies the list it is checked against.
+A Flag is one named risk signal in a Job. Green Flags are signals the client or employer understands how engagements work. The stop Flag `unmet-constraint` is a Profile-fit failure: the client may be fine, the person cannot take the Job. Portable across Profiles: nothing here is a personal preference. Floors and constraints live in the Profile; the stop Flag names the rule, the Profile supplies the list it is checked against.
 
 ## Routes
 
-Every Flag names its routes in `routes`. The Candidate's `route` (`job.md`) selects the Flag set: `triage` judges only those Flags, `verdict.ts` counts only those ids, and `verify` recomputes Safeguards only from them. The stop Flags are on both routes; every other Flag is on one. An employment Flag's Safeguard targets a Slot of `letter-employment.md`; a 500-character cover letter carries little, so most employment Safeguards are `relevant_work` content or `none`.
+Every Flag names its routes in `routes`. The Candidate's `route` (`job.md`) selects the Flag set: `triage` judges only those Flags, `verdict.ts` counts only those ids, and `verify` recomputes the Safeguards and the Alert Level only from them. `vague-posting` and the stop Flag are on both routes; every other Flag is on one. An employment Flag has no Safeguard Slot: a 500-character cover letter carries none, and the Flag is read by the person at the Checkpoint, so employment Flags are not stored.
 
 ## How `triage` uses this file
 
-1. Read the Job. For every Flag of the Candidate's route whose cues match, record its id and show the human a verbatim quote from the Job as evidence. Model judgment, guided by cues; postings are unstructured, so no keyword matching. Green and stop Flags detected in the same pass: a stop Flag's evidence is the Job quote plus the Profile entry it collides with (`refused_stacks: php` against `WordPress site`). Only ids are stored; evidence stays in the session.
-2. Judge the three soft scores against the rubric in `scores` (`value` has one rubric per route), one line of reason each in the session. Only the numbers are stored.
-3. Freelance route: detect the Family (see the Family catalogue). Verdict `ask` when no Family fits. No Family on the employment route.
-4. A script, not the model, computes `alert_level` (steps in `alert_level_steps`), `hard_stops` (rules in `hard_stops`, floors from Profile), and `verdict` (order in `verdict_mapping`). The `proposal` guard recomputes both and rejects `job.md` when stored values disagree.
-5. The human sets `decision` (`go` or `no-go`) at the checkpoint. `verdict` is the script's recommendation and is never hand-edited; `proposal` runs only on `decision: go`.
-
-`interest_fit` never enters the verdict arithmetic. It is a tiebreaker for the human at the checkpoint.
+1. Read the Job. For every Flag of the Candidate's route whose cues match, hold its id and show the human a verbatim quote from the Job as evidence. Model judgment, guided by cues; postings are unstructured, so no keyword matching. Green and stop Flags are detected in the same pass: the stop Flag's evidence is the Job quote plus the Profile constraint it collides with (`identity.constraints: remote only` against `hybrid, three days in the office`). Only ids are stored, on the freelance route only; evidence stays in the session.
+2. Judge the two soft scores against the rubric in `scores` (`value` has one rubric per route), one line of reason each in the session. Neither is stored.
+3. A script, not the model, computes the Alert Level (steps in `alert_level_steps`), the hard stops (rules in `hard_stops`, the floor from the Profile) and its recommendation (order in `verdict_mapping`) from the ids, the score and the posted budget maximum, all passed as arguments: `node scripts/verdict.ts --route <route> --skill-fit <n> --flags <ids> [--budget-max <n>]`. It reads no Candidate file.
+4. The human answers go or no-go at the Checkpoint. Only then does `triage` write `job.md`: `verdict`, `requirements` and, on the freelance route, `flags` (`checkpoint_fields`). The recommendation is session output; the Verdict is what the human confirmed.
 
 ## Levels
 
-Risk Flags carry a Level; green Flags are Level 0; stop Flags carry none. The Alert Level measures the client's posting, so stop Flags stay out of its arithmetic: a Job on a refused stack from a good client reads as `no-go, Alert Level 1`, which is the true picture.
+Risk Flags carry a Level; green Flags are Level 0; the stop Flag carries none. The Alert Level measures the client's posting, so the stop Flag stays out of its arithmetic: a Job the person cannot take from a good client reads as `no-go, Alert Level 1`, which is the true picture.
 
 - Level 1: note only, engage freely.
 - Level 2: caution, verify in the first exchange.
@@ -378,21 +363,21 @@ Risk Flags carry a Level; green Flags are Level 0; stop Flags carry none. The Al
 
 ## Budget is a routing signal, not a risk
 
-Ambitious scope on a small budget means the client does not know what software costs. `budget-scope-mismatch` is level 1 and never escalates on its own: it is excluded from the "three or more level 2/3 Flags" step. It routes the `build` Family into pricing its own milestones. A low fixed budget is never a hard stop on its own; the human sees the budget at the checkpoint.
+Ambitious scope on a small budget means the client does not know what software costs. `budget-scope-mismatch` is level 1 and never escalates on its own: it is excluded from the "three or more level 2/3 Flags" step. It makes the `milestones` Slot price its own plan. A low fixed budget is never a hard stop on its own; the human sees the budget at the Checkpoint.
 
 Client-priced test: a paid work trial whose price the client sets and pays (`$800 for completing the test`), usually with `paid-first-milestone`. The price is the client's hiring instrument, not a bid, so the Letter does not reprice it: milestones carry no prices, `billing` states no budget gap and does not accept the figure, and `fact/arithmetic` has nothing to check. The rest of `budget-scope-mismatch` holds: the plan is ours, scoped to what the test period can carry.
 
 ## Safeguards become Letter content
 
-`proposal` reads the `safeguard` string of every triggered risk Flag from this catalogue and states it in the Slot named by `slot` (freelance: the Slot catalogue, `catalogue/templates/letter-slots.md`; employment: the Slots of `catalogue/templates/letter-employment.md`). At Alert Level 3 and 4 the Letter must state them. Flags whose safeguard is `none` contribute nothing. Safeguards are not stored on the Candidate; `verify` recomputes them from `verdict.flags` and this catalogue and checks that the target Slot states each one (`flag/safeguard-missing`, fail at Alert Level 3–4, warn at 1–2; see the Verify catalogue, `catalogue/verify.md`). The human also sees them at the Letter review.
+On the freelance route `proposal` reads the `safeguard` string of every triggered risk Flag from this catalogue and states it in the Slot named by `slot` (the Slot catalogue, `catalogue/templates/letter-slots.md`; `plan` is the plan Slot the Letter carries). At Alert Level 3 and 4 the Letter must state them. Flags whose safeguard is `none` contribute nothing. Safeguards are not stored on the Candidate; `verify` recomputes them from `flags` in `job.md` and this catalogue and checks that the target Slot states each one (`flag/safeguard-missing`, fail at Alert Level 3–4, warn at 1–2; see the Verify catalogue, `catalogue/verify.md`). The human also sees them at the Letter review.
 
 ## What the human sees first
 
-`triage` prints this in the session, in this order, so the go/no-go call takes under a minute. None of it is stored; the Candidate keeps only the `verdict` block.
+`triage` prints this in the session, in this order, so the go/no-go call takes under a minute. None of it is stored.
 
-1. One line: verdict, Alert Level, Family, three scores.
+1. One line: the recommendation, the Alert Level, the two scores.
 2. Hard stops, if any.
 3. Triggered Flags, one line each: id, level, verbatim evidence.
 4. Green Flags.
-5. Safeguards to state.
-6. Why `ask`, or one line on why not the other verdict.
+5. Safeguards to state (freelance route).
+6. Why `ask`, or one line on why not the other recommendation.
