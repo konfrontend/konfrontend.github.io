@@ -87,10 +87,10 @@ test("the write hook validates Profile and Candidate files by their path and ign
   assert.match(blocked.reason, /does not match the profile schema:\n  \/ must have required property 'resume_order'/);
   const dir = candidate("2026-10-17-acme-frontend");
   fs.writeFileSync(path.join(dir, "job.md"), employmentJob().replace("company: Acme\n", ""));
-  assert.match(JSON.parse(write(path.join(dir, "job.md")).stdout).reason, /job schema:\n  \/ must have required property 'company'/);
+  assert.match(JSON.parse(write(path.join(dir, "job.md")).stdout).reason, /the Candidate contract:\n  \/ must have required property 'company'/);
   assert.equal(write(path.join(dir, "letter.md")).stdout, "", "a body-only Letter passes");
   fs.writeFileSync(path.join(dir, "letter.md"), "---\nfamily: audit\n---\nHello,\n");
-  assert.match(JSON.parse(write(path.join(dir, "letter.md")).stdout).reason, /letter schema:\n  letter\.md carries frontmatter; a Letter is body only/);
+  assert.match(JSON.parse(write(path.join(dir, "letter.md")).stdout).reason, /the Candidate contract:\n  letter\.md carries frontmatter; a Letter is body only/);
   assert.equal(write(path.join(dir, "version.md")).stdout, "", "a Version has no schema; render.ts checks it");
   assert.equal(write(path.join(root, "resume", "versions", "general.md")).stdout, "");
   assert.equal(write(path.join(root, "README.md")).stdout, "");

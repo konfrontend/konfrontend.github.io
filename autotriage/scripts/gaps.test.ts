@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { ledger, renderLedger } from "./gaps.ts";
 import type { Profile, Project } from "./lib.ts";
+import { fixture, run, employmentJob, freelanceJob } from "./fixture.ts";
 
 const project = (slug: string, keywords: string[]): Project => ({ slug, file: `${slug}.md`, errors: [], warnings: [], stories: [], bullets: [], notes: [], meta: { name: slug, role: "R", employment: "contract", start: "2020-01", naming: "public", description: "D", keywords } });
 const profile = { projects: [project("engine", ["Punched cards", "Bernoulli numbers"]), project("notes", ["punched cards", "Writing"])] } as unknown as Profile;
@@ -17,4 +18,16 @@ test("ledger counts Candidates once per Skill and adds Gaps for unproved require
   assert.match(out, /\| Writing \| 1 \|/);
   assert.ok(out.indexOf("Gaps (1)") < out.indexOf("Skills seen (2)"), "Gaps first");
   assert.doesNotMatch(out, /Bernoulli/, "a Skill no Job asked for is not printed");
+});
+
+test("an invalid job.md is warned about and its requirements still count", () => {
+  const { root } = fixture({ candidates: {
+    "2026-10-16-acme-fix": { "job.md": freelanceJob({ verdict: "go" }).replace("requirements: []", "requirements: [Steam]") },
+    "2026-10-17-acme-frontend": { "job.md": employmentJob({ requirements: ["Steam"] }).replace("company: Acme\n", "") },
+    "2026-10-18-none": { "letter.md": "" },
+  } });
+  const r = run(root, "gaps.ts", "print");
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stderr, /^warning: 2026-10-17-acme-frontend: job\.md is invalid: \/ must have required property 'company'.*\nwarning: 2026-10-18-none: job\.md is missing or has no frontmatter\n$/);
+  assert.match(r.stdout, /\| Steam \| 2 \|/, "the invalid Candidate is counted");
 });

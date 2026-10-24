@@ -15,6 +15,7 @@ The professional profile of Konstantin Dolbilov, web developer, and the two thin
 
 - Scripts are TypeScript run by Node 24 directly, erasable syntax only; `tsc --noEmit` checks them. One root `package.json`, relative imports.
 - A State skill's guard line prints the context or `autotriage: <state> refused …`; the skill prints a refusal verbatim and stops.
+- Data follows the root, code follows the module: the Profile, the Candidates and the Versions resolve from `repoRoot()` in `profile/lib` (`CLAUDE_PROJECT_DIR`, else the repo); the catalogue, the schemas, the templates and `resume.css` from their own module. A test fixture holds data only.
 - Authored content (the Profile, the Candidates, the public PDF, `index.html`) is edited by the person. Generated content (`skills.md`, a Version's sourced lines, a Bullet's rendered form) is regenerated, never hand-edited.
 - A Bullet is written from its Story by `profile/bullet-rules.md` and reviewed by the person; whoever edits a Story updates its Bullets in the same edit. A wording one application needs is a Variant in that Candidate's `version.md`, never a Story edit.
 - A Letter cites a Story, a Bullet, a Project's Notes or an Answer. A fact the Profile lacks is asked for once and, when confirmed, appended to the Project's `## Notes`; no State edits a Story. A Gap never enters a Letter or a Version.

@@ -2,8 +2,7 @@
 // route inference, the Verdict arithmetic from arguments, and the Flag sets per route. Run: npm test
 import test from "node:test";
 import assert from "node:assert/strict";
-import path from "node:path";
-import { validate, validateArtifact, inferRoute, schemaForPath, flagsFor, loadCatalogue, templateFor, CANDIDATES_DIR, PROFILE_ROOT, VERSIONS_DIR } from "./lib.ts";
+import { validate, inferRoute, flagsFor, loadCatalogue, templateFor } from "./lib.ts";
 import { compute } from "./verdict.ts";
 import { fixture, run } from "./fixture.ts";
 
@@ -48,21 +47,7 @@ test("outcome is sent, interview or offer, only on verdict go", () => {
   }
 });
 
-test("letter.md is body only; the write hook finds every artifact by path", () => {
-  assert.deepEqual(validateArtifact("letter", { frontmatter: null, body: "Hi,\n" }), []);
-  assert.deepEqual(validateArtifact("letter", { frontmatter: null, body: "" }), [], "an empty Letter is a resume-only application");
-  assert.deepEqual(validateArtifact("letter", { frontmatter: { slug: "x" }, body: "Hi,\n" }), ["letter.md carries frontmatter; a Letter is body only"]);
-  assert.deepEqual(validateArtifact("job", { frontmatter: null, body: "" }), ["no YAML frontmatter"]);
-  const folder = path.join(CANDIDATES_DIR, "2026-10-14-heymondo-senior-frontend");
-  assert.equal(schemaForPath(path.join(folder, "job.md")), "job");
-  assert.equal(schemaForPath(path.join(folder, "letter.md")), "letter");
-  assert.equal(schemaForPath(path.join(folder, "cover-letter.md")), null, "no such file any more");
-  assert.equal(schemaForPath(path.join(folder, "version.md")), null, "a Version is generated prose, checked by render.ts");
-  assert.equal(schemaForPath(path.join(VERSIONS_DIR, "general.md")), null);
-  assert.equal(schemaForPath(path.join(PROFILE_ROOT, "profile.md")), "profile");
-  assert.equal(schemaForPath(path.join(PROFILE_ROOT, "projects", "acme.md")), "project");
-  assert.equal(schemaForPath(path.join(PROFILE_ROOT, "skills.md")), null, "generated files have no schema");
-  assert.equal(schemaForPath(path.join(PROFILE_ROOT, "answers", "why.md")), null);
+test("each route fills its own Letter template", () => {
   assert.equal(templateFor("freelance"), "letter-freelance");
   assert.equal(templateFor("employment"), "letter-employment");
 });

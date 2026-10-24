@@ -3,19 +3,18 @@
 // Candidates root that are not a dated Candidate (the archive) are skipped. Never writes.
 // CLI: node scripts/tracker.ts print
 import path from "node:path";
-import { readArtifact, validateArtifact, listCandidates, CANDIDATES_DIR } from "./lib.ts";
+import { candidatesDir, listCandidates, readJob } from "./candidate.ts";
 
 export interface Row { candidate: string; route: string; verdict: string | null; outcome: string | null }
 
 // One row per Candidate folder, plus the warnings the print adds under the table.
-export function readRows(dir = CANDIDATES_DIR): { rows: Row[]; warnings: string[] } {
+export function readRows(dir = candidatesDir()): { rows: Row[]; warnings: string[] } {
   const rows: Row[] = [], warnings: string[] = [];
   for (const candidate of listCandidates(dir)) {
-    const job = readArtifact(path.join(dir, candidate, "job.md"));
+    const job = readJob(path.join(dir, candidate));
     if (!job || job.frontmatter === null) { warnings.push(`${candidate}: job.md is missing or has no frontmatter`); continue; }
-    const errors = validateArtifact("job", job);
-    if (errors.length) warnings.push(`${candidate}: job.md is invalid: ${errors.join("; ")}`);
-    const fm = job.frontmatter as Record<string, any>;
+    if (job.errors.length) warnings.push(`${candidate}: job.md is invalid: ${job.errors.join("; ")}`);
+    const fm = job.frontmatter;
     rows.push({ candidate, route: String(fm.route ?? ""), verdict: fm.verdict ?? null, outcome: fm.outcome ?? null });
   }
   rows.sort((a, b) => b.candidate.localeCompare(a.candidate));

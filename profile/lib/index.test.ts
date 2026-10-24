@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { readProfile, parseProject, checkBullet, skills, skillFor, renderSkills, writeArtifact } from "./index.ts";
+import { fileURLToPath } from "node:url";
+import { readProfile, parseProject, checkBullet, skills, skillFor, renderSkills, writeArtifact, repoRoot } from "./index.ts";
 
 function fixture(): string {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "profile-"));
@@ -76,4 +77,18 @@ test("skills derive from keywords: canonical spelling from the first Project in 
   assert.equal(skillFor(p, "punched CARDS")?.name, "Punched cards");
   assert.equal(skillFor(p, "cards"), null);
   assert.match(renderSkills(p), /3 Skills\.\n\n\| skill \| evidence \|\n\| --- \| --- \|\n\| Bernoulli numbers \| engine \|\n\| Punched cards \| engine, notes \|\n\| Writing \| notes \|\n$/);
+});
+
+test("repoRoot is CLAUDE_PROJECT_DIR when set, else the repo this module sits in, read on each call", () => {
+  const prev = process.env.CLAUDE_PROJECT_DIR;
+  try {
+    delete process.env.CLAUDE_PROJECT_DIR;
+    const own = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+    assert.equal(repoRoot(), own);
+    process.env.CLAUDE_PROJECT_DIR = os.tmpdir();
+    assert.equal(repoRoot(), path.resolve(os.tmpdir()));
+    assert.equal(readProfile().root, path.join(path.resolve(os.tmpdir()), "profile"), "the Profile follows the root");
+  } finally {
+    if (prev === undefined) delete process.env.CLAUDE_PROJECT_DIR; else process.env.CLAUDE_PROJECT_DIR = prev;
+  }
 });

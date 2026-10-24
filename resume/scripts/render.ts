@@ -1,8 +1,8 @@
 // Renders a Version to PDF: the Markdown is read by position, the [slug] and [key] prefixes dropped, the
 // rest styled with resume.css, printed by headless Chrome, then checked. The Profile is read for the
 // checks only, never to assemble the page. The input path is the first argument, relative to the repo
-// root. The default, resume/versions/general.md, writes Konstantin_Dolbilov_Resume.pdf at the root; any
-// other input writes a PDF of the same base name next to itself. The target PDF is replaced only when no
+// root, which follows CLAUDE_PROJECT_DIR. The default, resume/versions/general.md, writes
+// Konstantin_Dolbilov_Resume.pdf at the root; any other input writes a PDF of the same base name next to itself. The target PDF is replaced only when no
 // check fails; with --check nothing is written outside resume/scripts/out/.
 // Run: node resume/scripts/render.ts [input] [--check]   (override the browser with CHROME=/path/to/chrome)
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, statSync } from "node:fs";
@@ -10,8 +10,8 @@ import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { marked, type Tokens } from "marked";
-import { readProfile } from "../../profile/lib/index.ts";
-import { readVersion, checkVersion, stripKey, REPO_ROOT, type Result } from "./version.ts";
+import { readProfile, repoRoot } from "../../profile/lib/index.ts";
+import { readVersion, checkVersion, stripKey, type Result } from "./version.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 export const OUT = path.join(here, "out");
@@ -120,8 +120,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const args = process.argv.slice(2);
   const checkOnly = args.includes("--check");
   const input = args.find((a) => !a.startsWith("--")) ?? GENERAL;
-  const file = path.resolve(REPO_ROOT, input);
-  const target = input === GENERAL ? PDF_NAME : path.relative(REPO_ROOT, file).replace(/\.[^./]*$/, "") + ".pdf";
+  const root = repoRoot();
+  const file = path.resolve(root, input);
+  const target = input === GENERAL ? PDF_NAME : path.relative(root, file).replace(/\.[^./]*$/, "") + ".pdf";
 
   const profile = readProfile();
   const version = readVersion(file, profile);
@@ -201,7 +202,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const failed = checks.some((c) => c.level === "FAIL");
   if (checkOnly) console.log(failed ? `${target} not written: a check failed` : `${target} not written (--check); the render is at resume/scripts/out/resume.pdf`);
   else if (!failed) {
-    copyFileSync(pdf, path.join(REPO_ROOT, target));
+    copyFileSync(pdf, path.join(root, target));
     console.log(`Wrote ${target}`);
   } else console.log(`${target} left unchanged; failed render at resume/scripts/out/resume.pdf`);
   if (failed) process.exitCode = 1;
