@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "profile.md frontmatter: the person's declared facts and the Route's settings. Skills are never declared here; they derive from the Projects' keywords.",
+  "title": "profile.md frontmatter: the person's identity, contact, resume order and terms. Skills are never declared here; they derive from the Projects' keywords.",
   "type": "object",
-  "required": ["identity", "contact", "resume_order", "refused_stacks", "family_precedence", "word_cap", "terms"],
+  "required": ["identity", "contact", "resume_order", "terms"],
   "additionalProperties": false,
   "properties": {
     "identity": {
@@ -33,25 +33,13 @@
       "uniqueItems": true,
       "items": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" }
     },
-    "refused_stacks": { "type": "array", "items": { "type": "string" }, "default": [] },
-    "niche": { "type": "array", "items": { "type": "string" }, "default": [] },
-    "interests": { "type": "array", "items": { "type": "string" }, "default": [] },
-    "avoid": { "type": "array", "items": { "type": "string" }, "default": [] },
-    "family_precedence": {
-      "type": "array",
-      "items": { "enum": ["audit", "fix", "build", "maintenance"] },
-      "minItems": 4, "maxItems": 4, "uniqueItems": true,
-      "default": ["audit", "build", "maintenance", "fix"]
-    },
-    "word_cap": { "type": "integer", "minimum": 100, "maximum": 700, "default": 350 },
     "terms": {
       "type": "object",
-      "required": ["rate", "rate_floor", "budget_floor", "billing"],
+      "required": ["rate", "rate_floor"],
       "additionalProperties": false,
       "properties": {
         "rate": { "type": "number", "minimum": 1 },
         "rate_floor": { "type": "number", "minimum": 1 },
-        "budget_floor": { "type": "number", "minimum": 0 },
         "salary_floor": {
           "type": "object",
           "required": ["type", "amount", "currency"],
@@ -62,11 +50,9 @@
             "currency": { "type": "string", "pattern": "^[A-Z]{3}$" }
           }
         },
-        "billing": { "enum": ["hourly-caps", "milestones", "both"], "default": "hourly-caps" },
         "weekly_hours": { "type": "object", "properties": { "min": { "type": "integer" }, "max": { "type": "integer" } } },
-        "availability_from": { "type": "string" },
+        "availability_from": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$|^now$" },
         "local_hours": { "type": "string" },
-        "subcontracting": { "enum": ["none", "with-approval", "yes"], "default": "none" },
         "ip_stance": { "enum": ["assigned-on-payment", "licensed"], "default": "assigned-on-payment" }
       }
     }

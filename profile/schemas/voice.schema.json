@@ -18,7 +18,6 @@
     },
     "sign_off": { "type": "string", "minLength": 1 },
     "banned_extra": { "type": "array", "items": { "type": "string" }, "default": [] },
-    "allowed_extra": { "type": "array", "items": { "type": "string" }, "default": [] },
-    "cite_role_period": { "type": "boolean", "default": true }
+    "allowed_extra": { "type": "array", "items": { "type": "string" }, "default": [] }
   }
 }
