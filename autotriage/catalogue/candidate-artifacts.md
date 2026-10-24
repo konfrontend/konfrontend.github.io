@@ -1,6 +1,6 @@
 # Candidate artifacts
 
-A Candidate is one folder under `private/candidates/`, gitignored. It stores only what the person confirmed or what happened: `job.md` on both routes, `letter.md` on both routes, `version.md` only when the Version was tailored for this Job, and `interview.md` for the interview record when there was one (its contents are not yet specified). No PDF: `resume-pdf` renders it from the Version sent and the folder never stores it. Anything recomputable, derivable from the files, or inferable from absence is not stored: the scores, the Alert Level, the recommendation, the Safeguards and the evidence are session output and are thrown away. Nothing is written outside the folder; the Gap print and the Tracker derive from the Candidates at print time.
+A Candidate is one folder under `private/candidates/`, gitignored. It stores only what the person confirmed or what happened: `job.md` on both routes, `letter.md` on both routes, and `version.md` only when the Version was tailored for this Job. No PDF: `resume-pdf` renders it from the Version sent and the folder never stores it. Anything recomputable, derivable from the files, or inferable from absence is not stored: the scores, the Alert Level, the recommendation, the Safeguards and the evidence are session output and are thrown away. Nothing is written outside the folder; the Gap print and the Tracker derive from the Candidates at print time.
 
 ## Folder
 

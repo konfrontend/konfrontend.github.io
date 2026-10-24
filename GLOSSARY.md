@@ -73,7 +73,7 @@ One posting, freelance or employment: its free-form text plus the parameters its
 _Avoid_: posting, listing, gig, opportunity
 
 **Candidate**:
-A Job being pursued through a Route, recorded as one folder: the Job, the Letter, a tailored Version when one was made, the interview record when there was one. Becomes a Project when won.
+A Job being pursued through a Route, recorded as one folder: the Job, the Letter, and a tailored Version when one was made. Becomes a Project when won.
 _Avoid_: application, lead, intake
 
 **Outcome**:
