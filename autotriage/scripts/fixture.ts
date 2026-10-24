@@ -39,14 +39,23 @@ keywords: [${keywords.join(", ")}]
 ---
 ${body}`;
 export const SUMMARY = "10+ years as a full stack developer in TypeScript and React.";
-export const version = (summary = SUMMARY, skills = ["Core: React, TypeScript"], projects: Record<string, string[]> = { acme: ["rbac-admin"] }) => `---
-title: Full Stack Developer
-summary: "${summary}"
-skills:
-${skills.map((s) => `  - "${s}"`).join("\n")}
-projects:
-${Object.entries(projects).map(([slug, keys]) => `  ${slug}: [${keys.join(", ")}]`).join("\n")}
----
+// A Version in the prose shape resume/scripts/generate.ts writes for the fixture Profile; `bullets` maps a
+// Project slug to its `- [key] text` lines.
+export const version = (summary = SUMMARY, skills = ["Core: React, TypeScript"], bullets: Record<string, string[]> = { acme: ["[rbac-admin] Built the RBAC admin and the SAML login."] }) => `# Kon
+
+Full Stack Developer
+
+Gijon, Spain (UTC+2) • [kon@example.com](mailto:kon@example.com) • [github.com/kon](https://github.com/kon)
+
+${summary}
+
+## Skills
+
+${skills.map((s) => `- ${s}`).join("\n")}
+
+## Professional Experience
+
+${Object.entries(bullets).map(([slug, lines]) => `### [${slug}] [Acme](https://acme.example) – B2B dashboard.\n\nFull Stack Developer (Contract) | Feb 2021 – Present\n\n${lines.map((l) => `- ${l}`).join("\n")}`).join("\n\n")}
 `;
 export const verdict = (decision: string, extra = "") => `verdict:
   flags: []

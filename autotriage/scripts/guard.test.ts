@@ -59,7 +59,7 @@ test("the PreToolUse hook denies a refused State and stays silent on a passing o
   assert.equal(hook(root, "pre-tool-use.ts", { tool_input: { skill: "other:thing" } }).stdout, "");
 });
 
-test("the write hook validates Profile, Candidate and Version files by their path and ignores the rest", () => {
+test("the write hook validates Profile and Candidate files by their path and ignores the rest", () => {
   const { root, candidate } = fixture({ candidates: { "2026-10-17-acme-frontend": { "job.md": employmentJob() } } });
   const write = (file: string) => hook(root, "post-tool-use.ts", { tool_input: { file_path: file } });
   assert.equal(write(path.join(root, "profile", "profile.md")).stdout, "", "a valid file passes");
@@ -69,8 +69,7 @@ test("the write hook validates Profile, Candidate and Version files by their pat
   assert.match(blocked.reason, /does not match the profile schema:\n  \/ must have required property 'resume_order'/);
   fs.writeFileSync(path.join(candidate("2026-10-17-acme-frontend"), "job.md"), employmentJob().replace("remote: remote\n", ""));
   assert.match(JSON.parse(write(path.join(candidate("2026-10-17-acme-frontend"), "job.md")).stdout).reason, /job-employment schema/);
-  fs.writeFileSync(path.join(root, "resume", "versions", "general.md"), "---\ntitle: X\n---\n");
-  assert.match(JSON.parse(write(path.join(root, "resume", "versions", "general.md")).stdout).reason, /version schema/);
+  assert.equal(write(path.join(root, "resume", "versions", "general.md")).stdout, "", "a Version has no schema; render.ts checks it");
   assert.equal(write(path.join(root, "README.md")).stdout, "");
   assert.equal(write(path.join(root, "profile", "skills.md")).stdout, "", "generated files have no schema");
 });

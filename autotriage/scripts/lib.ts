@@ -19,7 +19,7 @@ registerSchemaDir(path.join(AUTOTRIAGE_ROOT, "schemas"));
 export { readArtifact, writeArtifact, splitFrontmatter, readProfile, skills, skillFor } from "../../profile/lib/index.ts";
 export type { Artifact, Frontmatter, Profile, Project, Story, Bullet, Skill } from "../../profile/lib/index.ts";
 // The stored Version is the resume scripts' format; it is read there until the Version becomes prose.
-export { readVersion, selection, versionSkillTerms, type Version } from "../../resume/scripts/version.ts";
+export { readVersion, versionSkillTerms, type Version } from "../../resume/scripts/version.ts";
 
 export class Refusal extends Error {
   constructor(message: string) {
@@ -102,11 +102,8 @@ export function schemaForPath(file: string): string | null {
     if (/^[^/]+\/job\.md$/.test(c)) return "job";
     if (/^[^/]+\/letter\.md$/.test(c)) return "letter";
     if (/^[^/]+\/cover-letter\.md$/.test(c)) return "cover-letter";
-    if (/^[^/]+\/version\.md$/.test(c)) return "version";
     return null;
   }
-  const v = under(VERSIONS_DIR);
-  if (v !== null && /^[^/]+\.md$/.test(v)) return "version";
   return null;
 }
 
