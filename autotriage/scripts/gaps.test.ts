@@ -4,7 +4,7 @@ import { ledger, renderLedger } from "./gaps.ts";
 import type { Profile, Project } from "./lib.ts";
 import { fixture, run, employmentJob, freelanceJob } from "./fixture.ts";
 
-const project = (slug: string, keywords: string[]): Project => ({ slug, file: `${slug}.md`, errors: [], warnings: [], stories: [], bullets: [], notes: [], meta: { name: slug, role: "R", employment: "contract", start: "2020-01", naming: "public", description: "D", keywords } });
+const project = (slug: string, keywords: string[]): Project => ({ slug, file: `${slug}.md`, errors: [], warnings: [], overview: "", bullets: [], notes: [], meta: { name: slug, role: "R", employment: "contract", start: "2020-01", naming: "public", description: "D", keywords } });
 const profile = { projects: [project("engine", ["Punched cards", "Bernoulli numbers"]), project("notes", ["punched cards", "Writing"])] } as unknown as Profile;
 
 test("ledger counts Candidates once per Skill and adds Gaps for unproved requirements, Gaps first", () => {

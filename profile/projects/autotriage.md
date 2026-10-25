@@ -8,7 +8,7 @@ naming: public
 description: Claude Code plugin that triages a freelance job posting and writes the proposal letter inside hook-enforced rails.
 keywords: [Claude Code, Node.js, JSON Schema, Agentic Workflows, Prompt Engineering, Domain Modeling, Architecture Decision Records, Ajv]
 ---
-## Stories
+## Overview
 
 ## Bullets
 

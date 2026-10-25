@@ -16,12 +16,12 @@ interface Ctx { state: State; candidate?: string; out: string[] }
 type Guard = (ctx: Ctx) => void;
 
 // Level 1: profile.md valid (triage reads it). Level 2: every Profile file valid and one Project at
-// least (the Letter States cite Stories and the voice).
+// least (the Letter States cite the Overviews, the Bullets and the voice).
 function profileGate(state: State, level: 1 | 2): Profile {
   const p = profile();
   const errors = level === 1 ? p.errors.filter((e) => e.startsWith("profile.md")) : p.errors;
   if (errors.length) refuse(state, `the Profile has ${errors.length} error${errors.length === 1 ? "" : "s"}:\n  ${errors.join("\n  ")}`, "Fix the file by hand.");
-  if (level === 2 && !p.projects.length) refuse(state, "no Project file under profile/projects/.", "Add at least one Project file (profile/schemas/project.schema.json, Stories with keys).");
+  if (level === 2 && !p.projects.length) refuse(state, "no Project file under profile/projects/.", "Add at least one Project file (profile/schemas/project.schema.json, Bullets with keys).");
   return p;
 }
 

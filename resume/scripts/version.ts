@@ -115,7 +115,7 @@ export function readVersion(file: string, profile: Profile): Version {
 }
 
 // The checks on a Version's own text. FAIL blocks the render; WARN is printed. Source holds every generated line
-// to its source; a Variant is held to its Story, or to its canonical Bullet when the Bullet has no Story yet;
+// to its source; a Variant is held to its canonical Bullet;
 // the Skills lines follow V5 and V6; the summary follows V1 and V2 of the resumeskills audit. The canonical
 // Bullet rules run in the Profile check, not here; the rendered Bullet length is measured by render.ts.
 export interface Result { level: "PASS" | "WARN" | "FAIL"; name: string; detail: string }
@@ -151,15 +151,13 @@ export function checkVersion(version: Version, md: string, profile: Profile): Re
   else {
     const pool = (b: VersionBullet): { text: string; keywords: string[] } => {
       const p = projectOf(profile, b.project)!;
-      const story = p.stories.find((s) => s.bullets.some((x) => x.key === b.key));
-      const text = story ? [story.text, ...story.bullets.map((x) => x.text)].join("\n") : canonical(p, b.key)!;
-      return { text, keywords: p.meta.keywords ?? [] };
+      return { text: canonical(p, b.key)!, keywords: p.meta.keywords ?? [] };
     };
     const looseNumbers = variants.filter((b) => { const n = new Set(numbersIn(pool(b).text)); return numbersIn(b.text).some((x) => !n.has(x)); });
-    add("FAIL", "variant numbers", looseNumbers.map((b) => `${b.project}/${b.key}`), `${variants.length} Variant(s), every number from its Story or its canonical Bullet`);
+    add("FAIL", "variant numbers", looseNumbers.map((b) => `${b.project}/${b.key}`), `${variants.length} Variant(s), every number from its canonical Bullet`);
     const looseKeywords = variants.filter((b) => { const { text, keywords } = pool(b); return keywords.some((k) => has(b.text, k) && !has(text, k)); });
-    add("FAIL", "variant keywords", looseKeywords.map((b) => `${b.project}/${b.key}`), "every Keyword a Variant names is in its Story or its canonical Bullet");
-    if (variants.length) out.push({ level: "WARN", name: "variant claims", detail: `review each Variant against its Story by profile/bullet-rules.md: ${variants.map((b) => b.key).join(", ")}` });
+    add("FAIL", "variant keywords", looseKeywords.map((b) => `${b.project}/${b.key}`), "every Keyword a Variant names is in its canonical Bullet");
+    if (variants.length) out.push({ level: "WARN", name: "variant claims", detail: `review each Variant against its canonical Bullet by profile/bullet-rules.md: ${variants.map((b) => b.key).join(", ")}` });
   }
 
   const known = skills(profile).map((s) => s.name.toLowerCase());

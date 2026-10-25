@@ -59,7 +59,7 @@ Portable across Profiles. Personal facts come from the Profile at fill time. Voi
 - `greeting` is line 1 of every Letter: the Profile `voice.md` `greeting` for the Letter's route, then a blank line.
 - A Slot with nothing to say renders nothing. The block and its blank line disappear. The route sections below name the Slots that always render.
 - Only the paragraphs the Job or the template demands. A paragraph that answers nothing in the Job is dropped.
-- Every fact in any Slot traces to a Profile entry: a Project's meta, a Story, a Bullet, a line of its Notes, or an Answer. A fact the Profile lacks is asked for before the Slot is filled.
+- Every fact in any Slot traces to a Profile entry: a Project's meta, its Overview, a Bullet by key, a line of its Notes, or an Answer. A fact the Profile lacks is asked for before the Slot is filled.
 - A Gap never enters a Letter. A required item no Project proves is not named, not excused and not apologised for; `relevant_work` may show the nearest thing done as work done, with no mention of the item.
 - A Slot named in the template with `when: job asks` renders only when the Job asks for its content explicitly. `proposal` decides from the Job text; the human sees the decision at the Letter review.
 

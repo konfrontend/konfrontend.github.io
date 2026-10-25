@@ -20,7 +20,7 @@ Slot notes for this template:
 
 - `greeting`: the Profile `voice.md` `greeting.employment` (`Hello,`).
 - `intro`: the summary of the Version sent (the Candidate's `version.md` when tailored, else `resume/versions/general.md`) in first person, rephrased to the posting's keywords. A role title and `10+ years` are allowed here only.
-- `relevant_work`: one paragraph. Stack and domains in prose, picked by match to the Job's requirements, every item traced to a Project's `keywords`, Stories, Bullets or Notes. No Project names, no dates: the PDF carries them. When a required item has no Project proving it, the nearest thing done may appear here as work done, with no mention of the item.
+- `relevant_work`: one paragraph. Stack and domains in prose, picked by match to the Job's requirements, every item traced to a Project's `keywords`, Overview, Bullets or Notes. No Project names, no dates: the PDF carries them. When a required item has no Project proving it, the nearest thing done may appear here as work done, with no mention of the item.
 - `terms`: only when the posting asks (availability, notice, location, overlap). Same fill as the Slot catalogue `terms`; no salary figure unless the posting asks for one.
 - `closing`: one line, always, the same rule as the proposal.
 - `sign_off`: the Profile `voice.md` `sign_off`.

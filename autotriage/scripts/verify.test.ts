@@ -15,11 +15,11 @@ const cap = (id: string) => slotCatalogue.slots.find((s) => s.id === id)!.cap;
 const profile = { terms: { rate: 60, rate_floor: 40, weekly_hours: { min: 0, max: 30 } } };
 const skillNames = ["TypeScript", "React", "Postgres"];
 const voice = { language: "en-US", greeting: { freelance: "Hi,", employment: "Hello," }, sign_off: "Kon", banned_extra: ["synergy"], allowed_extra: ["leverage"] };
-const bullet = { key: "rbac-admin", story: null, text: "Built the RBAC admin and the SAML login." };
+const bullet = { key: "rbac-admin", text: "Built the RBAC admin and the SAML login." };
 const projects: Project[] = [{
   slug: "acme", file: "acme.md", errors: [],
   meta: { name: "Acme", url: "https://acme.example", role: "Full Stack Developer", employment: "contract", start: "2021-02", naming: "public", description: "B2B dashboard.", keywords: ["TypeScript"] },
-  stories: [], bullets: [bullet], notes: ["Collaborator and admin roles."], warnings: [],
+  overview: "Built the admin over SSO.", bullets: [bullet], notes: ["Collaborator and admin roles."], warnings: [],
 }];
 const answers = [{ slug: "how-test-tenant-isolation", question: "How have you tested that one customer organisation cannot access another organisation's records?" }];
 const job = (flags = ["regulated-domain"], body = "Client wants a HIPAA review of a PHI pipeline. Budget $2,000.") => ({
@@ -67,9 +67,9 @@ test("clean Letter with the deliverables plan Slot passes the script Checks; the
   assert.deepEqual(r.brief.skills, ["TypeScript", "React", "Postgres"], "the brief lists the Profile's Skills");
   assert.deepEqual(r.brief.answers, answers, "the brief lists the Answers as a Letter source");
   assert.deepEqual(r.brief.projects.map((p: any) => [p.slug, p.name, p.url, p.period, p.bullets.length, p.notes]), [["acme", "Acme", "https://acme.example", "2021-02 – present", 1, ["Collaborator and admin roles."]]], "the brief harvests the Project facts from the meta, the Bullets and the Notes");
-  assert.deepEqual(r.brief.projects[0].bullets[0], { key: "rbac-admin", story: null, text: "Built the RBAC admin and the SAML login." });
+  assert.deepEqual(r.brief.projects[0].bullets[0], { key: "rbac-admin", text: "Built the RBAC admin and the SAML login." });
   const out = render(r);
-  assert.match(out, /- \[rbac-admin\] Built the RBAC admin/);
+  assert.match(out, /Overview: Built the admin over SSO\.\n      - \[rbac-admin\] Built the RBAC admin and the SAML login\.\n/);
   assert.match(out, /how-test-tenant-isolation: How have you tested/);
   assert.ok(!/[Ff]amily/.test(out));
 });
@@ -116,12 +116,13 @@ test("format: markdown, emoji, all-caps, indentation, contact, url count; no url
   const body = cleanAudit
     .replace("Findings ranked by severity", "**Findings** ranked by SHOUTING severity")
     .replace("- Assumptions and deferred items", "  - Assumptions and deferred items 🚀")
+    .replace("Built the RBAC admin", "Built the RBAC admin over SSO")
     .replace("here in Upwork Messages.", "here in Upwork Messages or at kon@example.com, https://calendly.com/kon, https://a.example, http://b.example.");
   const r = run(body);
   assert.ok(has(r, "format/markdown"));
   assert.ok(has(r, "format/emoji"));
   assert.ok(r.findings.some((f) => f.id === "format/all-caps" && f.detail.includes("SHOUTING")));
-  assert.ok(!r.findings.some((f) => f.id === "format/all-caps" && /RBAC|SAML|PHI|HIPAA/.test(f.detail)), "acronyms from the Profile, the Projects, and the Job are allowed");
+  assert.ok(!r.findings.some((f) => f.id === "format/all-caps" && /RBAC|SAML|SSO|PHI|HIPAA/.test(f.detail)), "acronyms from the Profile, the Projects (Overview included), and the Job are allowed");
   assert.ok(has(r, "format/indentation"));
   assert.ok(r.findings.filter((f) => f.id === "format/contact").length >= 2);
   assert.ok(r.findings.some((f) => f.id === "format/url-count" && f.detail.includes("not https")));

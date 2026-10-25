@@ -9,7 +9,7 @@ naming: public
 description: Educational website on medical topics.
 keywords: [JavaScript, Node.js, Express, MongoDB, three.js, WebGL, HTML, CSS]
 ---
-## Stories
+## Overview
 
 ## Bullets
 

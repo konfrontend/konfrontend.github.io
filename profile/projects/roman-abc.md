@@ -7,7 +7,7 @@ naming: public
 description: Personal website of tattoo artist Roman Melnikov.
 keywords: [TypeScript, Vue.js, Nuxt, Sanity, Cloudflare Workers]
 ---
-## Stories
+## Overview
 
 ## Bullets
 

@@ -240,14 +240,14 @@ export function postingRuns(body: string): Set<string> {
   return runs;
 }
 
-// The Project facts a Letter may cite, harvested from the meta, the Bullets (by key, with the Story
-// that holds them) and the Notes: the model's fact table traces every Letter fact to one of these lines.
+// The Project facts a Letter may cite, harvested from the meta, the Overview, the Bullets (by key) and
+// the Notes: the model's fact table traces every Letter fact to one of these lines.
 export function projectFacts(p: Project) {
   const m = p.meta;
   return {
     slug: p.slug, name: m.name, url: m.url ?? null, role: m.role, employment: m.employment,
     period: `${m.start} – ${m.end ?? "present"}`, naming: m.naming, description: m.description ?? null,
-    keywords: m.keywords ?? [], bullets: p.bullets.map((b) => ({ key: b.key, story: b.story, text: b.text })), notes: p.notes,
+    keywords: m.keywords ?? [], overview: p.overview, bullets: p.bullets, notes: p.notes,
   };
 }
 
@@ -322,10 +322,10 @@ export function analyse({ candidate, letter, job, profile: profileMeta, skillNam
   const harvest = (text: unknown) => { for (const t of String(text ?? "").matchAll(ACRONYM)) acronyms.add(t[0]); };
   for (const s of skillNames) harvest(s);
   harvest(job.body);
-  // the Bullets, Stories and Notes are the Letter's fact source: their acronyms are the Profile's own
+  // the Overview, Bullets and Notes are the Letter's fact source: their acronyms are the Profile's own
   for (const pj of projects) {
     for (const b of pj.bullets) harvest(b.text);
-    for (const s of pj.stories) harvest(s.text);
+    harvest(pj.overview);
     for (const n of pj.notes) harvest(n);
     harvest((pj.meta.keywords ?? []).join(" ")); harvest(pj.meta.name); harvest(pj.meta.description);
   }
@@ -444,10 +444,11 @@ export function render(r: Analysis): string {
   out.push(`  Answers (a Letter source, cited as "Answer <slug>"; a question block matching none is printed after verify as a draft Answer):`);
   for (const a of b.answers) out.push(`    ${a.slug}: ${a.question}`);
   if (!b.answers.length) out.push("    none");
-  out.push(`  Projects (facts the Letter may cite: Bullets by key, then Notes):`);
+  out.push(`  Projects (facts the Letter may cite: the Overview, Bullets by key, then Notes):`);
   for (const p of b.projects) {
     out.push(`    ${p.slug}: ${p.name}${p.url ? ` (${p.url})` : ""}, ${p.role}, ${p.employment}, ${p.period}, naming ${p.naming}, ${p.bullets.length} Bullets, ${p.notes.length} Notes`);
-    for (const bl of p.bullets) out.push(`      - [${bl.key}] ${bl.text}${bl.story ? ` (${bl.story})` : ""}`);
+    if (p.overview) out.push(`      Overview: ${p.overview.replace(/\n+/g, " ")}`);
+    for (const bl of p.bullets) out.push(`      - [${bl.key}] ${bl.text}`);
     for (const n of p.notes) out.push(`      - ${n}`);
   }
   out.push(`  Profile Skills: ${b.skills.join(", ")}`);

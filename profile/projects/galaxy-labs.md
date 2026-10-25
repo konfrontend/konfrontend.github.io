@@ -8,7 +8,7 @@ naming: public
 description: Web agency building e-commerce and marketing sites.
 keywords: [JavaScript, PHP, WordPress, Vue.js, GSAP, Shopify, Magento]
 ---
-## Stories
+## Overview
 
 ## Bullets
 
