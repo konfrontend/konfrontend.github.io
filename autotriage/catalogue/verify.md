@@ -55,7 +55,7 @@ Portable across Profiles. Personal inputs (banned extras, allowed extras, terms)
 - `letter.md` of the current Candidate: body only, no frontmatter. An empty `letter.md` on the employment route is a resume-only application: valid, with no Letter in it.
 - `job.md`: `route`, `title`, `requirements`, the posting body (client facts, Job demands), and on the freelance route `flags`, from which the script recomputes the Alert Level and the Safeguards.
 - The Version sent on the employment route: the Candidate's `version.md` when it exists, else `resume/versions/general.md`; its summary is what `intro` derives from.
-- Profile: `profile/profile.md` (`terms`), the Skills (every Project's `keywords`: names for the acronym list), `profile/projects/<slug>.md` (traceability source: the frontmatter meta, the Stories, the Bullets by key and the Notes, harvested by the script into the brief), `profile/answers/<slug>.md` (a Letter source, cited as `Answer <slug>`), `voice.md` (`banned_extra`, `allowed_extra`).
+- Profile: `profile/profile.md` (`terms`), the Skills (every Project's `keywords`: names for the acronym list), `profile/projects/<slug>.md` (traceability source: the frontmatter meta, the Overview, the Bullets by key and the Notes, harvested by the script into the brief), `profile/answers/<slug>.md` (a Letter source, cited as `Answer <slug>`), `voice.md` (`banned_extra`, `allowed_extra`).
 - Catalogues: voice rules, Slot catalogue, the route's template, Flag catalogue.
 
 Nothing is stored. The report is session output; a Letter is final only after `verify` passes, so a stored pass carries no information.
@@ -133,7 +133,7 @@ Each length Check runs only when the route's template has the cap it reads; `let
 
 ### fact
 
-- `untraceable`: a fact with no source. The model lists every fact in the Letter (product name, URL, role, period, stack item, number, client quote) with its Slot and source: a Project's frontmatter field, a Story, a Bullet by its key or a Notes line as the brief lists them, `Answer <slug>` for an Answer cited or tailored, a `profile.md` field, the `job.md` body for client facts, or `derived` for hours and prices computed from the Profile rate. Fix: ask the human once whether the fact is true. True: append it as one list line under `## Notes` of the matching `profile/projects/<slug>.md`, then regenerate the Slot. False or unknown: regenerate the Slot without it. No State edits a Story.
+- `untraceable`: a fact with no source. The model lists every fact in the Letter (product name, URL, role, period, stack item, number, client quote) with its Slot and source: a Project's frontmatter field, its Overview, a Bullet by its key or a Notes line as the brief lists them, `Answer <slug>` for an Answer cited or tailored, a `profile.md` field, the `job.md` body for client facts, or `derived` for hours and prices computed from the Profile rate. Fix: ask the human once whether the fact is true. True: append it as one list line under `## Notes` of the matching `profile/projects/<slug>.md`, then regenerate the Slot. False or unknown: regenerate the Slot without it. No State edits an Overview.
 - `arithmetic`: a milestone price that is not hours times the Profile rate, or a total that does not sum. Warn.
 
 ### terms

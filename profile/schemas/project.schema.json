@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "projects/<slug>.md frontmatter: one Project, meta only. The body holds `## Stories` (each `### <name>`, its prose, its canonical Bullets as `- [key] text`), `## Bullets` (no Story yet) and `## Notes`. `keywords` are the canonical Skills the Project proves.",
+  "title": "projects/<slug>.md frontmatter: one Project, meta only. The body holds `## Overview` (free prose), `## Bullets` (each `- [key] text`) and `## Notes`. `keywords` are the canonical Skills the Project proves.",
   "type": "object",
   "required": ["name", "role", "employment", "start", "naming", "description", "keywords"],
   "additionalProperties": false,

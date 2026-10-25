@@ -73,14 +73,11 @@ export function validateArtifact(name: SchemaName, art: Pick<Artifact, "frontmat
   return errors;
 }
 
-// A Project file's body: `## Stories` (each `### <name>`, its prose, then its canonical Bullets),
-// `## Bullets` (Bullets with no Story yet) and `## Notes` (raw lines for future Stories). A Bullet is
-// `- [key] text`; an indented line beneath continues it. Any section may be empty or absent.
-export interface Bullet { key: string; text: string; story: string | null }
-export interface Story { name: string; text: string; bullets: Bullet[] }
-export interface ProjectBody { stories: Story[]; bullets: Bullet[]; notes: string[]; errors: string[] }
+// An indented line beneath a list item continues it. Any section may be empty or absent.
+export interface Bullet { key: string; text: string }
+export interface ProjectBody { overview: string; bullets: Bullet[]; notes: string[]; errors: string[] }
 const KEY = /^\[([a-z0-9]+(?:-[a-z0-9]+)*)\]\s+(.*)$/s;
-const SECTIONS = ["Stories", "Bullets", "Notes"] as const;
+const SECTIONS = ["Overview", "Bullets", "Notes"] as const;
 type Section = (typeof SECTIONS)[number];
 
 function items(block: string): string[] {
@@ -88,21 +85,18 @@ function items(block: string): string[] {
 }
 
 export function parseProject(body: string): ProjectBody {
-  const stories: Story[] = [];
+  const overview: string[] = [];
   const bullets: Bullet[] = [];
   const notes: string[] = [];
   const errors: string[] = [];
   const keys = new Set<string>();
   let section: Section | null = null;
-  let story: Story | null = null;
-  const bullet = (item: string, owner: Story | null) => {
+  const bullet = (item: string) => {
     const km = KEY.exec(item);
     if (!km) { errors.push(`Bullet without a key: "${item.slice(0, 60)}"`); return; }
     if (keys.has(km[1])) errors.push(`duplicate Bullet key [${km[1]}]`);
     keys.add(km[1]);
-    const b = { key: km[1], text: km[2].trim(), story: owner?.name ?? null };
-    bullets.push(b);
-    owner?.bullets.push(b);
+    bullets.push({ key: km[1], text: km[2].trim() });
   };
   for (const block of (body ?? "").trim().split(/\n\s*\n+/)) {
     const text = block.trim();
@@ -111,19 +105,17 @@ export function parseProject(body: string): ProjectBody {
     if (h2) {
       const name = h2[1].trim() as Section;
       if (!SECTIONS.includes(name)) { errors.push(`unknown section "## ${h2[1].trim()}"`); section = null; continue; }
-      section = name; story = null; continue;
+      section = name; continue;
     }
+    if (/^###/m.test(text)) { errors.push(`a "###" line: "${text.slice(0, 60)}"`); continue; }
     if (section === null) { errors.push(`text outside the sections: "${text.slice(0, 60)}"`); continue; }
-    const h3 = /^### (.+)$/.exec(text);
-    if (section === "Stories" && h3) { story = { name: h3[1].trim(), text: "", bullets: [] }; stories.push(story); continue; }
     const list = /^- /.test(text);
-    if (section === "Notes") { if (list) notes.push(...items(block)); else errors.push(`Notes holds a line that is not a list item: "${text.slice(0, 60)}"`); continue; }
-    if (section === "Bullets") { if (list) for (const item of items(block)) bullet(item, null); else errors.push(`Bullets holds a line that is not a Bullet: "${text.slice(0, 60)}"`); continue; }
-    if (!story) { errors.push(`Stories holds text before the first "### <story>": "${text.slice(0, 60)}"`); continue; }
-    if (list) for (const item of items(block)) bullet(item, story);
-    else story.text = story.text ? `${story.text}\n\n${text}` : text;
+    if (section === "Overview") overview.push(text);
+    else if (section === "Notes") { if (list) notes.push(...items(block)); else errors.push(`Notes holds a line that is not a list item: "${text.slice(0, 60)}"`); }
+    else if (list) for (const item of items(block)) bullet(item);
+    else errors.push(`Bullets holds a line that is not a Bullet: "${text.slice(0, 60)}"`);
   }
-  return { stories, bullets, notes, errors };
+  return { overview: overview.join("\n\n"), bullets, notes, errors };
 }
 
 // The Profile check on a Bullet (profile/bullet-rules.md): the opener fails, the number count and the
@@ -182,7 +174,7 @@ export function profilePaths(root: string) {
 
 export function readProject(file: string): Project {
   const slug = path.basename(file, ".md");
-  const empty = { stories: [], bullets: [], notes: [], warnings: [] };
+  const empty = { overview: "", bullets: [], notes: [], warnings: [] };
   const art = readArtifact(file);
   if (!art) return { slug, file, meta: null as unknown as ProjectMeta, ...empty, errors: [`${file}: missing`] };
   const errors: string[] = art.frontmatter === null ? ["no YAML frontmatter"] : validate("project", art.frontmatter);

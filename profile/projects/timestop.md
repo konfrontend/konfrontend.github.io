@@ -8,7 +8,7 @@ naming: public
 description: Local-first time tracker app with an optional self-hosted sync server.
 keywords: [TypeScript, React, Electron, Node.js, Hono, PostgreSQL, SQLite, Drizzle ORM, Zod, Tailwind CSS, shadcn/ui, TanStack Query, Playwright, Vitest, Testcontainers, Docker, GitHub Actions, Git, Cloudflare Tunnel, Turborepo, REST API, IPC, Local-first, CI/CD, Design Systems, Claude Code, Agentic Workflows, Auth, npm workspaces, Virtual Private Servers (VPS)]
 ---
-## Stories
+## Overview
 
 ## Bullets
 

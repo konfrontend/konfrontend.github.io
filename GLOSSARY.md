@@ -7,7 +7,7 @@ One person's Profile, the resumes made from it, and the triage of the Jobs it is
 ### Profile
 
 **Profile**:
-The person's data every Version and Letter derives from: the Projects with their Stories, Bullets and Notes, the Skills they prove, the Answers, the contact facts, the voice and the Route's settings.
+The person's data every Version and Letter derives from: the Projects with their Overviews, Bullets and Notes, the Skills they prove, the Answers, the contact facts, the voice and the Route's settings.
 _Avoid_: user profile, persona, data folder, master
 
 **Version**:
@@ -23,27 +23,27 @@ One job, engagement or personal project, done or ongoing; an ongoing Project has
 _Avoid_: past job, company, client, position, experience, portfolio item
 
 **Project file**:
-The full record of one Project: its meta, the Keywords it proves, its Stories with their canonical Bullets, the Bullets with no Story yet, and its Notes.
+The full record of one Project: its meta, the Keywords it proves, its Overview, its canonical Bullets and its Notes.
 _Avoid_: pool, inventory, log, project log
 
-**Story**:
-A case study of one piece of a Project's work, in prose: the problem, the solution, the outcome. Written by the person, never shown on a resume; its canonical Bullets sit under it.
-_Avoid_: entry, item, anecdote, case, highlight
+**Overview**:
+The person's free prose about a Project, in its Project file: no rules, and no State edits it. Never shown on a resume.
+_Avoid_: story, summary, case study, description
 
 **Bullet**:
-The one- or two-line summary of a Story that a resume shows, under a key that never changes. Written from the Story by the Bullet rules and reviewed by the person; a Story holds one or more, each on a different achievement. A Bullet with no Story yet is valid until its Story is written.
+The one- or two-line claim about one achievement of a Project that a resume shows, under a key that never changes. Written by the Bullet rules and reviewed by the person.
 _Avoid_: highlight, point, achievement, lead, lead line
 
 **Variant**:
-A Bullet reworded for one tailored Version under the key of a canonical Bullet of the same Story: it reorders and re-emphasises, never adds a claim. Never in the general Version.
+A Bullet reworded for one tailored Version under the key of a canonical Bullet: it reorders and re-emphasises that Bullet, never adds a claim; every number and Keyword comes from it. Never in the general Version.
 _Avoid_: tailored bullet, rewrite, override
 
 **Notes**:
-Raw material for a Project's future Stories, kept in its Project file. A Letter may cite them; a Version never shows them.
+Raw lines about a Project, kept in its Project file. A Letter may cite them; a Version never shows them.
 _Avoid_: facts, context, backlog, scratch
 
 **Fact**:
-Any claim in a Story, a Bullet or Notes, verified against the work when written and trusted afterwards. A Letter cites it; a Variant may not invent one.
+Any claim in a Project's meta, Overview, Bullets or Notes, verified against the work when written and trusted afterwards. A Letter cites it; a Variant may not invent one.
 _Avoid_: detail, data point, context
 
 **Skill**:

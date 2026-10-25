@@ -1,5 +1,5 @@
 // The prose Version: assemble writes it from a Plan, readVersion reads it back by position, the cut keeps the
-// Plan's rank, and the checks hold a Variant to its Story or its canonical Bullet. Chrome is not needed:
+// Plan's rank, and the checks hold a Variant to its canonical Bullet. Chrome is not needed:
 // the page count is stubbed where a test cuts. Run: npm test
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -28,16 +28,13 @@ naming: public
 description: B2B dashboard.
 keywords: [React, TypeScript, Postgres, SAML]
 ---
-## Stories
-
-### The admin
+## Overview
 
 Acme needed an admin for 12 tenants. Built it in React over Postgres with 40 tests; tenants onboarded in 2 days.
 
-- [admin] Built the React admin for 12 tenants over Postgres, covered by 40 tests.
-
 ## Bullets
 
+- [admin] Built the React admin for 12 tenants over Postgres, covered by 40 tests.
 - [saml] Built the SAML login in TypeScript, cutting support tickets by 30%.
 `;
 const SIDE = `---
@@ -99,7 +96,7 @@ test("readVersion refuses a Bullet or a Project the Profile lacks, a Skills term
   assert.match(readVersion(path.join(root, "none.md"), profile).errors[0], /missing/);
 });
 
-test("checks: a hand edit to a sourced line fails source; a Variant fails in a base Version and is held to its Story or canonical Bullet in a tailored one", () => {
+test("checks: a hand edit to a sourced line fails source; a Variant fails in a base Version and is held to its canonical Bullet in a tailored one", () => {
   const { root, profile } = profileAt();
   const base = assemble(plan([{ project: "acme", key: "admin" }]), profile);
   const edited = base.replace("B2B dashboard.", "B2C dashboard.");
@@ -107,20 +104,21 @@ test("checks: a hand edit to a sourced line fails source; a Variant fails in a b
   assert.match(r.find((c) => c.name === "source")!.detail, /B2C dashboard/);
   assert.equal(r.find((c) => c.name === "source")!.level, "FAIL");
 
-  const variant = assemble(plan([{ project: "acme", key: "admin", text: "Onboarded 12 tenants in 2 days on a React admin over Postgres." }]), profile);
+  const variant = assemble(plan([{ project: "acme", key: "admin", text: "Covered the React admin for 12 tenants over Postgres with 40 tests." }]), profile);
   const inBase = checkVersion(readVersion(write(root, "general.md", variant), profile), variant, profile);
   assert.equal(inBase.find((c) => c.name === "variants")!.level, "FAIL");
   assert.equal(inBase.find((c) => c.name === "source")!.level, "PASS", "a Variant is not a source mismatch");
 
   const tailored = checkVersion(readVersion(write(root, "version.md", variant), profile), variant, profile);
-  assert.equal(tailored.find((c) => c.name === "variant numbers")!.level, "PASS", "12 and 2 are in the Story");
+  assert.equal(tailored.find((c) => c.name === "variant numbers")!.level, "PASS", "12 and 40 are in the canonical Bullet");
   assert.equal(tailored.find((c) => c.name === "variant keywords")!.level, "PASS");
   assert.equal(tailored.find((c) => c.name === "variant claims")!.level, "WARN");
+  assert.match(tailored.find((c) => c.name === "variant claims")!.detail, /against its canonical Bullet/);
 
-  const invented = assemble(plan([{ project: "acme", key: "admin", text: "Built the React admin for 50 customers." }, { project: "acme", key: "saml", text: "Built the SAML login in React, cutting support tickets by 30%." }]), profile);
+  const invented = assemble(plan([{ project: "acme", key: "admin", text: "Onboarded 12 tenants in 2 days on a React admin." }, { project: "acme", key: "saml", text: "Built the SAML login in React, cutting support tickets by 30%." }]), profile);
   const bad = checkVersion(readVersion(write(root, "version.md", invented), profile), invented, profile);
-  assert.equal(bad.find((c) => c.name === "variant numbers")!.detail, "acme/admin", "50 is in no Story line");
-  assert.equal(bad.find((c) => c.name === "variant keywords")!.detail, "acme/saml", "React is not in the canonical Bullet of a Story-less Bullet");
+  assert.equal(bad.find((c) => c.name === "variant numbers")!.detail, "acme/admin", "2 is in the Overview, not the canonical Bullet");
+  assert.equal(bad.find((c) => c.name === "variant keywords")!.detail, "acme/saml", "React is not in the canonical Bullet");
 });
 
 test("checks: Skills lines and the summary", () => {

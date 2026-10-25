@@ -11,7 +11,7 @@ export const AUTOTRIAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.me
 registerSchemaDir(path.join(AUTOTRIAGE_ROOT, "schemas"));
 
 export { readArtifact, writeArtifact, splitFrontmatter, readProfile, skills, skillFor } from "../../profile/lib/index.ts";
-export type { Artifact, Frontmatter, Profile, Project, Story, Bullet, Skill } from "../../profile/lib/index.ts";
+export type { Artifact, Frontmatter, Profile, Project, Bullet, Skill } from "../../profile/lib/index.ts";
 export { readVersion, versionSkillTerms, type Version } from "../../resume/scripts/version.ts";
 
 export class Refusal extends Error {

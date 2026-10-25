@@ -74,7 +74,7 @@ The Letter reads as a person who knows what they are doing and is reliable, with
 - A cited fact is a product name with URL, a role, a period in years, or one or two concrete things done there that match the Job; the route's template narrows which of these a Slot may cite. Role and period are cited when the Project has them. Ownership or authorship of a Project is always stated when its role says so: it is the strongest fact a product can carry.
 - Not cited: commit counts, percentages, team size, awards.
 - No arithmetic for the reader: no derived total, no monthly or annual extrapolation, no comparison the reader did not ask for.
-- Every fact traces to a Project file `profile/projects/<slug>.md` (its frontmatter meta, a Story, a Bullet by its key, or a line of `## Notes`) or to an Answer in `profile/answers/`. When the Letter needs a fact the Profile lacks, `proposal` asks the human for it once, appends it under `## Notes` of the matching Project file, and only then writes the Letter. The Letter holds no fact the Profile lacks.
+- Every fact traces to a Project file `profile/projects/<slug>.md` (its frontmatter meta, its Overview, a Bullet by its key, or a line of `## Notes`) or to an Answer in `profile/answers/`. When the Letter needs a fact the Profile lacks, `proposal` asks the human for it once, appends it under `## Notes` of the matching Project file, and only then writes the Letter. The Letter holds no fact the Profile lacks.
 - The Letter is written in its own words: a run of six or more words copied from the posting reads as an echo (`voice/posting-copy`, warn). An ask header copies the client's question on purpose and is exempt.
 
 ## Formatting

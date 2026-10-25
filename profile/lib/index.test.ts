@@ -17,7 +17,7 @@ function fixture(): string {
   writeArtifact(path.join(root, "voice.md"), { language: "en-US", greeting: { freelance: "Hi,", employment: "Hello," }, sign_off: "Ada" });
   writeArtifact(path.join(root, "projects", "engine.md"), {
     name: "Analytical Engine", url: "https://example.com/engine", role: "Programmer", employment: "contract", start: "1842-01", end: "1843-09", naming: "public", description: "A mechanical computer.", keywords: ["Punched cards", "Bernoulli numbers"],
-  }, "## Stories\n\n### Note G\n\nThe Engine had no program. I wrote one.\n\n- [bernoulli] Wrote the first program, computing Bernoulli numbers.\n\n## Bullets\n\n- [loops] Described loops and conditional branches.\n\n## Notes\n\n- Published in 1843.\n");
+  }, "## Overview\n\nThe Engine had no program. I wrote one.\n\n## Bullets\n\n- [bernoulli] Wrote the first program, computing Bernoulli numbers.\n- [loops] Described loops and conditional branches.\n\n## Notes\n\n- Published in 1843.\n");
   writeArtifact(path.join(root, "projects", "notes.md"), {
     name: "Notes", role: "Author", employment: "independent", start: "1843-01", naming: "public", description: "Translation notes.", keywords: ["punched cards", "Writing"],
   }, "## Bullets\n\n- [translation] Translated Menabrea's memoir with notes three times its length.\n");
@@ -26,23 +26,25 @@ function fixture(): string {
   return root;
 }
 
-test("parseProject reads the Stories with their prose and Bullets, the Bullets with no Story, and the Notes", () => {
-  const body = "## Stories\n\n### Admin\n\nProblem.\n\nSolution and outcome.\n\n- [rbac] Built the RBAC admin.\n- [saml] Added SAML login,\n  the second line.\n\n## Bullets\n\n- [feed] Built the feed.\n\n## Notes\n\n- Raw line one.\n- Raw line two.\n";
+test("parseProject reads the Overview, the Bullets and the Notes", () => {
+  const body = "## Overview\n\nProblem.\n\n- Solution and outcome.\n\n## Bullets\n\n- [rbac] Built the RBAC admin.\n- [saml] Added SAML login,\n  the second line.\n\n## Notes\n\n- Raw line one.\n- Raw line two.\n";
   const p = parseProject(body);
   assert.deepEqual(p.errors, []);
-  assert.deepEqual(p.stories.map((s) => [s.name, s.text, s.bullets.map((b) => b.key)]), [["Admin", "Problem.\n\nSolution and outcome.", ["rbac", "saml"]]]);
-  assert.deepEqual(p.bullets.map((b) => [b.key, b.text, b.story]), [["rbac", "Built the RBAC admin.", "Admin"], ["saml", "Added SAML login, the second line.", "Admin"], ["feed", "Built the feed.", null]]);
+  assert.equal(p.overview, "Problem.\n\n- Solution and outcome.");
+  assert.deepEqual(p.bullets.map((b) => [b.key, b.text]), [["rbac", "Built the RBAC admin."], ["saml", "Added SAML login, the second line."]]);
+  assert.deepEqual(Object.keys(p.bullets[0]), ["key", "text"], "a Bullet is its key and text only");
   assert.deepEqual(p.notes, ["Raw line one.", "Raw line two."]);
   assert.deepEqual(parseProject("").errors, []);
+  assert.equal(parseProject("## Overview\n\n## Bullets\n").overview, "");
 });
 
-test("parseProject reports a Bullet without a key, a duplicate key, an unknown section and text outside the sections", () => {
-  const p = parseProject("Stray.\n\n## Themes\n\n## Bullets\n\n- No key.\n- [a] One.\n- [a] Two.\n\n## Stories\n\nProse first.\n");
-  assert.deepEqual(p.errors, ['text outside the sections: "Stray."', 'unknown section "## Themes"', 'Bullet without a key: "No key."', "duplicate Bullet key [a]", 'Stories holds text before the first "### <story>": "Prose first."']);
+test("parseProject reports a Bullet without a key, a duplicate key, an unknown section (Stories included), a ### line and text outside the sections", () => {
+  const p = parseProject("Stray.\n\n## Themes\n\n## Bullets\n\n- No key.\n- [a] One.\n- [a] Two.\n\n## Stories\n\n## Overview\n\n### Admin\n");
+  assert.deepEqual(p.errors, ['text outside the sections: "Stray."', 'unknown section "## Themes"', 'Bullet without a key: "No key."', "duplicate Bullet key [a]", 'unknown section "## Stories"', 'a "###" line: "### Admin"']);
 });
 
 test("checkBullet fails a duty opener, warns on more than three numbers and on a present-tense opener", () => {
-  const b = (text: string) => checkBullet({ key: "k", text, story: null });
+  const b = (text: string) => checkBullet({ key: "k", text });
   assert.deepEqual(b("Built 314 of the 332 components on a 2-person team."), { errors: [], warnings: [] });
   assert.match(b("Responsible for the admin.").errors[0], /opens with a duty/);
   assert.match(b("Scaled it from 1 to 2,600 positions at 10–50 samples in 40 ms to 15 s.").warnings[0], /has 5 numbers \(at most 3\): 1, 2,600, 10–50, 40, 15/);
@@ -55,7 +57,7 @@ test("readProfile validates every file, orders Projects by resume_order and read
   assert.deepEqual(p.errors, []);
   assert.deepEqual(p.warnings, []);
   assert.deepEqual(p.projects.map((x) => x.slug), ["engine", "notes"]);
-  assert.equal(p.projects[0].stories.length, 1);
+  assert.equal(p.projects[0].overview, "The Engine had no program. I wrote one.");
   assert.equal(p.projects[0].bullets.length, 2);
   assert.deepEqual(p.projects[0].notes, ["Published in 1843."]);
   assert.deepEqual(p.answers.map((a) => [a.question, a.text]), [["Why compute?", "Because the Engine can."]]);

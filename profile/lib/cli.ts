@@ -21,7 +21,7 @@ if (cmd === "check" || cmd === "build") {
     console.error(`profile: ${profile.errors.length} error${profile.errors.length === 1 ? "" : "s"}\n  ${profile.errors.join("\n  ")}`);
     process.exit(1);
   }
-  const count = `${profile.projects.length} Projects, ${profile.projects.reduce((n, p) => n + p.stories.length, 0)} Stories, ${profile.projects.reduce((n, p) => n + p.bullets.length, 0)} Bullets, ${skills(profile).length} Skills, ${profile.answers.length} Answers`;
+  const count = `${profile.projects.length} Projects, ${profile.projects.reduce((n, p) => n + p.bullets.length, 0)} Bullets, ${skills(profile).length} Skills, ${profile.answers.length} Answers`;
   if (cmd === "build") {
     fs.writeFileSync(profile.files.skills, renderSkills(profile));
     console.log(`Wrote ${path.relative(repoRoot(), profile.files.skills)} (${count})`);

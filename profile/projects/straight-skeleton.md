@@ -7,7 +7,7 @@ naming: public
 description: TypeScript library wrapping CGAL's straight skeleton implementation via WebAssembly.
 keywords: [TypeScript, C++ / WebAssembly, "Computational geometry (CGAL, straight skeleton)", webpack]
 ---
-## Stories
+## Overview
 
 ## Bullets
 
