@@ -32,7 +32,7 @@ export function versionSkillTerms(lines: string[]): string[] {
 // Entry heading rules (docs/format-rules.md): the role suffix by employment, the period as
 // `Mon YYYY – Mon YYYY`, `Present` when the Project has no end.
 export const SUFFIX: Record<Employment, string> = { "full-time": "", "part-time": "", contract: " (Contract)", freelance: " (Freelance)", independent: "" };
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+export const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 export const month = (ym: string): string => `${MONTHS[Number(ym.slice(5, 7)) - 1]} ${ym.slice(0, 4)}`;
 export const period = (meta: Pick<ProjectMeta, "start" | "end">): string => `${month(String(meta.start))} – ${meta.end ? month(String(meta.end)) : "Present"}`;
 export const roleLine = (meta: ProjectMeta): string => `${meta.role}${SUFFIX[meta.employment] ?? ""}`;

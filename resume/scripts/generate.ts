@@ -1,7 +1,7 @@
 // Writes a Version from a Plan and the Project files, then drops the lowest-ranked Bullet until the page holds.
 // The judgment (which Bullets, in what rank, the title, the summary, the Skills lines, any Variant) is the
 // resume-version skill's and arrives as the Plan; this script only assembles and cuts.
-// Run: node resume/scripts/generate.ts <plan.json> <version.md>
+// Run: node resume/scripts/generate.ts <version.md> < plan   (the Plan as JSON on stdin, never on disk)
 //      node resume/scripts/generate.ts --refresh <version.md>   (base Versions only)
 // Refresh rewrites every sourced line (name, contact line, headings, role rows, Bullets) and keeps the
 // selection, its order, the title, the summary and the Skills lines; a hand edit to a Bullet is overwritten
@@ -11,7 +11,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { readProfile, repoRoot } from "../../profile/lib/index.ts";
 import { assemble, planOf, projectOf, canonical, isBase, readVersion, type Plan } from "./version.ts";
-import { pages } from "./render.ts";
+import { pages, stage } from "./render.ts";
 
 const resolve = (p: string) => path.resolve(repoRoot(), p);
 const rel = (p: string) => path.relative(repoRoot(), resolve(p));
@@ -32,12 +32,13 @@ export function planErrors(plan: Plan, profile: ReturnType<typeof readProfile>):
 // Assembles the Plan and drops its last Bullet until one page holds. Returns the Markdown and what was cut.
 export function cut(plan: Plan, profile: ReturnType<typeof readProfile>): { md: string; pages: number; dropped: string[] } {
   const dropped: string[] = [];
-  let md = assemble(plan, profile), n = pages(md);
+  const dir = stage();
+  let md = assemble(plan, profile), n = pages(md, dir);
   while (n > 1 && plan.bullets.length) {
     const b = plan.bullets.pop()!;
     dropped.push(`${b.project}/${b.key}`);
     md = assemble(plan, profile);
-    n = pages(md);
+    n = pages(md, dir);
   }
   return { md, pages: n, dropped };
 }
@@ -55,11 +56,13 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const plan = planOf({ ...version, bullets: version.bullets.map((b) => ({ ...b, variant: false })) });
     const md = assemble(plan, profile);
     fs.writeFileSync(file, md);
-    console.log(`Wrote ${rel(file)}: ${pages(md)} page(s), ${plan.bullets.length} Bullets`);
+    console.log(`Wrote ${rel(file)}: ${pages(md, stage())} page(s), ${plan.bullets.length} Bullets`);
   } else {
-    const [planPath, outPath] = args;
-    if (!planPath || !outPath) { console.log("usage: node resume/scripts/generate.ts <plan.json> <version.md> | --refresh <version.md>"); process.exit(1); }
-    const plan: Plan = JSON.parse(fs.readFileSync(resolve(planPath), "utf8"));
+    const [outPath] = args;
+    if (!outPath) { console.log("usage: node resume/scripts/generate.ts <version.md> < plan | --refresh <version.md>"); process.exit(1); }
+    const stdin = fs.readFileSync(0, "utf8");
+    if (!stdin.trim()) { console.log("FAIL  plan: no Plan on stdin"); process.exit(1); }
+    const plan: Plan = JSON.parse(stdin);
     const errors = planErrors(plan, profile);
     if (errors.length) { console.log(`FAIL  plan: ${errors.join("; ")}`); process.exit(1); }
     if (isBase(resolve(outPath))) {
