@@ -31,7 +31,7 @@ The person's free prose about a Project, in its Project file: no rules, and no S
 _Avoid_: story, summary, case study, description
 
 **Bullet**:
-The one- or two-line claim about one achievement of a Project that a resume shows, under a key that never changes. Written by the Bullet rules and reviewed by the person.
+The one- or two-line claim about one achievement of a Project that a resume shows, under a key that never changes.
 _Avoid_: highlight, point, achievement, lead, lead line
 
 **Variant**:
@@ -39,7 +39,7 @@ A Bullet reworded for one tailored Version under the key of a canonical Bullet: 
 _Avoid_: tailored bullet, rewrite, override
 
 **Work repository**:
-The git repository a Project's work was done in, read by the drafting skill as the source a Bullet is verified against; its path is asked each run and never stored.
+The git repository a Project's work was done in: the source a Bullet is verified against.
 _Avoid_: repo, codebase, source, project repo
 
 **Notes**:
