@@ -38,6 +38,10 @@ _Avoid_: highlight, point, achievement, lead, lead line
 A Bullet reworded for one tailored Version under the key of a canonical Bullet: it reorders and re-emphasises that Bullet, never adds a claim; every number and Keyword comes from it. Never in the general Version.
 _Avoid_: tailored bullet, rewrite, override
 
+**Work repository**:
+The git repository a Project's work was done in, read by the drafting skill as the source a Bullet is verified against; its path is asked each run and never stored.
+_Avoid_: repo, codebase, source, project repo
+
 **Notes**:
 Raw lines about a Project, kept in its Project file. A Letter may cite them; a Version never shows them.
 _Avoid_: facts, context, backlog, scratch
