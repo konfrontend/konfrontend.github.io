@@ -119,19 +119,30 @@ export function parseProject(body: string): ProjectBody {
 }
 
 // The Profile check on a Bullet (the Bullet rules, .claude/skills/pp-bullets/SKILL.md): the opener fails, the
-// number count and the tense warn. A number is a digit run standing alone (100,000; 3.6; 10+; 2-person; a range 10–50 once), not 3D or i18n.
+// claim count and the tense warn. A number is a digit run standing alone (100,000; 3.6; 10+; 2-person; a range 10–50 once), not 3D or i18n.
+// A claim is a number with its base or range: "85 to 99", "37 of its 84", "52 MB against 576 MB", "4.5:1" count once.
 export const DUTY_OPENERS = ["responsible", "helped", "assisted", "participated", "worked", "involved", "tasked", "duties"];
-export const MAX_NUMBERS = 3;
+export const MAX_CLAIMS = 3;
 const NUMBER = /(?<![\w.])\d[\d,.]*(?:\+|%)?(?:[–-]\d[\d,.]*(?:\+|%)?)?(?![\w])/g;
 export const numbersIn = (text: string): string[] => text.match(NUMBER) ?? [];
+const JOIN = /^(?::|\s*(?:[A-Za-z%]+\s+)?(?:to|of|against|vs\.?|instead of)(?:\s+(?:its|the|their))?\s+)$/;
+export function claimsIn(text: string): string[] {
+  const claims: { start: number; end: number }[] = [];
+  for (const m of text.matchAll(NUMBER)) {
+    const last = claims.at(-1);
+    if (last && JOIN.test(text.slice(last.end, m.index))) last.end = m.index + m[0].length;
+    else claims.push({ start: m.index, end: m.index + m[0].length });
+  }
+  return claims.map((c) => text.slice(c.start, c.end));
+}
 const PAST_IRREGULAR = ["built", "rebuilt", "wrote", "rewrote", "took", "cut", "ran", "chose", "made", "led", "set", "split", "drove", "kept", "read", "sent", "found", "held", "won", "grew", "brought", "gave", "got", "put", "sold", "taught", "thought", "spent", "met", "left", "lent", "laid", "began", "drew", "redrew", "ran", "shrank", "sped", "bound", "fed", "hid", "hit", "let", "lit", "shut", "slid", "stood", "struck", "swept", "threw", "undid", "wound", "sat", "overcame", "became", "came", "rose", "fell", "saw", "went", "did", "had", "paid", "said", "told", "understood", "withdrew", "broke", "froze", "ground", "clung", "flew", "forgave", "forbade", "hung", "knew", "lost", "shook", "shot", "sought", "sang", "stuck", "strove", "swung", "trod", "woke", "wove", "tore", "bore", "spun", "sprang", "stole"];
 export function checkBullet(b: Bullet): { errors: string[]; warnings: string[] } {
   const errors: string[] = [];
   const warnings: string[] = [];
   const first = (b.text.match(/^[A-Za-z]+/)?.[0] ?? "").toLowerCase();
   if (DUTY_OPENERS.includes(first)) errors.push(`[${b.key}] opens with a duty, not an active verb: "${b.text.slice(0, 40)}"`);
-  const numbers = numbersIn(b.text);
-  if (numbers.length > MAX_NUMBERS) warnings.push(`[${b.key}] has ${numbers.length} numbers (at most ${MAX_NUMBERS}): ${numbers.join(", ")}`);
+  const claims = claimsIn(b.text);
+  if (claims.length > MAX_CLAIMS) warnings.push(`[${b.key}] has ${claims.length} measured claims (at most ${MAX_CLAIMS}): ${claims.join(", ")}`);
   if (first && !first.endsWith("ed") && !PAST_IRREGULAR.includes(first)) warnings.push(`[${b.key}] may not open in the past tense: "${first}"`);
   return { errors, warnings };
 }

@@ -1,7 +1,8 @@
 {
   "hooks": {
     "PreToolUse": [
-      { "matcher": "Skill", "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/autotriage/scripts/hooks/pre-tool-use.ts\"" }] }
+      { "matcher": "Skill", "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/autotriage/scripts/hooks/pre-tool-use.ts\"" }] },
+      { "matcher": "Bash", "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/require-pr-skill.ts\"" }] }
     ],
     "PostToolUse": [
       { "matcher": "Write|Edit", "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/autotriage/scripts/hooks/post-tool-use.ts\"" }] }
