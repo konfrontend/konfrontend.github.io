@@ -24,7 +24,7 @@ const PHONE = /(?:\+|\b)\d[\d\s().-]{7,}\d\b/;
 const EMOJI = /\p{Extended_Pictographic}/u;
 const SELF_WORDS = /\b(?:senior|expert|experienced|seasoned|veteran|lead (?:developer|engineer|dev|architect|front-?end|back-?end|full-?stack))\b/i;
 const WE = /\b(we|our|ours|us)\b/gi;
-// L5: a run of this many words copied from the posting is a warn; ask headers copy the client's question on purpose.
+// A run of this many words copied from the posting is a warn; ask headers copy the client's question on purpose.
 const COPY_RUN = 6;
 
 type Any = Record<string, any>;
@@ -225,7 +225,7 @@ function phraseRe(p: string): RegExp {
 function stripQuotes(line: string): string { return line.replace(/"[^"]*"|“[^”]*”/g, " "); }
 const tokens = (text: string): string[] => text.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").split(/\s+/).filter(Boolean);
 
-// L5: the runs of COPY_RUN words a line shares with the posting, as the first such run per line.
+// The runs of COPY_RUN words a line shares with the posting, as the first such run per line.
 export function copiedRun(line: string, postingRuns: Set<string>): string | null {
   const t = tokens(line);
   for (let i = 0; i + COPY_RUN <= t.length; i++) {

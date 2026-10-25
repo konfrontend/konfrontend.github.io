@@ -23,7 +23,7 @@ const GENERAL = "resume/versions/general.md";
 const PDF_NAME = "Konstantin_Dolbilov_Resume.pdf";
 const MAX_BYTES = 2.5 * 1024 * 1024; // Greenhouse upload limit
 const A4 = [595.28, 841.89]; // pt
-const MAX_BULLET_LINES = 2; // bullet-rules.md rule 1
+const MAX_BULLET_LINES = 2; // docs/format-rules.md, Bullets
 
 // Wraps every hyphenated token in text nodes, never in tags or attributes, in a nowrap span, so a word
 // such as DCEL-based never breaks at its hyphen and de-hyphenates in the text layer.

@@ -118,8 +118,8 @@ export function parseProject(body: string): ProjectBody {
   return { overview: overview.join("\n\n"), bullets, notes, errors };
 }
 
-// The Profile check on a Bullet (profile/bullet-rules.md): the opener fails, the number count and the
-// tense warn. A number is a digit run standing alone (100,000; 3.6; 10+; 2-person; a range 10–50 once), not 3D or i18n.
+// The Profile check on a Bullet (.claude/skills/pp-bullets/refs/bullet-rules.md): the opener fails, the
+// number count and the tense warn. A number is a digit run standing alone (100,000; 3.6; 10+; 2-person; a range 10–50 once), not 3D or i18n.
 export const DUTY_OPENERS = ["responsible", "helped", "assisted", "participated", "worked", "involved", "tasked", "duties"];
 export const MAX_NUMBERS = 3;
 const NUMBER = /(?<![\w.])\d[\d,.]*(?:\+|%)?(?:[–-]\d[\d,.]*(?:\+|%)?)?(?![\w])/g;

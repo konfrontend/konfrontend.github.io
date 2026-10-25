@@ -16,7 +16,7 @@ The professional profile of Konstantin Dolbilov, web developer, and the two thin
 - `autotriage/`: `catalogue/` (Flags, voice, Checks, Letter templates, the Candidate contract), `scripts/` (Guard, Verdict, the State scripts, the hooks, the Tracker, the Gap print, tests), `schemas/` (the Candidate schemas). It reads the Profile through `profile/lib/` and writes only Candidates.
 - `private/`: gitignored. `candidates/<YYYY-MM-DD-slug>/` holds the Candidates: `job.md`, `letter.md`, `version.md` when the Version was tailored, the PDF sent on the employment route, written by `resume-pdf`; `candidates/archive/` the desk Candidates, read by nothing.
 - `docs/`: one file per topic (`format-rules.md`, what a rendered Version follows; `agents/`, how agent skills use this repo).
-- `.claude/skills/`: `route` and its States `route-intake`, `route-triage`, `route-version`, `route-proposal`, `route-verify`; `tracker` and `gaps`; `resume-version` and `resume-pdf`. A skill's `refs/` holds what only that skill follows. `.claude/settings.json` registers the hooks, always on, and the permission allow list.
+- `.claude/skills/`: `route` and its States `route-intake`, `route-triage`, `route-version`, `route-proposal`, `route-verify`; `tracker` and `gaps`; `resume-version` and `resume-pdf`; `pp-bullets`, which drafts a Project's Bullets from its Work repository. A skill's `refs/` holds what only that skill follows. `.claude/settings.json` registers the hooks, always on, and the permission allow list.
 
 ## Commands
 

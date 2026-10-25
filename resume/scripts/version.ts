@@ -114,8 +114,8 @@ export function readVersion(file: string, profile: Profile): Version {
   return v;
 }
 
-// FAIL blocks the render; WARN is printed. The Skills lines follow V5 and V6, the summary V1 and V2 of the
-// resumeskills audit. The canonical Bullet rules run in the Profile check; the rendered length in render.ts.
+// FAIL blocks the render; WARN is printed. The Skills lines and the summary follow
+// docs/format-rules.md. The canonical Bullet rules run in the Profile check; the rendered length in render.ts.
 export interface Result { level: "PASS" | "WARN" | "FAIL"; name: string; detail: string }
 
 const LABELS = /\b(Expert|Advanced|Proficient|Intermediate|Familiar|Beginner|Basic)\b/;
@@ -155,7 +155,7 @@ export function checkVersion(version: Version, md: string, profile: Profile): Re
     add("FAIL", "variant numbers", looseNumbers.map((b) => `${b.project}/${b.key}`), `${variants.length} Variant(s), every number from its canonical Bullet`);
     const looseKeywords = variants.filter((b) => { const { text, keywords } = pool(b); return keywords.some((k) => has(b.text, k) && !has(text, k)); });
     add("FAIL", "variant keywords", looseKeywords.map((b) => `${b.project}/${b.key}`), "every Keyword a Variant names is in its canonical Bullet");
-    if (variants.length) out.push({ level: "WARN", name: "variant claims", detail: `review each Variant against its canonical Bullet by profile/bullet-rules.md: ${variants.map((b) => b.key).join(", ")}` });
+    if (variants.length) out.push({ level: "WARN", name: "variant claims", detail: `review each Variant against its canonical Bullet by docs/format-rules.md, Bullets: ${variants.map((b) => b.key).join(", ")}` });
   }
 
   const known = skills(profile).map((s) => s.name.toLowerCase());
@@ -165,7 +165,7 @@ export function checkVersion(version: Version, md: string, profile: Profile): Re
   add("FAIL", "skills labels", version.skills.filter((l) => LABELS.test(l) || SOFT.test(l)), "no proficiency label, no soft skill");
 
   const noun = version.title.trim().split(" ").at(-1)!.toLowerCase();
-  add("WARN", "summary role noun", has(version.summary, noun) ? [] : [`"${noun}" absent from the summary`], `the summary names "${noun}" (V1)`);
-  add("WARN", "summary voice", [...bannedPhrases(profile).filter((b) => has(version.summary, b)).map((b) => `banned "${b}"`), ...(OBJECTIVE.test(version.summary) ? ["objective or trait filler"] : []), ...(/\b(he|his|Konstantin)\b/.test(version.summary) ? ["third person"] : [])], "no banned phrase, no objective, no third person (V2)");
+  add("WARN", "summary role noun", has(version.summary, noun) ? [] : [`"${noun}" absent from the summary`], `the summary names "${noun}"`);
+  add("WARN", "summary voice", [...bannedPhrases(profile).filter((b) => has(version.summary, b)).map((b) => `banned "${b}"`), ...(OBJECTIVE.test(version.summary) ? ["objective or trait filler"] : []), ...(/\b(he|his|Konstantin)\b/.test(version.summary) ? ["third person"] : [])], "no banned phrase, no objective, no third person");
   return out;
 }
