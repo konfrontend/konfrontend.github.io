@@ -33,7 +33,8 @@ test("any other Version path renders beside itself", () => {
   assert.deepEqual(resolveRender("resume/versions/frontend.md", root, OCT), { version: "resume/versions/frontend.md", target: "resume/versions/frontend.pdf" });
 });
 
-test("a Candidate without a company is refused", () => {
+test("a folder without job.md, or a Candidate without a company, is refused", () => {
   const { root } = fixture({ candidates: { "2026-10-17-fix": { "job.md": "---\ntitle: Fix it\nroute: freelance\ntimezone: UTC\n---\n" } } });
   assert.throws(() => resolveRender("private/candidates/2026-10-17-fix", root, OCT), /no company/);
+  assert.throws(() => resolveRender("resume/versions", root, OCT), /no Candidate folder/);
 });

@@ -14,7 +14,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { marked, type Tokens } from "marked";
 import { readProfile, repoRoot } from "../../profile/lib/index.ts";
-import { readVersion, checkVersion, stripKey, type Result } from "./version.ts";
+import { readVersion, checkVersion, stripKey, MONTHS, type Result } from "./version.ts";
 import { candidateFiles, readJob } from "../../autotriage/scripts/candidate.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -122,7 +122,6 @@ export function bulletLines(layout: string[], bullets: string[]): number[] {
 }
 
 const camel = (s: string) => s.split(/[^\p{L}\p{N}]+/u).filter(Boolean).map((w) => w[0].toUpperCase() + w.slice(1)).join("");
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 // The Version an input renders and the PDF it writes, both relative to the root. A Candidate folder renders
 // its tailored Version, else the general one, to Dolbilov_<Role>_<Company>_<MonYYYY>.pdf inside the folder.
@@ -132,7 +131,8 @@ export function resolveRender(input: string | undefined, root: string, date: Dat
   if (rel(file) === GENERAL) return { version: GENERAL, target: PDF_NAME };
   if (!existsSync(file) || !statSync(file).isDirectory()) return { version: rel(file), target: rel(file).replace(/\.[^./]*$/, "") + ".pdf" };
   const job = readJob(file)?.frontmatter;
-  if (!job?.company) throw new Error(`${rel(file)} has no company in job.md; only an employment Candidate is sent a PDF`);
+  if (!job) throw new Error(`${rel(file)} holds no job.md; it is no Candidate folder`);
+  if (!job.company) throw new Error(`${rel(file)} has no company in job.md; only an employment Candidate is sent a PDF`);
   const tailored = candidateFiles(file).version;
   return {
     version: existsSync(tailored) ? rel(tailored) : GENERAL,
