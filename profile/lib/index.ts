@@ -73,8 +73,7 @@ export function validateArtifact(name: SchemaName, art: Pick<Artifact, "frontmat
   return errors;
 }
 
-// A Project file's body: `## Overview` (the person's free prose), `## Bullets` and `## Notes` (raw
-// lines). A Bullet is `- [key] text`; an indented line beneath continues it. Any section may be empty or absent.
+// An indented line beneath a list item continues it. Any section may be empty or absent.
 export interface Bullet { key: string; text: string }
 export interface ProjectBody { overview: string; bullets: Bullet[]; notes: string[]; errors: string[] }
 const KEY = /^\[([a-z0-9]+(?:-[a-z0-9]+)*)\]\s+(.*)$/s;

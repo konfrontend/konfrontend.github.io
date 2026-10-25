@@ -114,10 +114,8 @@ export function readVersion(file: string, profile: Profile): Version {
   return v;
 }
 
-// The checks on a Version's own text. FAIL blocks the render; WARN is printed. Source holds every generated line
-// to its source; a Variant is held to its canonical Bullet;
-// the Skills lines follow V5 and V6; the summary follows V1 and V2 of the resumeskills audit. The canonical
-// Bullet rules run in the Profile check, not here; the rendered Bullet length is measured by render.ts.
+// FAIL blocks the render; WARN is printed. The Skills lines follow V5 and V6, the summary V1 and V2 of the
+// resumeskills audit. The canonical Bullet rules run in the Profile check; the rendered length in render.ts.
 export interface Result { level: "PASS" | "WARN" | "FAIL"; name: string; detail: string }
 
 const LABELS = /\b(Expert|Advanced|Proficient|Intermediate|Familiar|Beginner|Basic)\b/;

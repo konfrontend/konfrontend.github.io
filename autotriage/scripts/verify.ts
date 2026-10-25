@@ -240,8 +240,7 @@ export function postingRuns(body: string): Set<string> {
   return runs;
 }
 
-// The Project facts a Letter may cite, harvested from the meta, the Overview, the Bullets (by key) and
-// the Notes: the model's fact table traces every Letter fact to one of these lines.
+// The model's fact table traces every Letter fact to one of these lines.
 export function projectFacts(p: Project) {
   const m = p.meta;
   return {
@@ -322,7 +321,7 @@ export function analyse({ candidate, letter, job, profile: profileMeta, skillNam
   const harvest = (text: unknown) => { for (const t of String(text ?? "").matchAll(ACRONYM)) acronyms.add(t[0]); };
   for (const s of skillNames) harvest(s);
   harvest(job.body);
-  // the Overview, Bullets and Notes are the Letter's fact source: their acronyms are the Profile's own
+  // the Letter's fact source: its acronyms are the Profile's own
   for (const pj of projects) {
     for (const b of pj.bullets) harvest(b.text);
     harvest(pj.overview);
