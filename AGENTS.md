@@ -24,11 +24,11 @@ The professional profile of Konstantin Dolbilov, web developer, and the two thin
 
 - `npm test`: every `*.test.ts`, then `tsc --noEmit`.
 - `npm run build`: the Profile check, then `profile/skills.md`; run after a Profile edit and commit the result.
-- `resume-version [<Candidate folder>]`: makes the general Version, or a Candidate's tailored one. `resume-pdf <Version path>`: renders it, every check PASS, one A4 page.
+- `resume-version [<Candidate folder>]`: makes the general Version, or a Candidate's tailored one. `resume-pdf [<Candidate folder> | <Version path>]`: renders the PDF sent into a Candidate folder, or a Version beside itself (the general one to the root PDF), every check PASS, one A4 page.
 
 ## Workflow for an application
 
-`/route` with the posting pasted: intake, triage, the checkpoint (the person answers go or no-go and the Verdict is written), `route-version` on the employment route (general, or `resume-version` writes `version.md`), proposal, verify. Then `resume-pdf` on the Version sent. `/tracker` prints where every Candidate stands; `/gaps` prints the Gaps and the Skills seen.
+`/route` with the posting pasted: intake, triage, the checkpoint (the person answers go or no-go and the Verdict is written), `route-version` on the employment route (general, or `resume-version` writes `version.md`), proposal, verify. Then `resume-pdf` on the Candidate folder. `/tracker` prints where every Candidate stands; `/gaps` prints the Gaps and the Skills seen.
 
 ## Agent skills
 

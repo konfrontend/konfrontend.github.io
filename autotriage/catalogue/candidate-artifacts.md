@@ -1,6 +1,6 @@
 # Candidate artifacts
 
-A Candidate is one folder under `private/candidates/`, gitignored. It stores only what the person confirmed or what happened: `job.md` on both routes, `letter.md` on both routes, and `version.md` only when the Version was tailored for this Job. No PDF: `resume-pdf` renders it from the Version sent and the folder never stores it. Anything recomputable, derivable from the files, or inferable from absence is not stored: the scores, the Alert Level, the recommendation, the Safeguards and the evidence are session output and are thrown away. Nothing is written outside the folder; the Gap print and the Tracker derive from the Candidates at print time.
+A Candidate is one folder under `private/candidates/`, gitignored. It stores only what the person confirmed or what happened: `job.md` on both routes, `letter.md` on both routes, `version.md` only when the Version was tailored for this Job, and on the employment route the PDF sent, `Dolbilov_<Role>_<Company>_<MonYYYY>.pdf`, written by `resume-pdf <folder>` from the Version sent. Anything recomputable, derivable from the files, or inferable from absence is not stored: the scores, the Alert Level, the recommendation, the Safeguards and the evidence are session output and are thrown away. Nothing is written outside the folder; the Gap print and the Tracker derive from the Candidates at print time.
 
 ## Folder
 
@@ -37,7 +37,7 @@ Body only, no frontmatter, on both routes: the Letter as pasted, plain text, no 
 
 ## `version.md`
 
-The tailored Version, written by `resume-version <candidate>` from the Project files for this Job's `title` and `requirements`: the Markdown twin of the PDF sent, in the shape `docs/format-rules.md` describes, with `[slug]` on headings and `[key]` on Bullets, and Variants where the Plan chose them. It exists only when the Version was tailored; its absence means the Candidate is sent with `resume/versions/general.md`. The `proposal` State reads the summary of the Version sent for the intro Slot. `resume-pdf private/candidates/<folder>/version.md` renders it next to itself. A Version is never hand-edited: a wrong line is fixed in the Profile and the Version regenerated.
+The tailored Version, written by `resume-version <candidate>` from the Project files for this Job's `title` and `requirements`: the Markdown twin of the PDF sent, in the shape `docs/format-rules.md` describes, with `[slug]` on headings and `[key]` on Bullets, and Variants where the Plan chose them. It exists only when the Version was tailored; its absence means the Candidate is sent with `resume/versions/general.md`. The `proposal` State reads the summary of the Version sent for the intro Slot. `resume-pdf private/candidates/<folder>` renders it into the folder as the PDF sent. A Version is never hand-edited: a wrong line is fixed in the Profile and the Version regenerated.
 
 ## Tracker
 

@@ -1,20 +1,23 @@
 // Renders a Version to PDF: the Markdown is read by position, the [slug] and [key] prefixes dropped, the
 // rest styled with resume.css, printed by headless Chrome, then checked. The Profile is read for the
 // checks only, never to assemble the page. The input path is the first argument, relative to the repo
-// root, which follows CLAUDE_PROJECT_DIR. The default, resume/versions/general.md, writes
-// Konstantin_Dolbilov_Resume.pdf at the root; any other input writes a PDF of the same base name next to itself. The target PDF is replaced only when no
-// check fails; with --check nothing is written outside resume/scripts/out/.
+// root, which follows CLAUDE_PROJECT_DIR. A Candidate folder renders the Version it is sent with into the
+// folder under the sent name; no input, or resume/versions/general.md, writes Konstantin_Dolbilov_Resume.pdf
+// at the root; any other Version writes a PDF of the same base name next to itself. The render is staged in
+// a fresh temporary directory and copied to the target only when no check fails; with --check nothing is
+// written outside that directory.
 // Run: node resume/scripts/render.ts [input] [--check]   (override the browser with CHROME=/path/to/chrome)
-import { readFileSync, writeFileSync, mkdirSync, copyFileSync, statSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdtempSync, copyFileSync, statSync, existsSync } from "node:fs";
+import os from "node:os";
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { marked, type Tokens } from "marked";
 import { readProfile, repoRoot } from "../../profile/lib/index.ts";
 import { readVersion, checkVersion, stripKey, type Result } from "./version.ts";
+import { candidateFiles, readJob } from "../../autotriage/scripts/candidate.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-export const OUT = path.join(here, "out");
 const CHROME = process.env.CHROME ?? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const GENERAL = "resume/versions/general.md";
 const PDF_NAME = "Konstantin_Dolbilov_Resume.pdf";
@@ -72,11 +75,13 @@ ${body}
 
 const run = (cmd: string, args: string[]) => execFileSync(cmd, args, { encoding: "utf8" });
 
-// Prints the Markdown to out/<name>.pdf (and .html) and returns the page count. generate.ts cuts by it.
-export function pages(md: string, name = "resume"): number {
-  mkdirSync(OUT, { recursive: true });
+// A fresh temporary directory a render or a cut is staged in.
+export const stage = () => mkdtempSync(path.join(os.tmpdir(), "resume-"));
+
+// Prints the Markdown to <dir>/resume.pdf (and .html) and returns the page count. generate.ts cuts by it.
+export function pages(md: string, dir: string): number {
   const { title, body } = toHtml(md);
-  const htmlPath = path.join(OUT, `${name}.html`), pdf = path.join(OUT, `${name}.pdf`);
+  const htmlPath = path.join(dir, "resume.html"), pdf = path.join(dir, "resume.pdf");
   writeFileSync(htmlPath, page(title, body, readFileSync(path.join(here, "resume.css"), "utf8")));
   execFileSync(CHROME, ["--headless=new", "--disable-gpu", "--no-pdf-header-footer", `--print-to-pdf=${pdf}`, pathToFileURL(htmlPath).href], { stdio: "ignore" });
   return Number(run("pdfinfo", [pdf]).match(/Pages:\s+(\d+)/)![1]);
@@ -116,13 +121,34 @@ export function bulletLines(layout: string[], bullets: string[]): number[] {
   });
 }
 
+const camel = (s: string) => s.split(/[^\p{L}\p{N}]+/u).filter(Boolean).map((w) => w[0].toUpperCase() + w.slice(1)).join("");
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+// The Version an input renders and the PDF it writes, both relative to the root. A Candidate folder renders
+// its tailored Version, else the general one, to Dolbilov_<Role>_<Company>_<MonYYYY>.pdf inside the folder.
+export function resolveRender(input: string | undefined, root: string, date: Date): { version: string; target: string } {
+  const rel = (p: string) => path.relative(root, p);
+  const file = path.resolve(root, input ?? GENERAL);
+  if (rel(file) === GENERAL) return { version: GENERAL, target: PDF_NAME };
+  if (!existsSync(file) || !statSync(file).isDirectory()) return { version: rel(file), target: rel(file).replace(/\.[^./]*$/, "") + ".pdf" };
+  const job = readJob(file)?.frontmatter;
+  if (!job?.company) throw new Error(`${rel(file)} has no company in job.md; only an employment Candidate is sent a PDF`);
+  const tailored = candidateFiles(file).version;
+  return {
+    version: existsSync(tailored) ? rel(tailored) : GENERAL,
+    target: rel(path.join(file, `Dolbilov_${camel(job.title)}_${camel(job.company)}_${MONTHS[date.getMonth()]}${date.getFullYear()}.pdf`)),
+  };
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const args = process.argv.slice(2);
   const checkOnly = args.includes("--check");
-  const input = args.find((a) => !a.startsWith("--")) ?? GENERAL;
+  const input = args.find((a) => !a.startsWith("--"));
   const root = repoRoot();
-  const file = path.resolve(root, input);
-  const target = input === GENERAL ? PDF_NAME : path.relative(root, file).replace(/\.[^./]*$/, "") + ".pdf";
+  let resolved: ReturnType<typeof resolveRender>;
+  try { resolved = resolveRender(input, root, new Date()); } catch (e) { console.log(`FAIL  source: ${(e as Error).message}`); process.exit(1); }
+  const { target } = resolved;
+  const file = path.resolve(root, resolved.version);
 
   const profile = readProfile();
   const version = readVersion(file, profile);
@@ -134,8 +160,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   }
   const md = readFileSync(file, "utf8");
   const { title, body, roles, bullets } = toHtml(md);
-  const n = pages(md);
-  const pdf = path.join(OUT, "resume.pdf");
+  const dir = stage();
+  const n = pages(md, dir);
+  const pdf = path.join(dir, "resume.pdf");
 
   const checks: Result[] = [];
   const check = (name: string, ok: boolean, detail: string, level: "FAIL" | "WARN" = "FAIL") => checks.push({ level: ok ? "PASS" : level, name, detail });
@@ -195,15 +222,16 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 
   checks.push(...checkVersion(version, md, profile));
 
-  run("pdftoppm", ["-png", "-r", "110", "-f", "1", "-l", "1", "-singlefile", pdf, path.join(OUT, "resume")]);
+  run("pdftoppm", ["-png", "-r", "110", "-f", "1", "-l", "1", "-singlefile", pdf, path.join(dir, "resume")]);
 
   for (const c of checks) console.log(`${c.level}  ${c.name}: ${c.detail}`);
-  console.log("Screenshot: resume/scripts/out/resume.png");
+  console.log(`Rendered ${resolved.version} in ${dir}`);
+  console.log(`Screenshot: ${path.join(dir, "resume.png")}`);
   const failed = checks.some((c) => c.level === "FAIL");
-  if (checkOnly) console.log(failed ? `${target} not written: a check failed` : `${target} not written (--check); the render is at resume/scripts/out/resume.pdf`);
+  if (checkOnly) console.log(failed ? `${target} not written: a check failed` : `${target} not written (--check); the render is at ${pdf}`);
   else if (!failed) {
     copyFileSync(pdf, path.join(root, target));
     console.log(`Wrote ${target}`);
-  } else console.log(`${target} left unchanged; failed render at resume/scripts/out/resume.pdf`);
+  } else console.log(`${target} left unchanged; failed render at ${pdf}`);
   if (failed) process.exitCode = 1;
 }

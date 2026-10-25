@@ -12,15 +12,16 @@ import { fixture } from "../../autotriage/scripts/fixture.ts";
 import { bannedPhrases } from "./version.ts";
 
 const GENERATE = path.join(path.dirname(fileURLToPath(import.meta.url)), "generate.ts");
-const generate = (root: string, ...args: string[]) => spawnSync(process.execPath, [GENERATE, ...args], { encoding: "utf8", env: { ...process.env, CLAUDE_PROJECT_DIR: root } });
+const generate = (root: string, input: string, ...args: string[]) => spawnSync(process.execPath, [GENERATE, ...args], { encoding: "utf8", input, env: { ...process.env, CLAUDE_PROJECT_DIR: root } });
 
-test("generate reads the fixture's Profile and resolves the Plan path from the root", () => {
+test("generate takes the Plan on stdin, reads the fixture's Profile and resolves the target from the root", () => {
   const { root } = fixture();
-  fs.writeFileSync(path.join(root, "plan.json"), JSON.stringify({ title: "", summary: "S.", skills: ["Core: React"], bullets: [{ project: "acme", key: "rbac-admin" }, { project: "acme", key: "nope" }] }));
-  const r = generate(root, "plan.json", "out.md");
+  const plan = JSON.stringify({ title: "", summary: "S.", skills: ["Core: React"], bullets: [{ project: "acme", key: "rbac-admin" }, { project: "acme", key: "nope" }] });
+  const r = generate(root, plan, "version.md");
   assert.equal(r.stdout.trim(), "FAIL  plan: the Plan has no title; acme has no Bullet [nope]", "acme and [rbac-admin] exist in the fixture only");
-  assert.ok(!fs.existsSync(path.join(root, "out.md")));
-  const refused = generate(root, "--refresh", "private/candidates/2026-10-17-acme-frontend/version.md");
+  assert.ok(!fs.existsSync(path.join(root, "version.md")));
+  assert.equal(generate(root, "", "version.md").stdout.trim(), "FAIL  plan: no Plan on stdin");
+  const refused = generate(root, "", "--refresh", "private/candidates/2026-10-17-acme-frontend/version.md");
   assert.match(refused.stdout, /^refused: private\/candidates\/2026-10-17-acme-frontend\/version\.md is a tailored Version/);
 });
 
