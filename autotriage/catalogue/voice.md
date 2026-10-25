@@ -21,11 +21,11 @@ banned:
   - "guarantee"
   - "unlimited revisions"
   - "24/7"
-  # L1 openers
+  # openers
   - "I am writing to apply"
   - "I am writing to express my interest"
   - "I saw your job posting"
-  # L2 closers
+  # closers
   - "please find my resume attached"
   - "at your convenience"
   - "I would love the opportunity"
@@ -34,13 +34,13 @@ soft_banned:
   - "seamless"
   - "robust"
   - "ensure"
-  # L4 overclaim and flattery
+  # overclaim and flattery
   - "exceptional addition"
   - "uniquely positions me"
   - "I love what you're building"
   - "your mission resonates"
   - "most exciting companies"
-# L3 self-deprecation, checked by script (voice/self-deprecation)
+# self-deprecation, checked by script (voice/self-deprecation)
 self_deprecation:
   - "I may not have"
   - "on the off chance"
@@ -53,7 +53,7 @@ banned_patterns:
   - self-deprecation ("I may not have", "on the off chance", "I know I may not")
   - apology
   - contrastive negation ("X, not Y", "never Y", "rather than Y", "nothing changes")
-  - a run of six or more words copied from the posting, ask headers excepted (L5, warn)
+  - a run of six or more words copied from the posting, ask headers excepted (warn)
   - Markdown syntax ("**", "*", "_", "#", "[text](url)", ">")
   - emoji
   - ALL-CAPS word or line

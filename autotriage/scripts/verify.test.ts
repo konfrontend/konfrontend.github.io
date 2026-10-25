@@ -74,7 +74,7 @@ test("clean Letter with the deliverables plan Slot passes the script Checks; the
   assert.ok(!/[Ff]amily/.test(out));
 });
 
-test("voice: banned phrase, Profile extra, allowed extra, exclamation, plural, self-descriptive, self-deprecation, L1 opener", () => {
+test("voice: banned phrase, Profile extra, allowed extra, exclamation, plural, self-descriptive, self-deprecation, opener", () => {
   const body = cleanAudit
     .replace("Built the RBAC admin", "I'm excited to say we built the RBAC admin with synergy and leverage")
     .replace("here in Upwork Messages.", "here in Upwork Messages!")
@@ -85,12 +85,12 @@ test("voice: banned phrase, Profile extra, allowed extra, exclamation, plural, s
   assert.equal(fixOf(r, "voice/semicolon-chain"), "patch");
   assert.ok(has(r, "voice/banned-phrase"), ids(r).join());
   assert.ok(r.findings.some((f) => f.id === "voice/banned-phrase" && f.detail.includes("synergy")));
-  assert.ok(r.findings.some((f) => f.id === "voice/banned-phrase" && f.detail.includes("I am writing to apply")), "L1 openers are banned");
+  assert.ok(r.findings.some((f) => f.id === "voice/banned-phrase" && f.detail.includes("I am writing to apply")), "openers are banned");
   assert.ok(!r.findings.some((f) => f.detail.includes('"leverage"')), "allowed_extra lifts the shared ban");
   assert.ok(has(r, "voice/exclamation"));
   assert.ok(has(r, "voice/first-person-plural"));
   assert.ok(has(r, "voice/self-descriptive"));
-  assert.ok(r.findings.some((f) => f.id === "voice/self-deprecation" && f.detail.includes("I may not have")), "L3 self-deprecation is a script fail");
+  assert.ok(r.findings.some((f) => f.id === "voice/self-deprecation" && f.detail.includes("I may not have")), "self-deprecation is a script fail");
   assert.equal(fixOf(r, "voice/self-deprecation"), "patch");
   assert.ok(r.findings.every((f) => f.id !== "voice/first-person-plural" || f.slot === "relevant_work"));
 });
