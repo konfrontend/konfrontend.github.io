@@ -15,7 +15,7 @@ The professional profile of Konstantin Dolbilov, web developer, and the two thin
 - `profile/lib/` is the one Profile reader and the Profile check; it never reads `private/` or `resume/`. `autotriage/` reads the Profile through it and writes only Candidates. `private/` is gitignored; `private/candidates/archive/` is read by nothing.
 - Authored content (the Profile, the Candidates, the public PDF, `index.html`) is edited by the person. Generated content (`profile/skills.md`, a Version's sourced lines, a Bullet's rendered form) is regenerated, never hand-edited.
 - A Bullet is written by the Bullet rules (`.claude/skills/pp-bullets/SKILL.md`) and reviewed by the person. A Work repository path or URL is given each run and never stored. A wording one application needs is a Variant in that Candidate's `version.md`, never a Bullet edit.
-- A Letter cites a Project's meta, its Overview, a Bullet by key, its Notes, or an Answer. A fact the Profile lacks is asked for once and, when confirmed, appended to the Project's `## Notes`; no State edits an Overview. A Gap never enters a Letter or a Version.
+- A Letter cites a Project's meta, its Overview, a Bullet by key, its Notes, an Answer, or a claimed Skill. A fact the Profile lacks is asked for once and, when confirmed, appended to the Project's `## Notes`; no State edits an Overview. A Gap never enters a Letter or a Version.
 
 ## Docs by topic
 
