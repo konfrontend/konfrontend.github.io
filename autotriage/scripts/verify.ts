@@ -2,12 +2,12 @@
 // the route's template (letter-freelance or letter-employment) and runs every Check marked `by: script`;
 // the model Checks, the Fixes, and the cycles are the skill's job. Prints Findings, the Slot map with line
 // numbers, the counts, and the brief the model pass reads (Safeguards to look for, `when: job asks` Slots
-// present, Profile terms, the Projects' facts, the Answers, the Version sent, the Skills).
+// present, Profile terms, the Projects' facts, the Answers, the Version sent, the Skills proved and claimed).
 // An empty letter.md on the employment route is a resume-only application: nothing to check.
 // CLI: node scripts/verify.ts <candidate> [--json]
 //   exit 0 when no script Check fails, 1 when one does, 2 on usage or a missing input.
 import path from "node:path";
-import { readArtifact, loadCatalogue, flagsFor, templateFor, profile, skills, readVersion, versionSkillTerms, AUTOTRIAGE_ROOT, type Profile, type Project } from "./lib.ts";
+import { readArtifact, loadCatalogue, flagsFor, templateFor, profile, skills, claimedSkills, readVersion, versionSkillTerms, AUTOTRIAGE_ROOT, type Profile, type Project } from "./lib.ts";
 import { candidateDir, readJob, readLetter, versionFile, versionName } from "./candidate.ts";
 import { compute } from "./verdict.ts";
 
@@ -33,7 +33,7 @@ export interface Job { frontmatter: Any | null; body: string }
 // The Version sent, as the brief shows it: its name, source, summary and Skills terms, read from its body.
 export interface VersionText { name: string; source: string; summary: string | null; skills: string[]; text: string | null }
 export interface Answer { slug: string; question: string }
-export interface Inputs { candidate: string; letter: Letter; job: Job; profile: Any; skillNames: string[]; voice: Any; projects: Project[]; answers?: Answer[]; version?: VersionText | null }
+export interface Inputs { candidate: string; letter: Letter; job: Job; profile: Any; skillNames: string[]; claimed?: string[]; voice: Any; projects: Project[]; answers?: Answer[]; version?: VersionText | null }
 
 // The verify Guard has already checked job.md and letter.md; only their absence stops here.
 export function loadInputs(candidate: string): Inputs {
@@ -46,7 +46,7 @@ export function loadInputs(candidate: string): Inputs {
   const skillNames = skills(p).map((s) => s.name);
   const version = job.frontmatter?.route === "employment" ? readVersionText(dir, p) : null;
   const answers = p.answers.map((a) => ({ slug: path.basename(a.file, ".md"), question: a.question }));
-  return { candidate, letter: { body: letter.body }, job, profile: p.profile ?? {}, skillNames, voice: p.voice ?? {}, projects, answers, version };
+  return { candidate, letter: { body: letter.body }, job, profile: p.profile ?? {}, skillNames, claimed: claimedSkills(p), voice: p.voice ?? {}, projects, answers, version };
 }
 
 // The Version the Candidate is sent with (its own version.md, else the general Version): its summary and
@@ -252,7 +252,7 @@ export function projectFacts(p: Project) {
 
 export interface Analysis { findings: Finding[]; letter_skipped: boolean; slots: Any[]; counts: Any | null; brief: Any; fails: number; warns: number }
 
-export function analyse({ candidate, letter, job, profile: profileMeta, skillNames = [], voice, projects, answers = [], version = null }: Inputs): Analysis {
+export function analyse({ candidate, letter, job, profile: profileMeta, skillNames = [], claimed = [], voice, projects, answers = [], version = null }: Inputs): Analysis {
   const route: string = job.frontmatter?.route ?? "freelance";
   const employment = route === "employment";
   const cat = loadCatalogues(route);
@@ -319,7 +319,7 @@ export function analyse({ candidate, letter, job, profile: profileMeta, skillNam
   // format
   const acronyms = new Set(COMMON_ACRONYMS);
   const harvest = (text: unknown) => { for (const t of String(text ?? "").matchAll(ACRONYM)) acronyms.add(t[0]); };
-  for (const s of skillNames) harvest(s);
+  for (const s of [...skillNames, ...claimed]) harvest(s);
   harvest(job.body);
   // the Letter's fact source: its acronyms are the Profile's own
   for (const pj of projects) {
@@ -405,6 +405,7 @@ export function analyse({ candidate, letter, job, profile: profileMeta, skillNam
     version: version ? { name: version.name, source: version.source, summary: version.summary } : null,
     mandatory_keyword: flags.includes("mandatory-keyword"),
     skills: skillNames,
+    claimed,
   };
   const slots = seg.slots.map((s) => ({ id: s.id, header: s.header, demand: s.demand, header_line: s.headerLine, paragraphs: s.paragraphs.map((p) => [p.start, p.end]), words: words(s.text), chars: s.text.length }));
   const order = { fail: 0, warn: 1 };
@@ -451,6 +452,7 @@ export function render(r: Analysis): string {
     for (const n of p.notes) out.push(`      - ${n}`);
   }
   out.push(`  Profile Skills: ${b.skills.join(", ")}`);
+  out.push(`  Claimed Skills (a Letter source, cited as "claimed Skill <name>"): ${b.claimed.join(", ") || "none"}`);
   return out.join("\n");
 }
 

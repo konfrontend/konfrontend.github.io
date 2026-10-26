@@ -299,6 +299,7 @@ hard_stops:
 scores:
   scale: 1-5
   skill_fit:
+    # an item a proved or a claimed Skill names is covered; a claimed one is never a Gap
     "1": "core stack or domain absent from the Profile"
     "2": "half or less of the required items covered"
     "3": "most items covered, one Gap in a secondary item"

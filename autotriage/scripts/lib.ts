@@ -10,7 +10,7 @@ export const AUTOTRIAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.me
 
 registerSchemaDir(path.join(AUTOTRIAGE_ROOT, "schemas"));
 
-export { readArtifact, writeArtifact, splitFrontmatter, readProfile, skills, skillFor } from "../../profile/lib/index.ts";
+export { readArtifact, writeArtifact, splitFrontmatter, readProfile, skills, skillFor, claimedSkills } from "../../profile/lib/index.ts";
 export type { Artifact, Frontmatter, Profile, Project, Bullet, Skill } from "../../profile/lib/index.ts";
 export { readVersion, versionSkillTerms, type Version } from "../../resume/scripts/version.ts";
 
@@ -40,17 +40,25 @@ export function validate(name: string, data: unknown): string[] {
   return validateSchema(name, data);
 }
 
-// Route inference for intake, the way it infers the timezone: a paste whose first line is the
-// freelancer's parameter line with a money figure is freelance; a posting that reads as a job ad
-// (employment type, salary, remote policy, benefits) is employment. Returns the route and whether it
+// The freelancer's parameter line: a short comma list with a money figure (`UK, $600`), or the figure alone.
+const FIGURE_ALONE = /^\s*(?:\$|USD\s?)\d[\d,.]*(?:\s*[-–]\s*\$?\d[\d,.]*)?\s*$/i;
+const isParameterLine = (line: string) => /^[^\n]{0,80}$/.test(line) && /(?:^|[,\s])(?:\$|USD\s?)\d/i.test(line) && (/,/.test(line) || FIGURE_ALONE.test(line));
+// The lines a paste closes on, the URL and link lines skipped: a parameter line may come there too.
+function closingLines(lines: string[]): string[] {
+  const text = lines.map((l) => l.trim()).filter((l) => l && !/^(?:https?:\/\/\S+|\[[^\]]*\]\([^)]*\))$/.test(l));
+  return text.slice(-4);
+}
+
+// Route inference for intake, the way it infers the timezone: a paste that opens or closes on the
+// freelancer's parameter line is freelance; a posting that reads as a job ad (employment type, salary, remote
+// policy, benefits) is employment. Returns the route and whether it
 // was inferred, or null when the text decides nothing and intake must ask.
 export function inferRoute(text: string): { route: Route; inferred: boolean } | null {
   const t = String(text ?? "");
   const stated = /^\s*route:\s*(freelance|employment)\s*$/im.exec(t);
   if (stated) return { route: stated[1] as Route, inferred: false };
-  const firstLine = t.split(/\r?\n/).find((l) => l.trim()) ?? "";
-  const parameterLine = /^[^\n]{0,80}$/.test(firstLine) && /(?:^|[,\s])(?:\$|USD\s?)\d/i.test(firstLine) && /,/.test(firstLine);
-  if (parameterLine) return { route: "freelance", inferred: true };
+  const lines = t.split(/\r?\n/);
+  if ([lines.find((l) => l.trim()) ?? "", ...closingLines(lines)].some(isParameterLine)) return { route: "freelance", inferred: true };
   const freelanceCues = /\b(upwork|hourly rate|fixed[- ]price|proposal|bid|freelancer|per hour|\/h(?:r|our)?\b)/i;
   const employmentCues = /\b(full[- ]time|part[- ]time|permanent|salary|compensation|benefits|b2b|remote-first|on-site|hybrid|paid vacation|vacation days|health insurance|probation|requirements:?|we offer|what we offer|about the role|about the position|apply)\b/i;
   const f = (t.match(new RegExp(freelanceCues.source, "gi")) ?? []).length;

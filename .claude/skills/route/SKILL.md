@@ -4,7 +4,7 @@ description: Drive one Job through the whole Route in one sitting - intake, tria
 disable-model-invocation: true
 argument-hint: "[paste the Job here or in the next message]"
 ---
-!`node $CLAUDE_PROJECT_DIR/autotriage/scripts/guard.ts route`
+!`node ${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel)}/autotriage/scripts/guard.ts route`
 
 A guard line above that starts with `autotriage:` and says `refused` is the answer: print it verbatim and stop; it names the fix.
 

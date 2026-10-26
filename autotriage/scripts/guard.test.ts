@@ -6,6 +6,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import { fixture, run, hook, project, VOICE, PROFILE, employmentJob, freelanceJob } from "./fixture.ts";
 
 test("the route gate passes on a valid Profile", () => {
@@ -95,4 +96,21 @@ test("the write hook validates Profile and Candidate files by their path and ign
   assert.equal(write(path.join(root, "resume", "versions", "general.md")).stdout, "");
   assert.equal(write(path.join(root, "README.md")).stdout, "");
   assert.equal(write(path.join(root, "profile", "skills.md")).stdout, "", "generated files have no schema");
+});
+
+test("every State's guard line runs with CLAUDE_PROJECT_DIR unset, from a subfolder, falling back to the repo root", () => {
+  const repo = path.resolve(import.meta.dirname, "..", "..");
+  const skills = path.join(repo, ".claude", "skills");
+  const env = { ...process.env };
+  delete env.CLAUDE_PROJECT_DIR;
+  const lines = fs.readdirSync(skills).flatMap((s) => {
+    const file = path.join(skills, s, "SKILL.md");
+    return fs.existsSync(file) ? (fs.readFileSync(file, "utf8").match(/^!`(.+)`$/gm) ?? []).map((l) => [s, l.slice(2, -1).replace("$ARGUMENTS", "")]) : [];
+  });
+  assert.ok(lines.length >= 6, "the route, intake and four State guard lines");
+  for (const [skill, line] of lines) {
+    const r = spawnSync("sh", ["-c", line], { cwd: path.join(repo, "autotriage"), env, encoding: "utf8" });
+    assert.equal(r.stderr, "", `${skill}: ${line}`);
+    assert.match(r.stdout, /^(?:Today: |Profile gate passed\.|autotriage: \w+ refused\. )/, `${skill}: ${r.stdout}`);
+  }
 });

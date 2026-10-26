@@ -4,7 +4,7 @@
 // Where a Gap was seen is not printed; a search answers that.
 // CLI: node scripts/gaps.ts print
 import path from "node:path";
-import { skills, profile, type Profile } from "./lib.ts";
+import { skills, claimedSkills, profile, type Profile } from "./lib.ts";
 import { candidatesDir, listCandidates, readJob } from "./candidate.ts";
 
 export interface Requirement { candidate: string; requirements: string[] }
@@ -24,14 +24,16 @@ export function readCandidateRequirements(candidatesRoot = candidatesDir()): { r
 }
 
 // Seen counts Candidates, not mentions; a requirement no Project proves is a Gap, spelled as first seen.
+// A claimed Skill is left out: it is no Gap, and no Project proves it.
 export function ledger(p: Profile, reqs: Requirement[]): Row[] {
   const rows: Row[] = skills(p).map((s) => ({ name: s.name, level: "shipped", seen: 0 }));
   const byKey = new Map(rows.map((r) => [r.name.toLowerCase(), r]));
+  const claimed = new Set(claimedSkills(p).map((c) => c.toLowerCase()));
   for (const { requirements } of reqs) {
     const once = new Set<string>();
     for (const term of requirements ?? []) {
       const k = String(term).trim().toLowerCase();
-      if (!k || once.has(k)) continue;
+      if (!k || once.has(k) || (claimed.has(k) && !byKey.has(k))) continue;
       once.add(k);
       let row = byKey.get(k);
       if (!row) { row = { name: String(term).trim(), level: "gap", seen: 0 }; byKey.set(k, row); rows.push(row); }

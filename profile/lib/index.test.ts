@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { readProfile, parseProject, checkBullet, skills, skillFor, renderSkills, writeArtifact, repoRoot } from "./index.ts";
+import { readProfile, parseProject, checkBullet, skills, skillFor, claimedSkills, renderSkills, writeArtifact, repoRoot, readArtifact } from "./index.ts";
 
 function fixture(): string {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "profile-"));
@@ -81,6 +81,23 @@ test("skills derive from keywords: canonical spelling from the first Project in 
   assert.equal(skillFor(p, "punched CARDS")?.name, "Punched cards");
   assert.equal(skillFor(p, "cards"), null);
   assert.match(renderSkills(p), /3 Skills\.\n\n\| skill \| evidence \|\n\| --- \| --- \|\n\| Bernoulli numbers \| engine \|\n\| Punched cards \| engine, notes \|\n\| Writing \| notes \|\n$/);
+});
+
+test("claimed Skills are read from profile.md skills.claimed; the Profile check names one a Project proves and a repeat", () => {
+  const root = fixture();
+  const file = path.join(root, "profile.md");
+  const withClaimed = (claimed: unknown) => writeArtifact(file, { ...readArtifact(file)!.frontmatter, skills: { claimed } });
+  assert.deepEqual(claimedSkills(readProfile(root)), [], "absent reads as none");
+  withClaimed(["Quill pens", "Loom weaving"]);
+  let p = readProfile(root);
+  assert.deepEqual(p.errors, []);
+  assert.deepEqual(claimedSkills(p), ["Quill pens", "Loom weaving"]);
+  assert.equal(skillFor(p, "Quill pens"), null, "a claimed Skill is not a proved Skill");
+  withClaimed(["Quill pens", "quill PENS", "punched cards"]);
+  p = readProfile(root);
+  assert.deepEqual(p.errors, ["profile.md: skills.claimed repeats quill PENS", "profile.md: skills.claimed names punched cards, which a Project proves; drop it from the claimed list"]);
+  withClaimed([""]);
+  assert.ok(readProfile(root).errors.some((e) => e.startsWith("profile.md: /skills/claimed/0")), "an empty name fails the schema");
 });
 
 test("repoRoot is CLAUDE_PROJECT_DIR when set, else the repo this module sits in, read on each call", () => {
