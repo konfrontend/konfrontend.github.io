@@ -159,6 +159,7 @@ export interface ProfileMeta {
   identity: { name: string; location?: string; timezone: string; constraints: string[] };
   contact: Contact;
   resume_order: string[];
+  skills?: { claimed?: string[] };
   terms: Record<string, unknown>;
 }
 export interface Profile {
@@ -222,6 +223,14 @@ export function readProfile(root = path.join(repoRoot(), "profile")): Profile {
     const slugs = new Set(projects.map((p) => p.slug));
     for (const s of meta.resume_order) if (!slugs.has(s)) errors.push(`profile.md: resume_order names no Project file: ${s}`);
     for (const p of projects) if (!meta.resume_order.includes(p.slug)) errors.push(`profile.md: resume_order lacks the Project ${p.slug}`);
+    const proved = new Set(projects.filter((p) => !p.errors.length).flatMap((p) => p.meta.keywords ?? []).map((k) => k.toLowerCase()));
+    const seen = new Set<string>();
+    for (const c of meta.skills?.claimed ?? []) {
+      const k = c.toLowerCase();
+      if (seen.has(k)) errors.push(`profile.md: skills.claimed repeats ${c}`);
+      else if (proved.has(k)) errors.push(`profile.md: skills.claimed names ${c}, which a Project proves; drop it from the claimed list`);
+      seen.add(k);
+    }
   }
   const ordered = meta?.resume_order ? [...projects].sort((a, b) => meta.resume_order.indexOf(a.slug) - meta.resume_order.indexOf(b.slug)) : projects;
   return { root, files, profile: meta && !errors.some((e) => e.startsWith("profile.md")) ? meta : null, voice: voiceArt?.frontmatter ?? null, projects: ordered, answers, errors, warnings: projects.flatMap((p) => p.warnings) };
@@ -248,6 +257,12 @@ export function skills(profile: Profile): Skill[] {
 export function skillFor(profile: Profile, term: string): Skill | null {
   const k = String(term).trim().toLowerCase();
   return skills(profile).find((s) => s.name.toLowerCase() === k) ?? null;
+}
+
+// Claimed Skills: held without a Project proving them, declared in profile.md `skills.claimed`. They
+// cover a Job's required item like a proved Skill, and are never a Gap.
+export function claimedSkills(profile: Profile): string[] {
+  return profile.profile?.skills?.claimed ?? [];
 }
 
 // skills.md: every Skill with the Projects that prove it, by name. Generated; nothing reads it.

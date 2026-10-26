@@ -66,6 +66,7 @@ test("clean Letter with the deliverables plan Slot passes the script Checks; the
   assert.equal(r.brief.safeguards[0].slot, "deliverables", "plan resolves to the plan Slot present");
   assert.deepEqual(r.brief.skills, ["TypeScript", "React", "Postgres"], "the brief lists the Profile's Skills");
   assert.deepEqual(r.brief.answers, answers, "the brief lists the Answers as a Letter source");
+  assert.deepEqual(r.brief.claimed, [], "no claimed Skills given");
   assert.deepEqual(r.brief.projects.map((p: any) => [p.slug, p.name, p.url, p.period, p.bullets.length, p.notes]), [["acme", "Acme", "https://acme.example", "2021-02 – present", 1, ["Collaborator and admin roles."]]], "the brief harvests the Project facts from the meta, the Bullets and the Notes");
   assert.deepEqual(r.brief.projects[0].bullets[0], { key: "rbac-admin", text: "Built the RBAC admin and the SAML login." });
   const out = render(r);
@@ -338,4 +339,10 @@ test("an empty letter.md on the employment route is a resume-only application: n
   const out = render(r);
   assert.match(out, /^letter pass: skipped, letter\.md is empty \(a resume-only application\)\nversion: general/);
   assert.ok(!out.includes("slots:"));
+});
+
+test("the brief lists the claimed Skills as a Letter source", () => {
+  const r = analyse({ candidate: "2026-10-16-acme-fix", letter: { body: cleanAudit }, job: job([]), profile, skillNames, claimed: ["Figma", "GSAP"], voice, projects, answers });
+  assert.deepEqual(r.brief.claimed, ["Figma", "GSAP"]);
+  assert.match(render(r), /Claimed Skills \(a Letter source, cited as "claimed Skill <name>"\): Figma, GSAP/);
 });

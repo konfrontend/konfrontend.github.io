@@ -54,12 +54,16 @@ _Avoid_: detail, data point, context
 One technology or domain practice some Project proves, named by one canonical Keyword. Years of experience and spoken languages are not Skills.
 _Avoid_: technology, stack item, competency, capability, ledger row
 
+**Claimed Skill**:
+A technology or domain practice the person holds that no Project proves, declared by name. It covers a Job's required item the same way a Skill does.
+_Avoid_: unproved skill, soft skill, tool list
+
 **Keyword**:
 The one spelling of a Skill, as a posting or an ATS would match it: the same in a Project file, a Version's Skills lines and a Candidate's requirements. A required item no Project matches keeps the posting's spelling.
 _Avoid_: tag, tech name, alias, term
 
 **Gap**:
-A Skill-shaped item a Job required that no Project proves, named as the posting spells it. Exists only because a Job required it; counted by the Gap print, never declared and never written into a Letter or a Version.
+A Skill-shaped item a Job required that no Project proves and no Claimed Skill covers, named as the posting spells it. Exists only because a Job required it; counted by the Gap print, never declared and never written into a Letter or a Version.
 _Avoid_: missing skill, weakness, hole, target
 
 **Gap print**:

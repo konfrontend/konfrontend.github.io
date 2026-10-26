@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "profile.md frontmatter: the person's identity, contact, resume order and terms. Skills are never declared here; they derive from the Projects' keywords.",
+  "title": "profile.md frontmatter: the person's identity, contact, resume order, claimed Skills and terms. Proved Skills are never declared here; they derive from the Projects' keywords.",
   "type": "object",
   "required": ["identity", "contact", "resume_order", "terms"],
   "additionalProperties": false,
@@ -32,6 +32,13 @@
       "minItems": 1,
       "uniqueItems": true,
       "items": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" }
+    },
+    "skills": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "claimed": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
     },
     "terms": {
       "type": "object",

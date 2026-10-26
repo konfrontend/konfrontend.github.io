@@ -4,7 +4,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { validate, inferRoute, flagsFor, loadCatalogue, templateFor } from "./lib.ts";
 import { compute } from "./verdict.ts";
-import { fixture, run } from "./fixture.ts";
+import { fixture, run, pipe } from "./fixture.ts";
 
 const freelance = { title: "Full-Stack Developer - Clinic Booking MVP", route: "freelance", timezone: "America/New_York", location: "US" };
 const employment = { title: "Senior Frontend Developer", route: "employment", company: "Heymondo", employment: "full-time", location: "Barcelona", timezone: "Europe/Madrid" };
@@ -60,6 +60,14 @@ test("intake infers the route from the paste and marks it; a stated route is tak
   assert.deepEqual(inferRoute("route: employment\nUSA, $50\nSome text"), { route: "employment", inferred: false });
   assert.deepEqual(inferRoute("route: freelance\nAbout the role, full-time"), { route: "freelance", inferred: false });
   assert.equal(inferRoute("Need a React developer."), null, "nothing to infer from: intake asks");
+});
+
+test("a parameter line at the end of the paste counts the same as one at the start; URL lines after it are skipped", () => {
+  assert.deepEqual(inferRoute("Need a React developer.\n\nUK, $600"), { route: "freelance", inferred: true });
+  assert.deepEqual(inferRoute("Need a React developer.\n$1800\nUSA\nAbingdon\nhttps://www.upwork.com/jobs/~02\n"), { route: "freelance", inferred: true });
+  assert.deepEqual(inferRoute("Need a React developer.\n\n$300\nIndia\n[brief.pdf](../brief.pdf)"), { route: "freelance", inferred: true });
+  assert.equal(pipe(fixture().root, "Need a React developer.\n$1800\nUSA\n", "intake.ts", "route").stdout, "freelance, inferred\n", "intake.ts route reads it there too");
+  assert.equal(inferRoute("Need a React developer.\n\nWe pay $600 for the whole fix once it ships to production and passes QA."), null, "a sentence is not a parameter line");
 });
 
 test("verdict arithmetic from arguments: the budget maximum feeds rate-below-floor on freelance only, no Family rule", () => {
