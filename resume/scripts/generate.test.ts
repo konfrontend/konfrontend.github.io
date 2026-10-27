@@ -1,5 +1,5 @@
 // The resume scripts follow the root: generate.ts reads the Profile and resolves its paths from
-// CLAUDE_PROJECT_DIR, while bannedPhrases reads the catalogue next to its own module. The cut needs
+// CLAUDE_PROJECT_DIR, and bannedPhrases reads the Profile's voice.md under that root. The cut needs
 // Chrome and stays untested. Run: npm test
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -25,13 +25,13 @@ test("generate takes the Plan on stdin, reads the fixture's Profile and resolves
   assert.match(refused.stdout, /^refused: private\/candidates\/2026-10-17-acme-frontend\/version\.md is a tailored Version/);
 });
 
-test("bannedPhrases reads the catalogue next to its module, under any root", () => {
+test("bannedPhrases reads the Profile's banned_phrases under the root", () => {
   const prev = process.env.CLAUDE_PROJECT_DIR;
   const { root } = fixture();
   process.env.CLAUDE_PROJECT_DIR = root;
   try {
     const banned = bannedPhrases(readProfile());
-    assert.ok(banned.length > 0, "the fixture holds no catalogue; the module's own is read");
+    assert.deepEqual(banned, ["I'm excited"], "the fixture Profile's own list");
   } finally {
     if (prev === undefined) delete process.env.CLAUDE_PROJECT_DIR; else process.env.CLAUDE_PROJECT_DIR = prev;
   }

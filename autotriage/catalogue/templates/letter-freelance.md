@@ -9,7 +9,6 @@ slots:
   - { id: working_model, plan: true }
   - relevant_work
   - answers
-  - billing
   - terms
   - closing
   - sign_off
@@ -19,7 +18,7 @@ slots:
 
 The proposal pasted into Upwork, selected by `route: freelance` in `job.md`. One template for every Job: `proposal` picks exactly one plan Slot from what the Job asks, and `verify` checks that exactly one is present (`slot/plan-count`). Order and the filling rules are in the Slot catalogue `letter-slots.md`, `Freelance route`.
 
-Caps: 4,500 characters for the whole Letter, 350 prose words (header, list and `answers` lines excluded), 700 words in all.
+Caps: 4,500 characters for the whole Letter body, greeting to sign-off, 350 prose words (header, list and `answers` lines excluded), 700 words in all. The milestone lines and the bid after the sign-off are not counted.
 
 ## Picking the plan Slot
 
@@ -34,9 +33,10 @@ Two plan Slots fit about equally: pick the one the client's own words lean to an
 ## Slot notes
 
 - `deliverables`: a list only for three or more distinct artifacts; fewer, and the block is prose that names them in its first sentence. When the Job lists what the review should cover, answer that list in our own words, one artifact per line, never an echo of the client's items. When the Job has no list, four lines: findings ranked by severity, the map of what to keep, fix, or rebuild, effort and order for the next stage, assumptions and deferred items. The block closes with one to three sentences of prose: what the review does not touch, why a deliverable that carries a Safeguard gets its own hours, and how the next stage continues from the list, in one sentence and never priced.
-- `milestones`, existing code: milestone 1 is a read-only audit with an hour cap and a ranked findings list; the client approves the scope of the rest from that list. Then fixes ordered by risk, highest first, each with an hour range as a cap. Five lines is the usual size; six is the ceiling. The Letter keeps the client's stack.
-- `milestones`, greenfield: our plan, not the client's feature list. Milestone 1 is a thin end-to-end slice (one user, one path, deployed). Each line carries a price from the Profile rate, except on a client-priced test (no prices); weights uneven. When the posted budget covers a minimum viable scope at the Profile floor, deferred milestones are listed last and marked as deferred so the funded total fits the budget. Otherwise the plan ignores the posted budget. The stack rationale is one sentence inside the milestone that sets it, or an `answers` paragraph when the Job asks for a proposed stack.
+- `milestones`, existing code: milestone 1 is a read-only audit with a ranked findings list; the client approves the scope of the rest from that list. Then fixes ordered by risk, highest first. Five lines is the usual size; six is the ceiling. The Letter keeps the client's stack.
+- `milestones`, greenfield: our plan, not the client's feature list. Milestone 1 is a thin end-to-end slice (one user, one path, deployed). Weights uneven. When the posted budget covers a minimum viable scope at the Profile floor, deferred milestones are listed last, marked deferred and unpriced; otherwise every milestone is funded. The stack rationale is one clause in the milestone that sets it, or an `answers` paragraph when the Job asks for a proposed stack.
+- `milestones`, both: the lines follow the sign-off, never the body. Each line is a name that states what gets delivered, a colon and a description, within 100 characters together, then the price and the due date `scripts/proposal.ts milestones` derived from the person's answers; on an hourly Job the hours take the price's place. `terms` opens with the acceptance sentence.
 - `working_model`: queue, acceptance rule, response window, weekly summary. Two or three sentences, all prose, no list.
-- `relevant_work`: two Projects with `deliverables` and `working_model` (prefer ones where an existing system was read and judged, or long engagements on a live product), three with `milestones` (prefer the same concern class, or something built from nothing and shipped).
-- `billing`: with `deliverables`, capped hours for the assessment, billed on actual, unused hours not billed, no rate unless the Job states neither budget nor rate. With `milestones` on existing code, hours are caps billed on actual; the audit may shrink or grow milestones 2 onward; each is re-quoted before it starts; when the posted budget is fixed and below the plan, state both figures and that milestone 1 fits inside the posted budget and prices the rest. With `milestones` greenfield, the funded total, what is deferred, acceptance against a written check per milestone; the rate appears here. With `working_model`, rate, weekly hours, billed weekly on actual hours, notice period; the rate appears when the Job states neither budget nor rate, otherwise hours and rhythm only.
+- `relevant_work`: two Projects with `deliverables` and `working_model` (prefer ones where an existing system was read and judged, or long engagements on a live product), three with `milestones` (prefer the same concern class, or something built from nothing and shipped). Prefer Projects with a URL.
+- After the sign-off: the milestone lines, when the plan is `milestones` or the Job is fixed price, then the bid on its own line: the rate set for this Job on an hourly Job, the sum of the funded milestone prices on a fixed-price Job. This is the one place a rate or a total appears; the body states neither.
 - Legal and copyright topics enter only when the Job asks. Flags carry all risk; the plan Slot does not change the Alert Level.

@@ -14,7 +14,7 @@ function fixture(): string {
     resume_order: ["engine", "notes"],
     terms: { rate: 60, rate_floor: 40 },
   });
-  writeArtifact(path.join(root, "voice.md"), { language: "en-US", greeting: { freelance: "Hi,", employment: "Hello," }, sign_off: "Ada" });
+  writeArtifact(path.join(root, "voice.md"), { language: "en-US", greeting: { freelance: "Hi,", employment: "Hello," }, sign_off: "Ada", banned_phrases: [] });
   writeArtifact(path.join(root, "projects", "engine.md"), {
     name: "Analytical Engine", url: "https://example.com/engine", role: "Programmer", employment: "contract", start: "1842-01", end: "1843-09", naming: "public", description: "A mechanical computer.", keywords: ["Punched cards", "Bernoulli numbers"],
   }, "## Overview\n\nThe Engine had no program. I wrote one.\n\n## Bullets\n\n- [bernoulli] Wrote the first program, computing Bernoulli numbers.\n- [loops] Described loops and conditional branches.\n\n## Notes\n\n- Published in 1843.\n");

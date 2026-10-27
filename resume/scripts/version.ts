@@ -4,11 +4,8 @@
 // checks on the Version's own text. It reads the Profile through profile/lib only.
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { marked, type Tokens } from "marked";
-import { readArtifact, skills, numbersIn, type Contact, type Employment, type Profile, type Project, type ProjectMeta } from "../../profile/lib/index.ts";
-
-export const RESUME_SCRIPTS = path.dirname(fileURLToPath(import.meta.url));
+import { skills, numbersIn, type Contact, type Employment, type Profile, type Project, type ProjectMeta } from "../../profile/lib/index.ts";
 
 // The tailoring skill's output: the title, the summary, the Skills lines and one ranked list of Bullets across
 // every Project, best first; `text` is set only for a Variant. Passed to generate.ts, never stored.
@@ -122,12 +119,9 @@ const LABELS = /\b(Expert|Advanced|Proficient|Intermediate|Familiar|Beginner|Bas
 const SOFT = /\b(communication|teamwork|leadership|problem[- ]solving|team player)\b/i;
 const OBJECTIVE = /\b(seeking|looking for|hard-working|results-oriented|results-driven|team player|detail-oriented)\b/i;
 
-// The shared banned list of autotriage/catalogue/voice.md, with the Profile's own additions and permissions.
+// The Profile's one list of banned phrases, in voice.md.
 export function bannedPhrases(profile: Profile): string[] {
-  const shared = (readArtifact(path.resolve(RESUME_SCRIPTS, "..", "..", "autotriage", "catalogue", "voice.md"))?.frontmatter?.banned as string[] | undefined) ?? [];
-  const extra = (profile.voice?.banned_extra as string[] | undefined) ?? [];
-  const allowed = new Set(((profile.voice?.allowed_extra as string[] | undefined) ?? []).map((s) => s.toLowerCase()));
-  return [...new Set([...shared, ...extra])].filter((b) => !allowed.has(b.toLowerCase()));
+  return (profile.voice?.banned_phrases as string[] | undefined) ?? [];
 }
 
 const has = (text: string, term: string): boolean => text.toLowerCase().includes(term.toLowerCase());

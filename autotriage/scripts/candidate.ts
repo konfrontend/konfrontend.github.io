@@ -1,6 +1,6 @@
 // The Candidate contract (catalogue/candidate-artifacts.md): the folder layout and listing, the job.md read
 // with its schema errors, the Letter rule, the Version a Candidate is sent with, the Candidate paths the
-// write hook validates, and the two writes, intake's job.md and the Checkpoint's fields. Every reader and
+// write hook validates, and the three writes, intake's job.md, the Checkpoint's fields and proposal's rate. Every reader and
 // writer of a Candidate goes through here; the folder resolves from the repo root.
 import fs from "node:fs";
 import path from "node:path";
@@ -30,7 +30,7 @@ export function candidateFiles(dir: string): { job: string; letter: string; vers
 
 export interface JobFields {
   title: string; route: Route; timezone: string; location?: string; company?: string; employment?: string;
-  verdict?: "go" | "no-go"; requirements?: string[]; flags?: string[]; outcome?: string;
+  verdict?: "go" | "no-go"; requirements?: string[]; flags?: string[]; rate?: number; outcome?: string;
 }
 export interface Job extends Artifact { frontmatter: (JobFields & Frontmatter) | null; errors: string[] }
 
@@ -111,4 +111,14 @@ export function writeCheckpoint(candidate: string | undefined, { verdict, requir
   const fields: Frontmatter = { ...rest, verdict, requirements, ...(flags === undefined ? {} : { flags }) };
   writeJob("triage", dir, fields, job.body);
   return `Wrote the Checkpoint into ${shown(candidateFiles(dir).job)}: verdict ${verdict}`;
+}
+
+// Proposal's write: the rate the person set for this Job, after they answered the batched question.
+export function writeRate(candidate: string | undefined, rate: number): string {
+  const dir = requireDir("proposal", candidate);
+  const job = readJob(dir);
+  if (!job) refuse("proposal", `${shown(candidateFiles(dir).job)} is missing.`, "Run /route-intake first.");
+  if (job.frontmatter === null) refuse("proposal", `${shown(candidateFiles(dir).job)} has no frontmatter.`, "Fix the file by hand.");
+  writeJob("proposal", dir, { ...job.frontmatter, rate }, job.body);
+  return `Wrote rate ${rate} into ${shown(candidateFiles(dir).job)}`;
 }

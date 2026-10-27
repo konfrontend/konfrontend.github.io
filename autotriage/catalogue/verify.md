@@ -35,6 +35,7 @@ checks:
   - { id: length/sentence-cap,        by: model,  severity: warn, fix: patch, routes: [freelance, employment] }
   - { id: terms/hour-range,           by: script, severity: fail, fix: patch, routes: [freelance, employment] }
   - { id: terms/bounded-window,       by: script, severity: fail, fix: patch, routes: [freelance, employment] }
+  - { id: terms/rate-floor,           by: script, severity: warn, fix: none, routes: [freelance] }
   - { id: terms/forbidden-promise,    by: model,  severity: fail, fix: regenerate, routes: [freelance, employment] }
   - { id: fact/untraceable,           by: model,  severity: fail, fix: ask, routes: [freelance, employment] }
   - { id: fact/arithmetic,            by: model,  severity: warn, fix: none, routes: [freelance] }
@@ -48,28 +49,28 @@ checks:
 
 `verify` is the last State. It reviews the Letter the way a code review reviews a diff, then applies the Fixes itself: `letter.md` after `verify` is the corrected Letter, never a report. The route's template (`templates/letter-freelance.md` or `templates/letter-employment.md`) sets its Slots and its caps. A Check is one named rule. A Finding is one violation of a Check in one Slot, `fail` or `warn`. A Fix is the change `verify` applies for a Finding. Each Check names the routes it runs on (`routes`); a Check whose `routes` lack the Candidate's route is skipped by the script and by the model pass.
 
-Portable across Profiles. Personal inputs (banned extras, allowed extras, terms) come from the Profile at run time.
+Portable across Profiles. Personal inputs (the banned phrases, terms) come from the Profile at run time.
 
 ## Inputs
 
-- `letter.md` of the current Candidate: body only, no frontmatter. An empty `letter.md` on the employment route is a resume-only application: valid, with no Letter in it.
-- `job.md`: `route`, `title`, `requirements`, the posting body (client facts, Job demands), and on the freelance route `flags`, from which the script recomputes the Alert Level and the Safeguards.
+- `letter.md` of the current Candidate: body only, no frontmatter. The Letter ends at the sign-off line; the milestone lines and the bid after it are not part of it, and an optional fenced `Sent` block is skipped. An empty `letter.md` on the employment route is a resume-only application: valid, with no Letter in it.
+- `job.md`: `route`, `title`, `requirements`, the posting body (client facts, Job demands), and on the freelance route `flags`, from which the script recomputes the Alert Level and the Safeguards, and `rate` when the person set one.
 - The Version sent on the employment route: the Candidate's `version.md` when it exists, else `resume/versions/general.md`; its summary is what `intro` derives from.
-- Profile: `profile/profile.md` (`terms`; `skills.claimed`, a Letter source cited as `claimed Skill <name>`), the Skills (every Project's `keywords` and the claimed Skills: names for the acronym list), `profile/projects/<slug>.md` (traceability source: the frontmatter meta, the Overview, the Bullets by key and the Notes, harvested by the script into the brief), `profile/answers/<slug>.md` (a Letter source, cited as `Answer <slug>`), `voice.md` (`banned_extra`, `allowed_extra`).
+- Profile: `profile/profile.md` (`terms`; `skills.claimed`, a Letter source cited as `claimed Skill <name>`), the Skills (every Project's `keywords` and the claimed Skills: names for the acronym list), `profile/projects/<slug>.md` (traceability source: the frontmatter meta, the Overview, the Bullets by key and the Notes, harvested by the script into the brief), `profile/answers/<slug>.md` (a Letter source, cited as `Answer <slug>`), `voice.md` (`banned_phrases`).
 - Catalogues: voice rules, Slot catalogue, the route's template, Flag catalogue.
 
 Nothing is stored. The report is session output; a Letter is final only after `verify` passes, so a stored pass carries no information.
 
 ## Finding Slots in plain text
 
-The Letter carries no markers. `verify` segments it deterministically: on the freelance route from the fixed Slot order and the mandatory headers, on the employment route from the fixed Slot order alone.
+The Letter carries no markers. `verify` segments it deterministically: on the freelance route from the fixed Slot order and the mandatory headers, on the employment route from the fixed Slot order alone. First it cuts the text at the first fence line (a `Sent` block) and at the sign-off line, the Profile `sign_off`: what follows the sign-off is the milestone lines and the bid, never checked. Numbered lines there are the `milestones` plan Slot.
 
 Freelance route:
 
 1. Line 1 is the greeting Slot, checked for presence only.
 2. Block 2 is `hook`.
 3. Every following block whose first line ends with `:` is a headered Slot. Header text from the Slot catalogue maps to its id; any other colon-terminated single line maps to `answers`, one `answers` paragraph per header. A block without a header continues the Slot before it (`relevant_work` holds one paragraph per Project; prose after the plan list, with or without a blank line before it, is the plan block's own prose). A list block without a header is a plan Slot with its header missing: numbered lines read as `milestones`, dashed lines as `deliverables`. An ask header over a list is the plan Slot answering that ask.
-4. The last three blocks are `terms`, `closing`, `sign_off`. `terms` may open with a header that is not a catalogue header: the availability question of a question-structured Letter (Slot catalogue, `Ask headers`). A header is a single line ending with a colon (at most twelve words) or a line ending with `?` (the client's question verbatim, any length). Other question headers segment as `answers` paragraphs, so a question-structured Letter leans on the template's `cap.total_words` more than on the prose cap.
+4. The last three blocks of the body are `terms`, `closing`, `sign_off`. `terms` may open with a header that is not a catalogue header: the availability question of a question-structured Letter (Slot catalogue, `Ask headers`). A header is a single line ending with a colon (at most twelve words) or a line ending with `?` (the client's question verbatim, any length). Other question headers segment as `answers` paragraphs, so a question-structured Letter leans on the template's `cap.total_words` more than on the prose cap.
 
 Employment route (no headers, every block prose):
 
@@ -82,7 +83,7 @@ A cover letter with fewer than five blocks, more than six, or any header line ra
 
 Blocks are separated by one blank line. A Letter this procedure cannot segment (too few blocks, a header where none is allowed, a block without a header straight after the hook, the same header twice) raises `slot/parse` and stops for the human. Hand-edited Letters go through the same procedure.
 
-`scripts/verify.ts <candidate>` reads the route from `job.md`, runs the segmentation and every script Check of the route, and prints the Findings, the Slot map with line numbers, the counts, and the brief for the model pass (route and template, the plan Slot, the Alert Level recomputed from `flags`, the Safeguards to look for with their target Slot, `when: job asks` Slots present, Profile terms, the Projects' facts, the Answers, the Version sent). Exit 1 while any script Check fails. An empty `letter.md` on the employment route is a resume-only application: the script prints `letter pass: skipped` and nothing else runs. Its fixtures in `scripts/verify.test.ts` seed one Finding per Check group, on both routes.
+`scripts/verify.ts <candidate>` reads the route from `job.md`, runs the segmentation and every script Check of the route, and prints the Findings, the Slot map with line numbers, the counts, and the brief for the model pass (route and template, the plan Slot, the Alert Level recomputed from `flags`, the Safeguards to look for with their target Slot, `when: job asks` Slots present, the lines after the sign-off, Profile terms and the Job's `rate`, one line per Project, the Answers, the Version sent). The Project's Overview, Bullets and Notes are read from its file, never printed. Exit 1 while any script Check fails. An empty `letter.md` on the employment route is a resume-only application: the script prints `letter pass: skipped` and nothing else runs. Its fixtures in `scripts/verify.test.ts` seed one Finding per Check group, on both routes.
 
 ## Checks
 
@@ -90,7 +91,7 @@ Script Checks read text and counts; model Checks read meaning. The script runs f
 
 ### voice
 
-- `banned-phrase`: any phrase from the shared `banned` list plus Profile `banned_extra`, minus Profile `allowed_extra`. Case-insensitive. The list holds the generic promise words (`guarantee`, `unlimited revisions`, `24/7`), the openers (`I am writing to apply`) and the closers (`please find my resume attached`).
+- `banned-phrase`: any phrase from the Profile's `banned_phrases` in `voice.md`, the one list. Case-insensitive. The list holds the generic promise words (`guarantee`, `unlimited revisions`, `24/7`), the openers (`I am writing to apply`) and the closers (`please find my resume attached`).
 - `self-deprecation`: any phrase from `self_deprecation` (`I may not have`, `on the off chance`, `I know I may not`).
 - `soft-banned`: any word from `soft_banned`, the overclaim and flattery phrases included. Warn; the sentence is rewritten anyway.
 - `exclamation`: any `!`.
@@ -106,11 +107,11 @@ Script Checks read text and counts; model Checks read meaning. The script runs f
 
 - `markdown`: `**`, `*`, `_` used as emphasis, `#` at line start, `[text](url)`, `>` at line start, backticks.
 - `emoji`: any emoji or pictographic character.
-- `all-caps`: a word of three or more capitals that is not a known acronym: one the Skills name, the Project files or the Job body use, or a common web and business abbreviation (URL, API, MVP, HIPAA).
+- `all-caps`: a word of three or more capitals that is not a known abbreviation: one the Skills name, one in the script's acronym list (URL, API, MVP, HIPAA, R3F), or one the Project files or the Job body use.
 - `indentation`: a line starting with a space or tab.
 - `contact`: email, phone number, `@handle`, messenger or social handle, booking-page domain. Both routes: the platform carries contact on the freelance route, the application form and the PDF on the employment route.
 - `url-count`: any URL that is not `https://`. The number of links is not capped.
-- `char-ceiling`: more characters than the route's template `cap.chars`, greeting and sign-off included: 4,500 in `letter-freelance` (Upwork's cover letter limit is about 5,000 and unconfirmed), 500 in `letter-employment`.
+- `char-ceiling`: more characters in the body than the route's template `cap.chars`, greeting and sign-off included: 4,500 in `letter-freelance` (Upwork's cover letter limit is about 5,000 and unconfirmed), 500 in `letter-employment`.
 
 ### slot
 
@@ -133,14 +134,15 @@ Each length Check runs only when the route's template has the cap it reads; `let
 
 ### fact
 
-- `untraceable`: a fact with no source. The model lists every fact in the Letter (product name, URL, role, period, stack item, number, client quote) with its Slot and source: a Project's frontmatter field, its Overview, a Bullet by its key or a Notes line as the brief lists them, `Answer <slug>` for an Answer cited or tailored, `claimed Skill <name>` for a technology or practice `skills.claimed` lists, a `profile.md` field, the `job.md` body for client facts, or `derived` for hours and prices computed from the Profile rate. Fix: ask the human once whether the fact is true. True: append it as one list line under `## Notes` of the matching `profile/projects/<slug>.md`, then regenerate the Slot. False or unknown: regenerate the Slot without it. No State edits an Overview.
-- `arithmetic`: a milestone price that is not hours times the Profile rate, or a total that does not sum. Warn.
+- `untraceable`: a fact with no source. The model lists every fact in the Letter (product name, URL, role, period, stack item, number, client quote) with its Slot and source: a Project's frontmatter field, its Overview, a Bullet by its key or a Notes line as the brief lists them, `Answer <slug>` for an Answer cited or tailored, `claimed Skill <name>` for a technology or practice `skills.claimed` lists, a `profile.md` field, the `job.md` body for client facts, or `derived` for prices and due dates `scripts/proposal.ts milestones` computed from the person's answers. Fix: ask the human once whether the fact is true. True: append it as one list line under `## Notes` of the matching `profile/projects/<slug>.md`, then regenerate the Slot. False or unknown: regenerate the Slot without it. No State edits an Overview.
+- `arithmetic`: a milestone price that is not its hours times the rate (`job.md` `rate`, else Profile `terms.rate`), or a bid that does not sum the funded milestones. Warn.
 
 ### terms
 
 - `hour-range`: a clock time or an am/pm range in `terms`. Overlap is the client's part of the day, never hours they must convert.
 - `bounded-window`: `through the next`, `for the next`, `until` in `terms`. Availability is `available now` or `from <date>`.
-- `forbidden-promise`: a rate below Profile `terms.rate_floor`; a fixed price; subcontracting offered; weekly hours outside `terms.weekly_hours`; a start before `terms.availability_from`; a delivery date the plan does not derive. Generic promise words (`guarantee`, `unlimited revisions`, `24/7`) live in the shared `banned` list so the script catches them.
+- `rate-floor`: `job.md` `rate` under Profile `terms.rate_floor`. Warn, no Fix: the rate is the person's call. Script.
+- `forbidden-promise`: a rate, a price or a total in the Letter body; subcontracting offered; weekly hours outside `terms.weekly_hours`; a start before `terms.availability_from`; a delivery date the plan does not derive. Generic promise words (`guarantee`, `unlimited revisions`, `24/7`) live in the Profile's `banned_phrases` so the script catches them.
 
 ### closing
 
@@ -179,7 +181,7 @@ Printed once, at the end, in this order:
 3. Warnings left open.
 4. Fact table: fact, Slot, source.
 5. The Letter verbatim in a code block, ready to paste.
-6. Every question block that matched no Answer, as a draft for a new file under `profile/answers/` (its `question` frontmatter and the answer as written), never written by the State.
+6. Every question block that matched no Answer, listed by its question, with an offer to draft a new file under `profile/answers/` for it; a draft is printed only when the human says yes, its question worded for reuse across Jobs, and never written by the State.
 
 On `stopped`: the same, plus the one question for the human. The human edits the Letter file or answers, then reruns `verify`.
 

@@ -3,7 +3,7 @@ scale: 1-5
 flags:
   # kind: risk (default), green, or stop. green = level 0, lowers the Alert Level. stop = Profile-fit failure: no level, no Alert Level effect, forces the hard stop of the same id.
   # routes: the routes the Flag is judged on, [freelance], [employment], or both. triage and verify read only the Flags of the Candidate's route.
-  # slot: where the safeguard is stated in the Letter. Freelance: hook | plan | billing | answers | none; `plan` is the plan Slot the Letter carries (see the Slot catalogue). Every employment Flag is `none`: a 500-character cover letter carries no Safeguard, and the person reads the Flag at the Checkpoint.
+  # slot: where the safeguard is stated. Freelance: hook | plan | answers | terms | rate | none; `plan` is the plan Slot the Letter carries, the milestone lines after the sign-off included (see the Slot catalogue); `rate` is the rate the person sets at proposal's batched question, shown there next to the Safeguard, never in the Letter. Every employment Flag is `none`: a 500-character cover letter carries no Safeguard, and the person reads the Flag at the Checkpoint.
   - id: budget-scope-mismatch
     routes: [freelance]
     level: 1
@@ -23,7 +23,7 @@ flags:
     level: 1
     cues: ["non-technical founder", "I am not a developer", "need someone to own the tech"]
     safeguard: "bill for the architect role you will fill"
-    slot: billing
+    slot: rate
     value: "normal for the segment"
   - id: decorative-formatting
     routes: [freelance]
@@ -38,7 +38,7 @@ flags:
     level: 2
     cues: ["partner, not freelancer", "more paid work after MVP", "founding engineer", "long-term partnership"]
     safeguard: "price the current scope on its own; future work is worth zero"
-    slot: billing
+    slot: rate
     value: "fine when current scope is priced alone"
   - id: client-code-self-assessment
     routes: [freelance]
@@ -102,7 +102,7 @@ flags:
     level: 3
     cues: ["mandatory sandboxed workstation", "remote-desktop only", "monitored access", "time tracker with screenshots required"]
     safeguard: "price the friction"
-    slot: billing
+    slot: rate
     value: "legitimate for client-data compliance"
   - id: heavy-vetting
     routes: [freelance]
@@ -117,14 +117,14 @@ flags:
     level: 4
     cues: ["production-ready as the only acceptance criterion", "scalable, high-quality", "feature list over 8 modules with a fixed budget"]
     safeguard: "convert to hourly or to own milestone structure, accepted in writing"
-    slot: billing
+    slot: plan
     value: "loss-maker unless repriced"
   - id: urgency-48h
     routes: [freelance]
     level: 4
     cues: ["URGENT", "24H", "event tomorrow", "need it today"]
     safeguard: "premium rate, only for trivial self-contained work"
-    slot: billing
+    slot: rate
     value: "no discovery, public failure mode"
   - id: excessive-gauntlet
     routes: [freelance]
@@ -366,7 +366,7 @@ Risk Flags carry a Level; green Flags are Level 0; the stop Flag carries none. T
 
 Ambitious scope on a small budget means the client does not know what software costs. `budget-scope-mismatch` is level 1 and never escalates on its own: it is excluded from the "three or more level 2/3 Flags" step. It makes the `milestones` Slot price its own plan. A low fixed budget is never a hard stop on its own; the human sees the budget at the Checkpoint.
 
-Client-priced test: a paid work trial whose price the client sets and pays (`$800 for completing the test`), usually with `paid-first-milestone`. The price is the client's hiring instrument, not a bid, so the Letter does not reprice it: milestones carry no prices, `billing` states no budget gap and does not accept the figure, and `fact/arithmetic` has nothing to check. The rest of `budget-scope-mismatch` holds: the plan is ours, scoped to what the test period can carry.
+Client-priced test: a paid work trial whose price the client sets and pays (`$800 for completing the test`), usually with `paid-first-milestone`. The price is the client's hiring instrument, not a bid, so the Letter does not reprice it: the milestone lines carry no prices, no bid follows them, and `fact/arithmetic` has nothing to check. The rest of `budget-scope-mismatch` holds: the plan is ours, scoped to what the test period can carry.
 
 ## Safeguards become Letter content
 

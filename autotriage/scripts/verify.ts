@@ -3,6 +3,8 @@
 // the model Checks, the Fixes, and the cycles are the skill's job. Prints Findings, the Slot map with line
 // numbers, the counts, and the brief the model pass reads (Safeguards to look for, `when: job asks` Slots
 // present, Profile terms, the Projects' facts, the Answers, the Version sent, the Skills proved and claimed).
+// The Letter body ends at the sign-off line: the milestone lines and the bid after it are copied into
+// Upwork's fields, and a fenced Sent block is the person's record of what went out; neither is checked.
 // An empty letter.md on the employment route is a resume-only application: nothing to check.
 // CLI: node scripts/verify.ts <candidate> [--json]
 //   exit 0 when no script Check fails, 1 when one does, 2 on usage or a missing input.
@@ -16,7 +18,7 @@ const NUMBERED = /^\d+[.)]\s/;
 const URL_RE = /https?:\/\/[^\s)>\]]+/g;
 const ACRONYM = /\b[A-Z][A-Z0-9]{2,}(?=s?\b)/g;
 // English and business abbreviations that are not shouting; the Profile, the Projects, and the Job add theirs.
-const COMMON_ACRONYMS = ["URL", "API", "CLI", "SDK", "UI", "UX", "CI", "CD", "PDF", "CSV", "HTML", "CSS", "SQL", "HTTP", "HTTPS", "JSON", "XML", "REST", "MVP", "CTO", "CEO", "COO", "CFO", "NDA", "USD", "EUR", "GBP", "CET", "CEST", "PST", "PDT", "EST", "EDT", "UTC", "GMT", "BST", "IST", "AEST", "FAQ", "SEO", "CMS", "CRM", "ERP", "SaaS", "SLA", "SSO", "RBAC", "IAM", "AWS", "GCP", "VPS", "DNS", "TLS", "SSL", "VPN", "SSH", "GDPR", "HIPAA", "PHI", "PII", "BAA", "DPA", "PCI", "FERPA", "COPPA", "CCPA", "WCAG", "SOC", "ISO", "ADR", "PRD", "QA", "IDE", "OAuth", "JWT", "ORM", "NPM", "IOS", "MCP", "LLM", "RAG", "AI", "ML"].map((s) => s.toUpperCase());
+const COMMON_ACRONYMS = ["R3F", "GLSL", "WASM", "GPU", "CPU", "SVG", "PWA", "SPA", "SSR", "SSG", "E2E", "B2B", "B2C", "KPI", "URL", "API", "CLI", "SDK", "UI", "UX", "CI", "CD", "PDF", "CSV", "HTML", "CSS", "SQL", "HTTP", "HTTPS", "JSON", "XML", "REST", "MVP", "CTO", "CEO", "COO", "CFO", "NDA", "USD", "EUR", "GBP", "CET", "CEST", "PST", "PDT", "EST", "EDT", "UTC", "GMT", "BST", "IST", "AEST", "FAQ", "SEO", "CMS", "CRM", "ERP", "SaaS", "SLA", "SSO", "RBAC", "IAM", "AWS", "GCP", "VPS", "DNS", "TLS", "SSL", "VPN", "SSH", "GDPR", "HIPAA", "PHI", "PII", "BAA", "DPA", "PCI", "FERPA", "COPPA", "CCPA", "WCAG", "SOC", "ISO", "ADR", "PRD", "QA", "IDE", "OAuth", "JWT", "ORM", "NPM", "IOS", "MCP", "LLM", "RAG", "AI", "ML"].map((s) => s.toUpperCase());
 const CONTACT_DOMAINS = /\b(?:t\.me|wa\.me|calendly\.com|cal\.com|linkedin\.com|twitter\.com|x\.com|instagram\.com|facebook\.com|discord\.gg|zoom\.us|meet\.google\.com|skype\.com|telegram\.(?:me|org)|whatsapp\.com|signal\.me)\b/i;
 const EMAIL = /[\w.+-]+@[\w-]+\.[\w.-]+/;
 const HANDLE = /(?:^|[\s(])@[A-Za-z0-9_]{2,}/;
@@ -123,8 +125,8 @@ export function segment(body: string, { headers, planSlots }: { headers: Record<
     ({ id, header, demand: null, paragraphs: [{ start, end: block.end, lines: contentLines }], headerLine: header ? block.start : null, text: "" });
   const isPlan = (id: string) => planSlots.includes(id);
 
-  if (blocks.length < 6) {
-    errors.push(`too few blocks (${blocks.length}); a Letter has at least greeting, hook, the plan Slot, terms, closing, sign-off`);
+  if (blocks.length < 5) {
+    errors.push(`too few blocks (${blocks.length}); a Letter has at least greeting, hook, terms, closing, sign-off`);
     return { lines, blocks, slots, greeting: blocks[0] ?? null, errors };
   }
   const greeting = blocks[0];
@@ -178,6 +180,18 @@ export function segment(body: string, { headers, planSlots }: { headers: Record<
   if (signOff && signOff.paragraphs[0].lines.length > 1) errors.push(`sign-off (lines ${signOff.paragraphs[0].start}-${signOff.paragraphs[0].end}) must be one line`);
   finish(slots);
   return { lines, blocks, slots, greeting, errors };
+}
+
+// The Letter body is everything up to the sign-off line, and nothing after a ```Sent fence: the milestone lines and
+// the bid follow the sign-off, and an optional fenced Sent block holds the text as sent. Without a sign-off
+// line the whole text up to the fence is the body. Line numbers stay those of letter.md.
+export function splitLetter(text: string, signOff: string | undefined): { body: string; after: string[] } {
+  const lines = text.replace(/\r/g, "").split("\n");
+  const fence = lines.findIndex((l) => /^```Sent\b/.test(l));
+  const head = fence < 0 ? lines : lines.slice(0, fence);
+  const end = signOff ? head.findIndex((l, i) => i > 0 && l.trim() === signOff.trim()) : -1;
+  if (end < 0) return { body: head.join("\n"), after: [] };
+  return { body: head.slice(0, end + 1).join("\n"), after: head.slice(end + 1).filter((l) => l.trim()) };
 }
 
 // The cover letter has no headers, so its Slots are found by position (catalogue/verify.md): greeting,
@@ -269,7 +283,8 @@ export function analyse({ candidate, letter, job, profile: profileMeta, skillNam
   const alertLevel = compute({ route, flags }).alert_level;
   const planSlots: string[] = cat.slots.plan_slots ?? [];
 
-  const body = letter.body.replace(/\s+$/, "");
+  const { body: text, after } = splitLetter(letter.body, voice.sign_off);
+  const body = text.replace(/\s+$/, "");
   if (employment && !body.trim()) {
     const brief = { route, template: cat.templateName, resume_only: true, version: version ? { name: version.name, source: version.source, summary: version.summary } : null };
     return { findings, letter_skipped: true, slots: [], counts: null, brief, fails: 0, warns: 0 };
@@ -286,7 +301,9 @@ export function analyse({ candidate, letter, job, profile: profileMeta, skillNam
   const templateIds = new Set(templateSlots.map((s) => s.id));
   const jobAsks = new Set(templateSlots.filter((s) => s.when === "job asks").map((s) => s.id));
   const present = new Set(seg.slots.map((s) => s.id));
-  const planPresent = seg.slots.filter((s) => planSlots.includes(s.id)).map((s) => s.id);
+  // the milestone lines follow the sign-off; numbered lines there are the milestones plan Slot
+  const afterMilestones = !employment && after.some((l) => NUMBERED.test(l));
+  const planPresent = [...seg.slots.filter((s) => planSlots.includes(s.id)).map((s) => s.id), ...(afterMilestones ? ["milestones"] : [])];
   const planSlot = planPresent[0] ?? planSlots[0] ?? null;
 
   // slot
@@ -298,7 +315,7 @@ export function analyse({ candidate, letter, job, profile: profileMeta, skillNam
   }
 
   // voice
-  const banned: string[] = [...(cat.voiceRules.banned ?? []), ...(voice.banned_extra ?? [])].filter((p: string) => !(voice.allowed_extra ?? []).some((a: string) => a.toLowerCase() === p.toLowerCase()));
+  const banned: string[] = voice.banned_phrases ?? [];
   const selfDeprecation: string[] = cat.voiceRules.self_deprecation ?? [];
   const runs = postingRuns(job.body);
   const headerLines = new Set(seg.slots.map((s) => s.headerLine).filter((n): n is number => n !== null));
@@ -388,6 +405,9 @@ export function analyse({ candidate, letter, job, profile: profileMeta, skillNam
     if (/\b\d{1,2}:\d{2}\b|\b\d{1,2}\s?(?:am|pm)\b/i.test(terms.text)) add("terms/hour-range", "terms", "a clock time; state overlap as the client's part of the day");
     if (/\b(?:through|for|over) the next\b|\buntil\b|\bthrough (?:january|february|march|april|may|june|july|august|september|october|november|december|\d)/i.test(terms.text)) add("terms/bounded-window", "terms", "a bounded availability window; say available now or from a date");
   }
+  // the rate set for this Job lives in job.md, never in the Letter; under the floor is the person's call
+  const rate = job.frontmatter?.rate, floor = profileMeta.terms?.rate_floor;
+  if (typeof rate === "number" && typeof floor === "number" && rate < floor) add("terms/rate-floor", "job.md", `rate ${rate} is under the Profile's rate_floor ${floor}`);
   const closing = seg.slots.find((s) => s.id === "closing");
   if (closing && /\b(?:call|walk ?through|walk you through|screen ?share|zoom|google meet|video|demo)\b/i.test(closing.text)) add("closing/call", "closing", "offers a call or a walkthrough; questions are answered in writing");
 
@@ -399,6 +419,7 @@ export function analyse({ candidate, letter, job, profile: profileMeta, skillNam
   const counts = { chars: body.length, char_cap: charCap, words: total, prose_words: prose, word_cap: wordCap, total_ceiling: ceiling, hook_chars: hookChars, hook_max: hookMax, urls: urls.length, lists: listRuns.length, per_slot: perSlot };
   const brief = {
     route, template: cat.templateName, plan_slot: employment ? null : planSlot, alert_level: alertLevel, flags, safeguards,
+    after_sign_off: after.length, rate: rate ?? null,
     job_asks_present: seg.slots.filter((s) => jobAsks.has(s.id)).map((s) => s.id),
     template_slots: templateSlots, terms: profileMeta.terms ?? {}, projects: projects.map(projectFacts),
     answers,
@@ -440,17 +461,13 @@ export function render(r: Analysis): string {
   for (const mit of b.safeguards) out.push(`    ${mit.id} (level ${mit.level}) in ${mit.slot}: ${mit.safeguard}`);
   out.push(`  when-job-asks Slots present: ${b.job_asks_present.join(", ") || "none"}`);
   out.push(`  mandatory-keyword Flag: ${b.mandatory_keyword ? "triggered, the keyword must appear nowhere in the Letter" : "no"}`);
-  out.push(`  Profile terms: ${JSON.stringify(b.terms)}`);
+  out.push(`  after the sign-off (milestone lines and the bid, copied into Upwork's fields, not the Letter): ${b.after_sign_off} lines`);
+  out.push(`  Profile terms: ${JSON.stringify(b.terms)}${b.rate === null ? "" : `; rate for this Job: ${b.rate}`}`);
   out.push(`  Answers (a Letter source, cited as "Answer <slug>"; a question block matching none is printed after verify as a draft Answer):`);
   for (const a of b.answers) out.push(`    ${a.slug}: ${a.question}`);
   if (!b.answers.length) out.push("    none");
-  out.push(`  Projects (facts the Letter may cite: the Overview, Bullets by key, then Notes):`);
-  for (const p of b.projects) {
-    out.push(`    ${p.slug}: ${p.name}${p.url ? ` (${p.url})` : ""}, ${p.role}, ${p.employment}, ${p.period}, naming ${p.naming}, ${p.bullets.length} Bullets, ${p.notes.length} Notes`);
-    if (p.overview) out.push(`      Overview: ${p.overview.replace(/\n+/g, " ")}`);
-    for (const bl of p.bullets) out.push(`      - [${bl.key}] ${bl.text}`);
-    for (const n of p.notes) out.push(`      - ${n}`);
-  }
+  out.push(`  Projects (facts the Letter may cite: read profile/projects/<slug>.md for the Overview, Bullets by key, then Notes):`);
+  for (const p of b.projects) out.push(`    ${p.slug}: ${p.name}${p.url ? ` (${p.url})` : ""}, ${p.role}, ${p.employment}, ${p.period}, naming ${p.naming}, ${p.bullets.length} Bullets, ${p.notes.length} Notes`);
   out.push(`  Profile Skills: ${b.skills.join(", ")}`);
   out.push(`  Claimed Skills (a Letter source, cited as "claimed Skill <name>"): ${b.claimed.join(", ") || "none"}`);
   return out.join("\n");

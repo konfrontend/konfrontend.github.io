@@ -20,6 +20,7 @@ employment: full-time             # employment only, required: full-time | part-
 verdict: go                       # the Checkpoint, both routes: go | no-go
 requirements: [React, Stripe Connect]   # the Checkpoint, both routes: the Job's required Skill-shaped items
 flags: [non-technical-founder, paid-first-milestone]   # the Checkpoint, freelance only: the Flag ids triggered
+rate: 45                          # optional, freelance only: the rate the person set for this Job at proposal's batched question
 outcome: sent                     # by hand, only on verdict go: sent | interview | offer
 ```
 
@@ -29,11 +30,12 @@ Rules:
 - The Checkpoint fields are written by `triage` in one write, once the person has answered go or no-go, on go and on no-go alike. If the person never answers, nothing is written. `verdict` is the go or no-go the person confirmed; the scores, the Flags' evidence and the script's recommendation behind it stay in the session. The `version`, `proposal` and `verify` Guards check `verdict: go` and recompute nothing; `no-go` ends the Route.
 - `requirements` holds only Skill-shaped items from the posting's required list: technologies and domain practices, never nice-to-haves, years of experience, spoken languages or degrees (a required degree is `unmet-constraint` evidence). Each is spelled as the Keyword when a Project's Keyword matches it, as the claimed Skill when one in `skills.claimed` matches it, and as the posting spells it otherwise; that spelling becomes the Gap's name. Readers: the Gap print, `resume-version` when it tailors, and the Letter States.
 - `flags` is freelance only: the ids of every triggered Flag, green and stop Flags included. `proposal` reads it for the Safeguards; `verify` reads it for `flag/safeguard-missing`, `job/mandatory-keyword` and the Alert Level, which it recomputes from the ids. Employment Flags are not stored: every one has `slot: none`, so nothing reads them after the Checkpoint.
+- `rate` is freelance only and optional: the hourly rate the person set for this Job, written once by `proposal` with `scripts/proposal.ts write-rate` after the person answered. Without it the Profile `terms.rate` applies. It may sit under Profile `terms.rate_floor`: `verify` warns (`terms/rate-floor`) and the person decides.
 - `outcome` is the furthest point the Candidate reached, set by hand on both routes once the Letter, or the Version alone, went out: `sent`, then `interview`, then `offer`. A missing next step is the negative outcome: a `sent` with no movement is no reply, by definition. No field for a rejection or a withdrawal. A win is the Project file the person creates by hand. The schema allows `outcome` only on `verdict: go`.
 
 ## `letter.md`
 
-Body only, no frontmatter, on both routes: the Letter as pasted, plain text, no Markdown. On the freelance route `proposal` writes it from `templates/letter-freelance.md`; on the employment route the `version` State writes it empty and `proposal` fills it from `templates/letter-employment.md`, within that template's 500 characters. An empty `letter.md` on the employment route is valid: the Version went out without a Letter, a resume-only application. `verify` checks the file and applies its Fixes in place; its result is not stored, since a Letter is final only after `verify` passes.
+Body only, no frontmatter, on both routes: the Letter as pasted, plain text, no Markdown. On the freelance route the Letter ends at the sign-off; the milestone lines and the bid follow it, loose lines the person copies into Upwork's fields. An optional fenced `Sent` block at the end holds the text as sent, written by the person; `verify` skips it. On the freelance route `proposal` writes it from `templates/letter-freelance.md`; on the employment route the `version` State writes it empty and `proposal` fills it from `templates/letter-employment.md`, within that template's 500 characters. An empty `letter.md` on the employment route is valid: the Version went out without a Letter, a resume-only application. `verify` checks the file and applies its Fixes in place; its result is not stored, since a Letter is final only after `verify` passes.
 
 ## `version.md`
 
