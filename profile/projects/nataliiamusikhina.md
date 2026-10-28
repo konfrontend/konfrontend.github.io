@@ -7,7 +7,7 @@ start: 2026-06
 end: 2026-08
 naming: public
 description: Portfolio website for a tattoo artist.
-keywords: [TypeScript, Vue.js, Nuxt, Tailwind CSS, Sanity, GROQ, Cloudflare Workers, GitHub Actions, Vitest, SSG, i18n, SEO, Core Web Vitals, Accessibility (WCAG), Architecture Decision Records, CI/CD]
+keywords: [TypeScript, Vue.js, Nuxt, Tailwind CSS, Sanity, GROQ, Tally, Cloudflare Workers, GitHub Actions, Vitest, SSG, i18n, SEO, Core Web Vitals, Accessibility (WCAG), Architecture Decision Records, CI/CD]
 ---
 ## Overview
 
