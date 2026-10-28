@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "voice.md frontmatter. Every Letter-facing personal string: greeting per route and sign-off. No body: the Answers in answers/ calibrate the voice (x-body).",
+  "title": "voice.md frontmatter. Every Letter-facing personal string: greeting per route, sign-off, and the one list of banned phrases. No body: the Answers in answers/ calibrate the voice (x-body).",
   "type": "object",
-  "required": ["language", "greeting", "sign_off"],
+  "required": ["language", "greeting", "sign_off", "banned_phrases"],
   "additionalProperties": false,
   "x-body": "empty",
   "properties": {
@@ -17,7 +17,6 @@
       }
     },
     "sign_off": { "type": "string", "minLength": 1 },
-    "banned_extra": { "type": "array", "items": { "type": "string" }, "default": [] },
-    "allowed_extra": { "type": "array", "items": { "type": "string" }, "default": [] }
+    "banned_phrases": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
   }
 }

@@ -26,6 +26,7 @@ export const VOICE = `---
 language: en-US
 greeting: { freelance: "Hi,", employment: "Hello," }
 sign_off: Kon
+banned_phrases: ["I'm excited"]
 ---
 `;
 export const project = (keywords: string[], body = "## Bullets\n\n- [rbac-admin] Built the RBAC admin and the SAML login.\n\n## Notes\n\n- Collaborator and admin roles.\n") => `---

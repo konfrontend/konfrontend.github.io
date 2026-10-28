@@ -7,6 +7,7 @@
   "allOf": [
     { "if": { "properties": { "route": { "const": "employment" } } }, "then": { "required": ["company", "employment"], "not": { "required": ["flags"] } } },
     { "if": { "properties": { "route": { "const": "freelance" } } }, "then": { "not": { "anyOf": [{ "required": ["company"] }, { "required": ["employment"] }] } } },
+    { "if": { "required": ["rate"] }, "then": { "properties": { "route": { "const": "freelance" } } } },
     { "if": { "required": ["outcome"] }, "then": { "required": ["verdict"], "properties": { "verdict": { "const": "go" } } } },
     { "if": { "anyOf": [{ "required": ["requirements"] }, { "required": ["flags"] }] }, "then": { "required": ["verdict"] } }
   ],
@@ -20,6 +21,7 @@
     "verdict": { "enum": ["go", "no-go"] },
     "requirements": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
     "flags": { "type": "array", "items": { "type": "string", "pattern": "^[a-z0-9-]+$" }, "uniqueItems": true },
+    "rate": { "type": "number", "exclusiveMinimum": 0 },
     "outcome": { "enum": ["sent", "interview", "offer"] }
   }
 }

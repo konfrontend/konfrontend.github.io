@@ -17,7 +17,7 @@ resume_order: [acme, side]
 terms: { rate: 60, rate_floor: 40 }
 ---
 `;
-const VOICE = "---\nlanguage: en-US\ngreeting: { freelance: \"Hi,\", employment: \"Hello,\" }\nsign_off: Kon\n---\n";
+const VOICE = "---\nlanguage: en-US\ngreeting: { freelance: \"Hi,\", employment: \"Hello,\" }\nsign_off: Kon\nbanned_phrases: [passionate]\n---\n";
 const ACME = `---
 name: Acme
 url: https://acme.example

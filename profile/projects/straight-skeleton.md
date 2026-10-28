@@ -15,3 +15,4 @@ keywords: [TypeScript, C++ / WebAssembly, CGAL, Emscripten, CMake, Boost, RapidJ
 - [extrusion] Wrote two WebAssembly entry points over CGAL: one extrudes a polygon with holes into a 3D roof mesh from per-edge weights and a maximum height, the other returns the 2D skeleton.
 
 ## Notes
+- Public repository: https://github.com/konfrontend/weighted-straight-skeleton
