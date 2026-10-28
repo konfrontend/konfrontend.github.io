@@ -70,13 +70,10 @@ test("a parameter line at the end of the paste counts the same as one at the sta
   assert.equal(inferRoute("Need a React developer.\n\nWe pay $600 for the whole fix once it ships to production and passes QA."), null, "a sentence is not a parameter line");
 });
 
-test("verdict arithmetic from arguments: the budget maximum feeds rate-below-floor on freelance only, no Family rule", () => {
-  assert.deepEqual(compute({ route: "freelance", flags: [], skill_fit: 4, budget_max: 20, rate_floor: 40 }).hard_stops, ["rate-below-floor"]);
-  assert.deepEqual(compute({ route: "freelance", flags: [], skill_fit: 4, budget_max: 20 }).hard_stops, [], "no floor given, no money stop");
-  assert.equal(compute({ route: "freelance", flags: [], skill_fit: 4 }).verdict, "go", "no Family to ask for");
-  const emp = compute({ route: "employment", flags: [], skill_fit: 4, budget_max: 20, rate_floor: 40 });
-  assert.deepEqual(emp.hard_stops, []);
-  assert.equal(emp.verdict, "go");
+test("verdict arithmetic from arguments: no money hard stop on either route, no Family rule", () => {
+  for (const route of ["freelance", "employment"]) {
+    assert.deepEqual(compute({ route, flags: [], skill_fit: 4 }), { alert_level: 1, hard_stops: [], verdict: "go" }, `${route}: a posted rate is a Checkpoint line, not a stop; no Family to ask for`);
+  }
   assert.equal(compute({ route: "employment", flags: ["unmet-constraint"], skill_fit: 4 }).verdict, "no-go", "the stop Flag stops on both routes");
   assert.deepEqual(compute({ route: "freelance", flags: ["unmet-constraint"], skill_fit: 4 }), { alert_level: 1, hard_stops: ["unmet-constraint"], verdict: "no-go" });
   assert.equal(compute({ route: "freelance", flags: [], skill_fit: 2 }).verdict, "ask");
@@ -85,9 +82,9 @@ test("verdict arithmetic from arguments: the budget maximum feeds rate-below-flo
 
 test("the verdict CLI takes its inputs as arguments and reads no Candidate file", () => {
   const { root } = fixture();
-  const r = run(root, "verdict.ts", "--route", "freelance", "--skill-fit", "4", "--flags", "regulated-domain,paid-first-milestone", "--budget-max", "20");
+  const r = run(root, "verdict.ts", "--route", "freelance", "--skill-fit", "4", "--flags", "regulated-domain,paid-first-milestone");
   assert.equal(r.status, 0, r.stderr);
-  assert.deepEqual(JSON.parse(r.stdout), { alert_level: 1, hard_stops: ["rate-below-floor"], verdict: "no-go" }, "rate_floor 40 from the fixture Profile");
+  assert.deepEqual(JSON.parse(r.stdout), { alert_level: 1, hard_stops: [], verdict: "go" }, "no money stop");
   const ok = run(root, "verdict.ts", "--route", "employment", "--skill-fit", "3", "--flags", "role-sprawl,codebase-handover,unpaid-assignment");
   assert.deepEqual(JSON.parse(ok.stdout), { alert_level: 4, hard_stops: [], verdict: "ask" });
   assert.equal(run(root, "verdict.ts", "--route", "freelance").status, 2, "skill-fit is required");

@@ -291,8 +291,6 @@ hard_stops:
     rule: "Alert Level is 5"
   - id: level-5-flag
     rule: "any level 5 risk Flag triggered"
-  - id: rate-below-floor
-    rule: "freelance route only: the Job states an hourly range whose ceiling is below Profile terms.rate_floor; no money hard stop on the employment route, pay is unknown until the offer"
   - id: unmet-constraint
     rule: "stop Flag unmet-constraint triggered (the Job requires a location, identity, credential or working arrangement that Profile identity.constraints cannot meet)"
 
@@ -349,7 +347,7 @@ Every Flag names its routes in `routes`. The Candidate's `route` (`job.md`) sele
 
 1. Read the Job. For every Flag of the Candidate's route whose cues match, hold its id and show the human a verbatim quote from the Job as evidence. Model judgment, guided by cues; postings are unstructured, so no keyword matching. Green and stop Flags are detected in the same pass: the stop Flag's evidence is the Job quote plus the Profile constraint it collides with (`identity.constraints: remote only` against `hybrid, three days in the office`). Only ids are stored, on the freelance route only; evidence stays in the session.
 2. Judge the two soft scores against the rubric in `scores` (`value` has one rubric per route), one line of reason each in the session. Neither is stored.
-3. A script, not the model, computes the Alert Level (steps in `alert_level_steps`), the hard stops (rules in `hard_stops`, the floor from the Profile) and its recommendation (order in `verdict_mapping`) from the ids, the score and the posted budget maximum, all passed as arguments: `node scripts/verdict.ts --route <route> --skill-fit <n> --flags <ids> [--budget-max <n>]`. It reads no Candidate file.
+3. A script, not the model, computes the Alert Level (steps in `alert_level_steps`), the hard stops (rules in `hard_stops`) and its recommendation (order in `verdict_mapping`) from the ids and the score, all passed as arguments: `node scripts/verdict.ts --route <route> --skill-fit <n> --flags <ids>`. It reads no Candidate file.
 4. The human answers go or no-go at the Checkpoint. Only then does `triage` write `job.md`: `verdict`, `requirements` and, on the freelance route, `flags` (`checkpoint_fields`). The recommendation is session output; the Verdict is what the human confirmed.
 
 ## Levels
@@ -364,7 +362,7 @@ Risk Flags carry a Level; green Flags are Level 0; the stop Flag carries none. T
 
 ## Budget is a routing signal, not a risk
 
-Ambitious scope on a small budget means the client does not know what software costs. `budget-scope-mismatch` is level 1 and never escalates on its own: it is excluded from the "three or more level 2/3 Flags" step. It makes the `milestones` Slot price its own plan. A low fixed budget is never a hard stop on its own; the human sees the budget at the Checkpoint.
+Ambitious scope on a small budget means the client does not know what software costs. `budget-scope-mismatch` is level 1 and never escalates on its own: it is excluded from the "three or more level 2/3 Flags" step. It makes the `milestones` Slot price its own plan. A low fixed budget is never a hard stop on its own; the human sees the budget at the Checkpoint. The same holds for a posted hourly rate below the Profile rate or `terms.rate_floor`: the person bids their own rate, so the Checkpoint shows the posted rate against the Profile rate and no money hard stop exists on either route.
 
 Client-priced test: a paid work trial whose price the client sets and pays (`$800 for completing the test`), usually with `paid-first-milestone`. The price is the client's hiring instrument, not a bid, so the Letter does not reprice it: the milestone lines carry no prices, no bid follows them, and `fact/arithmetic` has nothing to check. The rest of `budget-scope-mismatch` holds: the plan is ours, scoped to what the test period can carry.
 

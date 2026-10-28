@@ -3,16 +3,16 @@
 // Candidate file: triage holds the result in the session. Once the human has answered, `write` sets the
 // Checkpoint fields in job.md through the Candidate contract, refusing before it writes when the result
 // would not validate; the refusal is printed on stdout with exit 0.
-// CLI: node scripts/verdict.ts --route <freelance|employment> --skill-fit <1-5> [--flags id,id] [--budget-max <n>] [--rate-floor <n>]
-//   prints {"alert_level","hard_stops","verdict"}; --rate-floor defaults to the Profile's terms.rate_floor.
+// CLI: node scripts/verdict.ts --route <freelance|employment> --skill-fit <1-5> [--flags id,id]
+//   prints {"alert_level","hard_stops","verdict"}.
 //      node scripts/verdict.ts write <candidate> --verdict <go|no-go> --requirements <item,item> [--flags id,id]
-import { flagsFor, profile, Refusal, type Route } from "./lib.ts";
+import { flagsFor, Refusal, type Route } from "./lib.ts";
 import { writeCheckpoint } from "./candidate.ts";
 
-export interface VerdictInput { route: Route | string; flags?: string[]; skill_fit?: number; budget_max?: number | null; rate_floor?: number | null }
+export interface VerdictInput { route: Route | string; flags?: string[]; skill_fit?: number }
 export interface Computed { alert_level: number; hard_stops: string[]; verdict: "go" | "no-go" | "ask" }
 
-export function compute({ route, flags = [], skill_fit, budget_max = null, rate_floor = null }: VerdictInput): Computed {
+export function compute({ route, flags = [], skill_fit }: VerdictInput): Computed {
   // Only the Flags of the Candidate's route count; an id from the other route is ignored.
   const byId = new Map(flagsFor(route).map((f) => [f.id, f]));
   const triggered = flags.map((id) => byId.get(id)).filter((f) => f !== undefined);
@@ -30,13 +30,11 @@ export function compute({ route, flags = [], skill_fit, budget_max = null, rate_
   level = Math.min(5, Math.max(1, level));
 
   // hard_stops from catalogue/flags.md. unmet-constraint is the one stop Flag; it forces the hard stop
-  // of the same id and stays out of the Alert Level. rate-below-floor is freelance only: on the
-  // employment route pay is unknown until the offer.
-  const employment = route === "employment";
+  // of the same id and stays out of the Alert Level. No money stop: a posted rate or budget is a
+  // routing signal shown at the Checkpoint.
   const hardStops: string[] = [];
   if (level === 5) hardStops.push("alert-level-5");
   if (risk.some((f) => f.level === 5)) hardStops.push("level-5-flag");
-  if (!employment && typeof budget_max === "number" && typeof rate_floor === "number" && rate_floor > 0 && budget_max < rate_floor) hardStops.push("rate-below-floor");
   for (const f of stop) hardStops.push(f.id);
 
   // verdict_mapping, in order
@@ -67,10 +65,8 @@ if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).
     process.exit(0);
   }
   const route = opt("route"), skill = opt("skill-fit");
-  const usage = "usage: verdict.ts --route <freelance|employment> --skill-fit <1-5> [--flags id,id] [--budget-max <n>] [--rate-floor <n>]";
+  const usage = "usage: verdict.ts --route <freelance|employment> --skill-fit <1-5> [--flags id,id]";
   if (!route || !["freelance", "employment"].includes(route) || !skill || !/^[1-5]$/.test(skill)) { console.error(usage); process.exit(2); }
-  const num = (v: string | undefined) => (v === undefined ? null : Number(v));
-  const floor = opt("rate-floor") !== undefined ? num(opt("rate-floor")) : ((profile().profile as { terms?: { rate_floor?: number } } | null)?.terms?.rate_floor ?? null);
   const flags = list(opt("flags"));
-  console.log(JSON.stringify(compute({ route, flags, skill_fit: Number(skill), budget_max: num(opt("budget-max")), rate_floor: floor })));
+  console.log(JSON.stringify(compute({ route, flags, skill_fit: Number(skill) })));
 }
