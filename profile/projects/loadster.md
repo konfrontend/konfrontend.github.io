@@ -6,7 +6,7 @@ employment: contract
 start: 2019-03
 naming: public
 description: Cloud SaaS for load testing and uptime monitoring of websites and APIs.
-keywords: [TypeScript, Java, SQL, Object-Oriented Programming (OOP), Vue.js, Vue Router, Vuex, Tailwind CSS, Design Systems, Responsive Design, i18n, Monaco Editor, Hugo, Canvas API, Service Workers, SharedWorker, Web Workers, WebSockets, Shadow DOM, IntersectionObserver, WebExtension API, Manifest V3, Chrome DevTools Protocol, Node.js, Spring Boot, REST API, OpenAPI, Model Context Protocol (MCP), Jackson, Pusher, MariaDB, InfluxDB, Flyway, Vitest, Playwright, JUnit, GitHub Actions, CI/CD, Code Review, Docker, Vite, webpack, npm workspaces, Role-based access control (RBAC), Content Security Policy, Claude Code, Agentic Workflows, AWS (S3), Stripe, Third-party integrations / webhooks]
+keywords: [TypeScript, Java, SQL, Object-oriented Programming (OOP), Vue.js, Vue Router, Vuex, Tailwind CSS, Design Systems, Responsive Design, i18n, Monaco Editor, Hugo, Canvas API, Service Workers, SharedWorker, Web Workers, WebSockets, Shadow DOM, IntersectionObserver, WebExtension API, Manifest V3, Chrome DevTools Protocol, Node.js, Spring Boot, REST API, OpenAPI, Model Context Protocol (MCP), Jackson, Pusher, MariaDB, InfluxDB, Flyway, Vitest, Playwright, JUnit, GitHub Actions, CI/CD, Code Review, Docker, Vite, webpack, npm workspaces, Role-based access control (RBAC), Content Security Policy, Claude Code, Agentic Workflows, AWS (S3), Stripe, Third-party integrations / webhooks]
 ---
 ## Overview
 

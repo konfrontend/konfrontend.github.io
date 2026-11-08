@@ -17,9 +17,8 @@ export const hook = (root: string, script: string, input: unknown) =>
 
 export const PROFILE = `---
 identity: { name: Kon, timezone: Europe/Madrid, constraints: [] }
-contact: { location: "Gijon, Spain (UTC+2)", email: kon@example.com, github: https://github.com/kon }
-resume_order: [acme]
-terms: { rate: 60, rate_floor: 40 }
+contact: { email: kon@example.com, github: https://github.com/kon }
+terms: { rate: 60 }
 ---
 `;
 export const VOICE = `---

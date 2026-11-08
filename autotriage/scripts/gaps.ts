@@ -1,10 +1,10 @@
-// The Gap print: every Gap and every proved Skill a Job asked for, with how many Candidates asked.
+// The Gap print: every Gap and every Skill a Job asked for, with how many Candidates asked.
 // Reads the Candidates' `requirements` (one field of job.md, every dated folder, no-go included) and
 // the Skills through profile/lib; nothing is stored. An invalid job.md is warned about and still counted.
 // Where a Gap was seen is not printed; a search answers that.
 // CLI: node scripts/gaps.ts print
 import path from "node:path";
-import { skills, claimedSkills, profile, type Profile } from "./lib.ts";
+import { skills, profile, type Profile } from "./lib.ts";
 import { candidatesDir, listCandidates, readJob } from "./candidate.ts";
 
 export interface Requirement { candidate: string; requirements: string[] }
@@ -23,17 +23,15 @@ export function readCandidateRequirements(candidatesRoot = candidatesDir()): { r
   return { requirements, warnings };
 }
 
-// Seen counts Candidates, not mentions; a requirement no Project proves is a Gap, spelled as first seen.
-// A claimed Skill is left out: it is no Gap, and no Project proves it.
+// Seen counts Candidates, not mentions; a requirement no Skill names is a Gap, spelled as first seen.
 export function ledger(p: Profile, reqs: Requirement[]): Row[] {
   const rows: Row[] = skills(p).map((s) => ({ name: s.name, level: "shipped", seen: 0 }));
   const byKey = new Map(rows.map((r) => [r.name.toLowerCase(), r]));
-  const claimed = new Set(claimedSkills(p).map((c) => c.toLowerCase()));
   for (const { requirements } of reqs) {
     const once = new Set<string>();
     for (const term of requirements ?? []) {
       const k = String(term).trim().toLowerCase();
-      if (!k || once.has(k) || (claimed.has(k) && !byKey.has(k))) continue;
+      if (!k || once.has(k)) continue;
       once.add(k);
       let row = byKey.get(k);
       if (!row) { row = { name: String(term).trim(), level: "gap", seen: 0 }; byKey.set(k, row); rows.push(row); }
@@ -49,7 +47,7 @@ const table = (rows: Row[]) => ["| skill | seen |", "| --- | --- |", ...rows.map
 export function renderLedger(rows: Row[]): string {
   const gaps = rows.filter((r) => r.level === "gap");
   const asked = rows.filter((r) => r.level === "shipped" && r.seen > 0);
-  return [`Gaps (${gaps.length}): required by a Candidate, proved by no Project.`, "", ...table(gaps), "", `Skills seen (${asked.length}): required by a Candidate, proved by a Project.`, "", ...table(asked)].join("\n") + "\n";
+  return [`Gaps (${gaps.length}): required by a Candidate, named by no Skill.`, "", ...table(gaps), "", `Skills seen (${asked.length}): required by a Candidate.`, "", ...table(asked)].join("\n") + "\n";
 }
 
 if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {

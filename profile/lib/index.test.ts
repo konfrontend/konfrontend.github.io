@@ -4,15 +4,14 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { readProfile, parseProject, checkBullet, skills, skillFor, claimedSkills, renderSkills, writeArtifact, repoRoot, readArtifact } from "./index.ts";
+import { readProfile, parseProject, checkBullet, skills, skillFor, renderSkills, writeArtifact, repoRoot } from "./index.ts";
 
 function fixture(): string {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "profile-"));
   writeArtifact(path.join(root, "profile.md"), {
     identity: { name: "Ada Lovelace", timezone: "Europe/London", constraints: [] },
-    contact: { location: "London (UTC+0)", email: "ada@example.com", github: "https://github.com/ada" },
-    resume_order: ["engine", "notes"],
-    terms: { rate: 60, rate_floor: 40 },
+    contact: { email: "ada@example.com", github: "https://github.com/ada" },
+    terms: { rate: 60 },
   });
   writeArtifact(path.join(root, "voice.md"), { language: "en-US", greeting: { freelance: "Hi,", employment: "Hello," }, sign_off: "Ada", banned_phrases: [] });
   writeArtifact(path.join(root, "projects", "engine.md"), {
@@ -54,7 +53,7 @@ test("checkBullet fails a duty opener, warns on more than three measured claims 
   assert.match(b("Builds the admin.").warnings[0], /past tense/);
 });
 
-test("readProfile validates every file, orders Projects by resume_order and reads Answers", () => {
+test("readProfile validates every file, reads Projects in filename order and reads Answers", () => {
   const p = readProfile(fixture());
   assert.deepEqual(p.errors, []);
   assert.deepEqual(p.warnings, []);
@@ -65,17 +64,15 @@ test("readProfile validates every file, orders Projects by resume_order and read
   assert.deepEqual(p.answers.map((a) => [a.question, a.text]), [["Why compute?", "Because the Engine can."]]);
 });
 
-test("readProfile names a resume_order slug with no Project file, a Project missing from the order, and a Bullet that breaks a rule", () => {
+test("readProfile names a Bullet that breaks a rule", () => {
   const root = fixture();
   writeArtifact(path.join(root, "projects", "extra.md"), { name: "X", role: "R", employment: "independent", start: "1850-01", naming: "public", description: "D", keywords: ["Writing"] }, "## Bullets\n\n- [x] Helped with 1, 2, 3 and 4.\n");
   const p = readProfile(root);
-  assert.ok(p.errors.includes("profile.md: resume_order lacks the Project extra"));
   assert.ok(p.errors.includes('projects/extra.md: [x] opens with a duty, not an active verb: "Helped with 1, 2, 3 and 4."'));
   assert.ok(p.warnings.some((e) => e.startsWith("projects/extra.md: [x] has 4 measured claims")));
-  assert.equal(p.profile, null);
 });
 
-test("skills derive from keywords: canonical spelling from the first Project in resume order, exact match only; skills.md lists them", () => {
+test("skills derive from keywords: canonical spelling from the first Project in filename order, exact match only; skills.md lists them", () => {
   const p = readProfile(fixture());
   assert.deepEqual(skills(p).map((s) => [s.name, s.evidence]), [["Punched cards", ["engine", "notes"]], ["Bernoulli numbers", ["engine"]], ["Writing", ["notes"]]]);
   assert.equal(skillFor(p, "punched CARDS")?.name, "Punched cards");
@@ -83,21 +80,15 @@ test("skills derive from keywords: canonical spelling from the first Project in 
   assert.match(renderSkills(p), /3 Skills\.\n\n\| skill \| evidence \|\n\| --- \| --- \|\n\| Bernoulli numbers \| engine \|\n\| Punched cards \| engine, notes \|\n\| Writing \| notes \|\n$/);
 });
 
-test("claimed Skills are read from profile.md skills.claimed; the Profile check names one a Project proves and a repeat", () => {
+test("skills.md rows with empty evidence are Skills; the build keeps them and regenerates the rest", () => {
   const root = fixture();
-  const file = path.join(root, "profile.md");
-  const withClaimed = (claimed: unknown) => writeArtifact(file, { ...readArtifact(file)!.frontmatter, skills: { claimed } });
-  assert.deepEqual(claimedSkills(readProfile(root)), [], "absent reads as none");
-  withClaimed(["Quill pens", "Loom weaving"]);
-  let p = readProfile(root);
-  assert.deepEqual(p.errors, []);
-  assert.deepEqual(claimedSkills(p), ["Quill pens", "Loom weaving"]);
-  assert.equal(skillFor(p, "Quill pens"), null, "a claimed Skill is not a proved Skill");
-  withClaimed(["Quill pens", "quill PENS", "punched cards"]);
-  p = readProfile(root);
-  assert.deepEqual(p.errors, ["profile.md: skills.claimed repeats quill PENS", "profile.md: skills.claimed names punched cards, which a Project proves; drop it from the claimed list"]);
-  withClaimed([""]);
-  assert.ok(readProfile(root).errors.some((e) => e.startsWith("profile.md: /skills/claimed/0")), "an empty name fails the schema");
+  const file = path.join(root, "skills.md");
+  fs.writeFileSync(file, "| skill | evidence |\n|---|---|\n| Quill pens |  |\n| Writing | gone |\n| Bernoulli numbers |  |\n");
+  const p = readProfile(root);
+  assert.deepEqual(p.listedSkills, ["Quill pens", "Bernoulli numbers"]);
+  assert.deepEqual(skillFor(p, "quill PENS"), { name: "Quill pens", evidence: [] });
+  assert.deepEqual(skillFor(p, "Bernoulli numbers"), { name: "Bernoulli numbers", evidence: ["engine"] }, "a keyword wins over its empty row");
+  assert.match(renderSkills(p), /4 Skills\.\n\n\| skill \| evidence \|\n\| --- \| --- \|\n\| Bernoulli numbers \| engine \|\n\| Punched cards \| engine, notes \|\n\| Quill pens \|  \|\n\| Writing \| notes \|\n$/);
 });
 
 test("repoRoot is CLAUDE_PROJECT_DIR when set, else the repo this module sits in, read on each call", () => {

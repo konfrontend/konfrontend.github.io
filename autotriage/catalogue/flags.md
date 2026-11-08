@@ -297,7 +297,7 @@ hard_stops:
 scores:
   scale: 1-5
   skill_fit:
-    # an item a proved or a claimed Skill names is covered; a claimed one is never a Gap
+    # an item a Skill names is covered
     "1": "core stack or domain absent from the Profile"
     "2": "half or less of the required items covered"
     "3": "most items covered, one Gap in a secondary item"
@@ -362,7 +362,7 @@ Risk Flags carry a Level; green Flags are Level 0; the stop Flag carries none. T
 
 ## Budget is a routing signal, not a risk
 
-Ambitious scope on a small budget means the client does not know what software costs. `budget-scope-mismatch` is level 1 and never escalates on its own: it is excluded from the "three or more level 2/3 Flags" step. It makes the `milestones` Slot price its own plan. A low fixed budget is never a hard stop on its own; the human sees the budget at the Checkpoint. The same holds for a posted hourly rate below the Profile rate or `terms.rate_floor`: the person bids their own rate, so the Checkpoint shows the posted rate against the Profile rate and no money hard stop exists on either route.
+Ambitious scope on a small budget means the client does not know what software costs. `budget-scope-mismatch` is level 1 and never escalates on its own: it is excluded from the "three or more level 2/3 Flags" step. It makes the `milestones` Slot price its own plan. A low fixed budget is never a hard stop on its own; the human sees the budget at the Checkpoint. The same holds for a posted hourly rate below the Profile rate: the person bids their own rate, so the Checkpoint shows the posted rate against the Profile rate and no money hard stop exists on either route.
 
 Client-priced test: a paid work trial whose price the client sets and pays (`$800 for completing the test`), usually with `paid-first-milestone`. The price is the client's hiring instrument, not a bid, so the Letter does not reprice it: the milestone lines carry no prices, no bid follows them, and `fact/arithmetic` has nothing to check. The rest of `budget-scope-mismatch` holds: the plan is ours, scoped to what the test period can carry.
 

@@ -2,7 +2,7 @@
 
 Full Stack Developer
 
-Gijon, Spain (UTC+2) • [cossamedia@gmail.com](mailto:cossamedia@gmail.com) • [github.com/konfrontend](https://github.com/konfrontend) • [linkedin.com/in/konstantin-dolbilov-94720b361](https://www.linkedin.com/in/konstantin-dolbilov-94720b361)
+Gijon, Spain (CET, UTC+1) • [cossamedia@gmail.com](mailto:cossamedia@gmail.com) • [github.com/konfrontend](https://github.com/konfrontend) • [linkedin.com/in/konstantin-dolbilov-94720b361](https://www.linkedin.com/in/konstantin-dolbilov-94720b361)
 
 Full stack developer with 10+ years shipping web products end to end in TypeScript and Java: React and Vue.js frontends, 3D graphics in WebGL, Node.js and Spring Boot REST APIs, Electron apps, and workflows for AI coding agents.
 
@@ -15,7 +15,7 @@ Full stack developer with 10+ years shipping web products end to end in TypeScri
 - Backend and data: Node.js, Hono, Spring Boot, REST API, Role-based access control (RBAC), PostgreSQL, SQLite, Drizzle ORM, Zod
 - Testing, build and DevOps: Vitest, Playwright, JUnit, Vite, Turborepo, GitHub Actions, CI/CD, Docker
 - AI tooling: Claude Code, Model Context Protocol (MCP), Agentic Workflows, Prompt Engineering
-- Methodologies: Agile/Scrum, Object-Oriented Programming (OOP), Domain Modeling, Architecture Decision Records
+- Methodologies: Agile/Scrum, Object-oriented Programming (OOP), Domain Modeling, Architecture Decision Records
 
 ## Professional Experience
 

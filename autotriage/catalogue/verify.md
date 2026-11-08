@@ -35,7 +35,6 @@ checks:
   - { id: length/sentence-cap,        by: model,  severity: warn, fix: patch, routes: [freelance, employment] }
   - { id: terms/hour-range,           by: script, severity: fail, fix: patch, routes: [freelance, employment] }
   - { id: terms/bounded-window,       by: script, severity: fail, fix: patch, routes: [freelance, employment] }
-  - { id: terms/rate-floor,           by: script, severity: warn, fix: none, routes: [freelance] }
   - { id: terms/forbidden-promise,    by: model,  severity: fail, fix: regenerate, routes: [freelance, employment] }
   - { id: fact/untraceable,           by: model,  severity: fail, fix: ask, routes: [freelance, employment] }
   - { id: fact/arithmetic,            by: model,  severity: warn, fix: none, routes: [freelance] }
@@ -56,7 +55,7 @@ Portable across Profiles. Personal inputs (the banned phrases, terms) come from 
 - `letter.md` of the current Candidate: body only, no frontmatter. The Letter ends at the sign-off line; the milestone lines and the bid after it are not part of it, and an optional fenced `Sent` block is skipped. An empty `letter.md` on the employment route is a resume-only application: valid, with no Letter in it.
 - `job.md`: `route`, `title`, `requirements`, the posting body (client facts, Job demands), and on the freelance route `flags`, from which the script recomputes the Alert Level and the Safeguards, and `rate` when the person set one.
 - The Version sent on the employment route: the Candidate's `version.md` when it exists, else `resume/versions/general.md`; its summary is what `intro` derives from.
-- Profile: `profile/profile.md` (`terms`; `skills.claimed`, a Letter source cited as `claimed Skill <name>`), the Skills (every Project's `keywords` and the claimed Skills: names for the acronym list), `profile/projects/<slug>.md` (traceability source: the frontmatter meta, the Overview, the Bullets by key and the Notes, harvested by the script into the brief), `profile/answers/<slug>.md` (a Letter source, cited as `Answer <slug>`), `voice.md` (`banned_phrases`).
+- Profile: `profile/profile.md` (`terms`), the Skills (`profile/skills.md`: names for the acronym list), `profile/projects/<slug>.md` (traceability source: the frontmatter meta, the Overview, the Bullets by key and the Notes, harvested by the script into the brief), `profile/answers/<slug>.md` (a Letter source, cited as `Answer <slug>`), `voice.md` (`banned_phrases`).
 - Catalogues: voice rules, Slot catalogue, the route's template, Flag catalogue.
 
 Nothing is stored. The report is session output; a Letter is final only after `verify` passes, so a stored pass carries no information.
@@ -134,15 +133,14 @@ Each length Check runs only when the route's template has the cap it reads; `let
 
 ### fact
 
-- `untraceable`: a fact with no source. The model lists every fact in the Letter (product name, URL, role, period, stack item, number, client quote) with its Slot and source: a Project's frontmatter field, its Overview, a Bullet by its key or a Notes line as the brief lists them, `Answer <slug>` for an Answer cited or tailored, `claimed Skill <name>` for a technology or practice `skills.claimed` lists, a `profile.md` field, the `job.md` body for client facts, or `derived` for prices and due dates `scripts/proposal.ts milestones` computed from the person's answers. Fix: ask the human once whether the fact is true. True: append it as one list line under `## Notes` of the matching `profile/projects/<slug>.md`, then regenerate the Slot. False or unknown: regenerate the Slot without it. No State edits an Overview.
+- `untraceable`: a fact with no source. The model lists every fact in the Letter (product name, URL, role, period, stack item, number, client quote) with its Slot and source: a Project's frontmatter field, its Overview, a Bullet by its key or a Notes line as the brief lists them, `Answer <slug>` for an Answer cited or tailored, a `profile.md` field, the `job.md` body for client facts, or `derived` for prices and due dates `scripts/proposal.ts milestones` computed from the person's answers. Fix: ask the human once whether the fact is true. True: append it as one list line under `## Notes` of the matching `profile/projects/<slug>.md`, then regenerate the Slot. False or unknown: regenerate the Slot without it. No State edits an Overview.
 - `arithmetic`: a milestone price that is not its hours times the rate (`job.md` `rate`, else Profile `terms.rate`), or a bid that does not sum the funded milestones. Warn.
 
 ### terms
 
 - `hour-range`: a clock time or an am/pm range in `terms`. Overlap is the client's part of the day, never hours they must convert.
 - `bounded-window`: `through the next`, `for the next`, `until` in `terms`. Availability is `available now` or `from <date>`.
-- `rate-floor`: `job.md` `rate` under Profile `terms.rate_floor`. Warn, no Fix: the rate is the person's call. Script.
-- `forbidden-promise`: a rate, a price or a total in the Letter body; subcontracting offered; weekly hours outside `terms.weekly_hours`; a start before `terms.availability_from`; a delivery date the plan does not derive. Generic promise words (`guarantee`, `unlimited revisions`, `24/7`) live in the Profile's `banned_phrases` so the script catches them.
+- `forbidden-promise`: a rate, a price or a total in the Letter body; subcontracting offered; a start before `terms.availability_from`; a delivery date the plan does not derive. Generic promise words (`guarantee`, `unlimited revisions`, `24/7`) live in the Profile's `banned_phrases` so the script catches them.
 
 ### closing
 
