@@ -12,13 +12,13 @@ Portfolio website for a tattoo artist.
 
 ### Multilingual SSG Website
 
-Eliminated hosting fees for the client by building a true multilingual SSG website in Nuxt 4 and Sanity Studio CMS, and serving from Cloudflare Worker.
+Eliminated hosting fees for the client by building a true multilingual SSG website in Nuxt 4 and Sanity Studio CMS, and serving it from Cloudflare Workers.
 
 ### WCAG
-Reached Core Web Vitals score of 100 and matched WCAG AA standard.
+Reached a Core Web Vitals score of 100 and matched the WCAG AA standard.
 
 ### LCP
-Raised mobile performance score from 85 to 99 and cut LCP from 3.6 s to 1.1 s with zero layout shift by introducing Low-Quality Image Placeholder (LQIP).
+Raised the mobile performance score from 85 to 99 and cut LCP from 3.6 s to 1.1 s with zero layout shift by introducing a Low-Quality Image Placeholder (LQIP).
 
 ### Tally
 Built zero-backend lead capture in a static website, using a Tally forms integration.

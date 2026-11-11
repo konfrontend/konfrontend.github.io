@@ -9,20 +9,20 @@ end: Present
 
 ## Description
 
-A local-first time-tracker / report generator app for macOS and Windows. Made to reduce spending on software subscriptions. Electron, React, TanStack, shadcn/ui, SQLite. 
-Released two major versions, covering everything from research and development (R&D) and competitor product analysis to design, implementation, and end-to-end (e2e) testing.
+A local-first time-tracker / report generator app for macOS and Windows. Made to reduce spending on software subscriptions. Electron, React, TanStack, shadcn/ui, SQLite.
+Released two major versions, covering everything from research and development (R&D) and competitor product analysis to design, implementation, and end-to-end (E2E) testing.
 
 ### Optional Sync Server
 
-Complimented a local-first app with an optional sync server, unlocking a team work capability for the product.
+Complemented a local-first app with an optional sync server, unlocking a teamwork capability for the product.
 
-`Electron`, `React`, `SQLite`, `Zod`, `PostgreSQL`, `Drizzle ORM`, `Object-Relational Mapper (ORM)`, `TanStack Query`, `TanStack Router`, `Playwright`, `Vitest`, `Docker`,  `Turborepo`, `Cloudflare Tunnel`
+`Electron`, `React`, `SQLite`, `Zod`, `PostgreSQL`, `Drizzle ORM`, `Object-Relational Mapper (ORM)`, `TanStack Query`, `TanStack Router`, `Playwright`, `Vitest`, `Docker`, `Turborepo`, `Cloudflare Tunnel`
 
 ***
 
 ## Notes
 
-[agent-workflow] Shipped 70 pull requests in 5 weeks solo with AI coding agents, working from a glossary, data rules, and decisions settled before code, under agent rules, skills.
+[agent-workflow] Shipped 70 pull requests in 5 weeks solo with AI coding agents, working from a glossary, data rules, and decisions settled before code, under agent rules and skills.
 
 [timer-shutdown] Saved the running timer as stopped on quit, logoff, or shutdown, and held a single-instance lock so no second process writes the same SQLite file.
 
