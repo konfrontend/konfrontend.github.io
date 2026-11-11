@@ -42,8 +42,7 @@ test("the write hook finds every artifact by path, under the root", () => {
     assert.equal(candidateSchemaForPath(path.join(folder, "cover-letter.md")), null, "no such file any more");
     assert.equal(schemaForPath(files.job), null, "the Profile half knows no Candidate file");
     assert.equal(schemaForPath(path.join(root, "profile", "profile.md")), "profile");
-    assert.equal(schemaForPath(path.join(root, "profile", "projects", "acme.md")), "project");
-    assert.equal(schemaForPath(path.join(root, "profile", "skills.md")), null, "generated files have no schema");
+    assert.equal(schemaForPath(path.join(root, "profile", "projects", "acme.md")), null, "a Project file has no schema");
     assert.equal(schemaForPath(path.join(root, "profile", "answers", "why.md")), null);
   } finally {
     if (prev === undefined) delete process.env.CLAUDE_PROJECT_DIR; else process.env.CLAUDE_PROJECT_DIR = prev;

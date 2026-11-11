@@ -1,11 +1,9 @@
 ---
-name: Loadster
 url: https://loadster.com
 role: Full Stack Developer
 employment: contract
 start: Mar 2019
 end: Present
-keywords: [TypeScript, Java, SQL, Object-oriented Programming (OOP), Vue.js, Vue Router, Vuex, Tailwind CSS, Design Systems, Responsive Design, i18n, Monaco Editor, Hugo, Canvas API, Service Workers, SharedWorker, Web Workers, WebSockets, Shadow DOM, IntersectionObserver, WebExtension API, Manifest V3, Chrome DevTools Protocol, Node.js, Spring Boot, REST API, OpenAPI, Model Context Protocol (MCP), Jackson, Pusher, MariaDB, InfluxDB, Flyway, Vitest, Playwright, JUnit, GitHub Actions, CI/CD, Code Review, Docker, Vite, webpack, npm workspaces, Role-based access control (RBAC), Content Security Policy, Claude Code, Agentic Workflows, AWS (S3), Stripe, Third-party integrations / webhooks]
 ---
 # Loadster
 
@@ -19,32 +17,36 @@ Authored a Human-in-the-Loop AI-assisted engineering workflow, increasing the mo
 
 ***
 
-### [free-speed-test-funnel]
+### Free Speed Test Funnel
 Optimized UI/UX in a free trial flow, increasing sign-up conversion by 20%.
 
 ***
 
-### [mcp-server]
+### MCP Server
 Built the MCP server in a Spring AI framework with role-based access control (RBAC) levels, from read-only to executing. MCP client got approved by public marketplaces and is supported in Claude Code, Codex, ChatGPT, and Cursor. 
 
-[mcp-testing] Introduced a deterministic approach to MCP development, reducing the time to release new versions from weeks to days.
+### MCP Testing
+Introduced a deterministic approach to MCP development, reducing the time to release new versions from weeks to days.
 
 ***
 
-### [frontend-architecture]
+### Frontend Architecture
 Shipped 300+ Vue 3 components, shared by 3 user-facing products and following the brand design system.
 
-[load-test-scripting] Built script editor's GUI with revision history, undo/redo stack.
+### Load Test Scripting
+Built script editor's GUI with revision history, undo/redo stack.
 
-[pusher-worker] Moved the Pusher client into a SharedWorker, so all tabs in a browser share one WebSocket and get the same events from the backend. This brings conflict resolution, notification system, and updates delivery to the user-facing product.
+### Pusher Worker
+Moved the Pusher client into a SharedWorker, so all tabs in a browser share one WebSocket and get the same events from the backend. This brings conflict resolution, notification system, and updates delivery to the user-facing product.
 
-[vue3-migration] Performed the progressive migration from JavaScript/Webpack/Vue2 to TypeScript/Vite/Vitest/Vue3, introducing type safety, unit testing, and reducing build time to seconds.
+### Vue 3 Migration
+Performed the progressive migration from JavaScript/Webpack/Vue2 to TypeScript/Vite/Vitest/Vue3, introducing type safety, unit testing, and reducing build time to seconds.
 
 `Vue 3`, `Composition API`, `Tailwind CSS 4`, `npm workspaces`
 
 ***
 
-### [data-visualization]
+### Data Visualization
 Built interactive 2D data-visualization components for real-time metrics rendering, featuring live-update, filters, zoom, aggregation, and public sharing (CSV, PDF, public URL) for business purposes.
 
 `IntersectionObserver`, `RequestAnimationFrame (RAF)`, `HTML5 Canvas`, `SVG`
@@ -57,7 +59,9 @@ Co-authored the public Loadster Recorder Extension, used by 4000 users and rated
 
 `TypeScript`, `WebExtension API`, `Service Workers API`, `Shadow DOM`, `Chrome DevTools Protocol (CDP)`, `Playwright`, `ARIA`, `Vue 3`, `Manifest V3`
 
-## Miscellaneous
+***
+
+## Notes
 
 [status-pages] Shipped public status pages with per-monitor summaries and open incidents, built as a separate Vite entry so visitors skip the dashboard bundle.
 [CI/CD] GitHub Actions CI with npm audit and dependency scanning.

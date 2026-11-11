@@ -10,8 +10,8 @@ export const AUTOTRIAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.me
 
 registerSchemaDir(path.join(AUTOTRIAGE_ROOT, "schemas"));
 
-export { readArtifact, writeArtifact, splitFrontmatter, readProfile, skills, skillFor } from "../../profile/lib/index.ts";
-export type { Artifact, Frontmatter, Profile, Project, Bullet, Skill } from "../../profile/lib/index.ts";
+export { readArtifact, writeArtifact, splitFrontmatter, readProfile, keywords } from "../../profile/lib/index.ts";
+export type { Artifact, Frontmatter, Profile, Project, Bullet } from "../../profile/lib/index.ts";
 
 export class Refusal extends Error {
   constructor(message: string) {
@@ -67,14 +67,13 @@ export function inferRoute(text: string): { route: Route; inferred: boolean } | 
   return null;
 }
 
-// Which Profile schema a path validates against, or null when the path is not a Profile file. The
-// Candidate half is candidateSchemaForPath in candidate.ts.
-export function schemaForPath(file: string): "profile" | "voice" | "project" | null {
+// Which Profile schema a path validates against, or null when the path is not one. A Project file has
+// none. The Candidate half is candidateSchemaForPath in candidate.ts.
+export function schemaForPath(file: string): "profile" | "voice" | null {
   const rel = path.relative(path.join(repoRoot(), "profile"), path.resolve(file)).split(path.sep).join("/");
   if (rel.startsWith("..") || path.isAbsolute(rel)) return null;
   if (rel === "profile.md") return "profile";
   if (rel === "voice.md") return "voice";
-  if (/^projects\/[^/]+\.md$/.test(rel)) return "project";
   return null;
 }
 

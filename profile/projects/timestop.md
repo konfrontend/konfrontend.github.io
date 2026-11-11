@@ -1,32 +1,24 @@
 ---
-name: timestop
 url: https://github.com/konfrontend/timestop
 role: Author & Sole Full Stack Developer
 employment: independent
 start: Aug 2026
 end: Present
-keywords: [TypeScript, React, Electron, Node.js, Hono, Tailwind CSS, shadcn/ui, TanStack Query, Playwright, Vitest, GitHub Actions, IPC, npm workspaces]
 ---
 # timestop
 
-<!-- Description -->
+## Description
 
 A local-first time-tracker / report generator app for macOS and Windows. Made to reduce spending on software subscriptions. Electron, React, TanStack, shadcn/ui, SQLite. 
 Released two major versions, covering everything from research and development (R&D) and competitor product analysis to design, implementation, and end-to-end (e2e) testing.
-
-***
-
-<!-- Bullets -->
 
 ### Optional Sync Server
 
 Complimented a local-first app with an optional sync server, unlocking a team work capability for the product.
 
-***
-
-## Keywords
-
 `Electron`, `React`, `SQLite`, `Zod`, `PostgreSQL`, `Drizzle ORM`, `Object-Relational Mapper (ORM)`, `TanStack Query`, `TanStack Router`, `Playwright`, `Vitest`, `Docker`,  `Turborepo`, `Cloudflare Tunnel`
+
+***
 
 ## Notes
 

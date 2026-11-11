@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "profile.md frontmatter: the person's identity, contact and terms. Skills are never declared here; they live in skills.md.",
+  "title": "profile.md frontmatter: the person's identity, contact and terms..",
   "type": "object",
   "required": ["identity", "contact", "terms"],
   "additionalProperties": false,

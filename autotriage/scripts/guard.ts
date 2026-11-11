@@ -14,13 +14,11 @@ export const ORDER: State[] = ["intake", "triage", "proposal", "verify"];
 interface Ctx { state: State; candidate?: string; out: string[] }
 type Guard = (ctx: Ctx) => void;
 
-// Level 1: profile.md valid (triage reads it). Level 2: every Profile file valid and one Project at
-// least (the Letter States cite the Overviews, the Bullets and the voice).
-function profileGate(state: State, level: 1 | 2): Profile {
+// The Letter States need one Project at least (they cite the Descriptions and the Bullets). A Profile
+// error refuses nothing: a script that cannot use a Profile file reports its own problem.
+function profileGate(state: State): Profile {
   const p = profile();
-  const errors = level === 1 ? p.errors.filter((e) => e.startsWith("profile.md")) : p.errors;
-  if (errors.length) refuse(state, `the Profile has ${errors.length} error${errors.length === 1 ? "" : "s"}:\n  ${errors.join("\n  ")}`, "Fix the file by hand.");
-  if (level === 2 && !p.projects.length) refuse(state, "no Project file under profile/projects/.", "Add at least one Project file (profile/schemas/project.schema.json, Bullets with keys).");
+  if (!p.projects.length) refuse(state, "no Project file under profile/projects/.", "Add at least one Project file.");
   return p;
 }
 
@@ -64,11 +62,10 @@ const GUARDS: Record<State, Guard> = {
     out.push(`Today: ${today}`, known.length ? `Known Candidates:\n  ${known.join("\n  ")}` : "No Candidates yet.");
   },
   route: ({ state, out }) => {
-    profileGate(state, 2);
+    profileGate(state);
     out.push("Profile gate passed.");
   },
   triage: ({ state, candidate, out }) => {
-    profileGate(state, 1);
     const { files, route, fm } = candidateGate(state, candidate);
     if (fs.existsSync(files.letter)) refuse(state, `private/candidates/${candidate}/letter.md already exists; the Route has passed triage.`, `Run /route-verify ${candidate} or start a new Candidate.`);
     out.push(`Candidate: private/candidates/${candidate}`, `Route: ${route}`, `Title: ${fm.title}`);
@@ -79,7 +76,7 @@ const GUARDS: Record<State, Guard> = {
     if (fm.requirements?.length) out.push(`Note: requirements already recorded (${fm.requirements.length}); the Checkpoint rewrites them.`);
   },
   proposal: ({ state, candidate, out }) => {
-    profileGate(state, 2);
+    profileGate(state);
     const { files, route, fm } = candidateGate(state, candidate);
     verdictGate(state, candidate!, fm);
     if (fs.existsSync(files.letter)) out.push("Note: letter.md exists; this run rewrites it.");
@@ -87,7 +84,7 @@ const GUARDS: Record<State, Guard> = {
     if (route === "freelance") out.push(`Flags: ${(fm.flags ?? []).join(", ") || "none"}`);
   },
   verify: ({ state, candidate, out }) => {
-    profileGate(state, 2);
+    profileGate(state);
     const { dir, route, fm } = candidateGate(state, candidate);
     verdictGate(state, candidate!, fm);
     letterGate(state, candidate!, dir, `Run /route-proposal ${candidate} first.`);

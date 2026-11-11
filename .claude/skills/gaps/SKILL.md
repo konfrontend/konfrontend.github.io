@@ -3,7 +3,7 @@ name: gaps
 description: Print the Gap print - every Gap and every Skill a Job asked for, with how many Candidates asked - from the Candidates' requirements and the Skills.
 argument-hint: "print"
 ---
-The Gap print derives from every dated Candidate's `requirements` in `job.md` under `private/candidates/`, no-go Candidates included, and from the Skills in `profile/skills.md` (catalogue `autotriage/catalogue/candidate-artifacts.md`, the Gap print section; `GLOSSARY.md`: Gap, Gap print). Rendering is the script's; `print` shows its output and nothing else. Nothing is stored and nothing is declared: a Gap exists only because a Job required it, and it never enters a Letter or a Version.
+The Gap print derives from every dated Candidate's `requirements` in `job.md` under `private/candidates/`, no-go Candidates included, and from the Keywords of the Projects' Bullet groups in `profile/projects/*.md` (catalogue `autotriage/catalogue/candidate-artifacts.md`, the Gap print section; `GLOSSARY.md`: Gap, Gap print). Rendering is the script's; `print` shows its output and nothing else. Nothing is stored and nothing is declared: a Gap exists only because a Job required it, and it never enters a Letter or a Version.
 
 ## Commands
 

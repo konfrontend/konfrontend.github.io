@@ -14,13 +14,13 @@ const H = slotCatalogue.headers;
 const cap = (id: string) => slotCatalogue.slots.find((s) => s.id === id)!.cap;
 
 const profile = { terms: { rate: 60 } };
-const skillNames = ["TypeScript", "React", "Postgres"];
+const keywordNames = ["TypeScript", "React", "Postgres"];
 const voice = { language: "en-US", greeting: { freelance: "Hi,", employment: "Hello," }, sign_off: "Kon", banned_phrases: ["I'm excited", "synergy", "I am writing to apply"] };
-const bullet = { key: "rbac-admin", text: "Built the RBAC admin and the SAML login." };
+const bullet = { anchor: "rbac-admin", title: "RBAC Admin", text: "Built the RBAC admin and the SAML login.", keywords: ["TypeScript"] };
 const projects: Project[] = [{
-  slug: "acme", file: "acme.md", errors: [],
-  meta: { name: "Acme", url: "https://acme.example", role: "Full Stack Developer", employment: "contract", start: "2021-02", naming: "public", description: "B2B dashboard.", keywords: ["TypeScript"] },
-  overview: "Built the admin over SSO.", bullets: [bullet], notes: ["Collaborator and admin roles."], warnings: [],
+  slug: "acme", file: "acme.md", name: "Acme",
+  meta: { url: "https://acme.example", role: "Full Stack Developer", employment: "contract", start: "2021-02" },
+  description: "Built the admin over SSO.", bullets: [bullet], keywords: ["TypeScript"], notes: ["Collaborator and admin roles."],
 }];
 const answers = [{ slug: "how-test-tenant-isolation", question: "How have you tested that one customer organisation cannot access another organisation's records?" }];
 const job = (flags = ["regulated-domain"], body = "Client wants a HIPAA review of a PHI pipeline. Budget $2,000.", rate?: number) => ({
@@ -49,7 +49,7 @@ Happy to answer whatever questions remain, here in Upwork Messages.
 Kon`;
 
 function run(body: string, { flags, candidate = "2026-09-20-acme-audit", jobBody, rate }: { flags?: string[]; candidate?: string; jobBody?: string; rate?: number } = {}) {
-  return analyse({ candidate, letter: { body }, job: job(flags, jobBody, rate), profile, skillNames, voice, projects, answers });
+  return analyse({ candidate, letter: { body }, job: job(flags, jobBody, rate), profile, keywordNames, voice, projects, answers });
 }
 const ids = (r: Analysis) => r.findings.map((f) => f.id);
 const has = (r: Analysis, id: string) => r.findings.some((f) => f.id === id);
@@ -62,13 +62,13 @@ test("clean Letter with the deliverables plan Slot passes the script Checks; the
   assert.equal(r.brief.plan_slot, "deliverables");
   assert.equal(r.brief.alert_level, 2, "recomputed from the stored flags");
   assert.equal(r.brief.safeguards[0].slot, "deliverables", "plan resolves to the plan Slot present");
-  assert.deepEqual(r.brief.skills, ["TypeScript", "React", "Postgres"], "the brief lists the Profile's Skills");
+  assert.deepEqual(r.brief.keywords, ["TypeScript", "React", "Postgres"], "the brief lists the Profile's Keywords");
   assert.deepEqual(r.brief.answers, answers, "the brief lists the Answers as a Letter source");
   assert.deepEqual(r.brief.projects.map((p: any) => [p.slug, p.name, p.url, p.period, p.bullets.length, p.notes]), [["acme", "Acme", "https://acme.example", "2021-02 – present", 1, ["Collaborator and admin roles."]]], "the brief harvests the Project facts from the meta, the Bullets and the Notes");
-  assert.deepEqual(r.brief.projects[0].bullets[0], { key: "rbac-admin", text: "Built the RBAC admin and the SAML login." });
+  assert.deepEqual(r.brief.projects[0].bullets[0], bullet);
   const out = render(r);
-  assert.match(out, /acme: Acme \(https:\/\/acme\.example\), Full Stack Developer, contract, 2021-02 – present, naming public, 1 Bullets, 1 Notes\n/);
-  assert.ok(!out.includes("Built the RBAC admin") && !out.includes("Overview:"), "the output names each Project once and dumps no Bullet; the model reads the Project file");
+  assert.match(out, /acme: Acme \(https:\/\/acme\.example\), Full Stack Developer, contract, 2021-02 – present, 1 Bullets, 1 Notes\n/);
+  assert.ok(!out.includes("Built the RBAC admin") && !out.includes("Description:"), "the output names each Project once and dumps no Bullet; the model reads the Project file");
   assert.match(out, /how-test-tenant-isolation: How have you tested/);
   assert.ok(!/[Ff]amily/.test(out));
 });
@@ -121,7 +121,7 @@ test("format: markdown, emoji, all-caps, indentation, contact, url count; no url
   assert.ok(has(r, "format/markdown"));
   assert.ok(has(r, "format/emoji"));
   assert.ok(r.findings.some((f) => f.id === "format/all-caps" && f.detail.includes("SHOUTING")));
-  assert.ok(!r.findings.some((f) => f.id === "format/all-caps" && /RBAC|SAML|SSO|PHI|HIPAA/.test(f.detail)), "acronyms from the Profile, the Projects (Overview included), and the Job are allowed");
+  assert.ok(!r.findings.some((f) => f.id === "format/all-caps" && /RBAC|SAML|SSO|PHI|HIPAA/.test(f.detail)), "acronyms from the Profile, the Projects (Description included), and the Job are allowed");
   assert.ok(has(r, "format/indentation"));
   assert.ok(r.findings.filter((f) => f.id === "format/contact").length >= 2);
   assert.ok(r.findings.some((f) => f.id === "format/url-count" && f.detail.includes("not https")));
@@ -131,7 +131,7 @@ test("format: markdown, emoji, all-caps, indentation, contact, url count; no url
 
 test("format/all-caps ignores known abbreviations: the acronym list (R3F) and Skill names", () => {
   assert.ok(!has(run(cleanAudit.replace("Built the RBAC admin", "Built the 3D editor in R3F and GLSL")), "format/all-caps"));
-  const skill = analyse({ candidate: "2026-09-20-acme-audit", letter: { body: cleanAudit.replace("Built the RBAC admin", "Built the TSL admin") }, job: job(), profile, skillNames: [...skillNames, "TSL"], voice, projects, answers });
+  const skill = analyse({ candidate: "2026-09-20-acme-audit", letter: { body: cleanAudit.replace("Built the RBAC admin", "Built the TSL admin") }, job: job(), profile, keywordNames: [...keywordNames, "TSL"], voice, projects, answers });
   assert.ok(!has(skill, "format/all-caps"), ids(skill).join());
   const unknown = run(cleanAudit.replace("Built the RBAC admin", "Built the QZX admin"));
   assert.ok(unknown.findings.some((f) => f.id === "format/all-caps" && f.detail.includes("QZX")), ids(unknown).join());
@@ -169,7 +169,7 @@ test("slot/extra: a Slot the template no longer lists (gaps, stack, follow_on he
   const r = run(cleanAudit.replace("Madrid, Spain", "Gaps:\nNo HIPAA project yet.\n\nMadrid, Spain"));
   assert.equal(r.slots.find((s) => s.demand === "Gaps")?.id, "answers", "an unknown header is an answers paragraph, never a gaps Slot");
   assert.ok(!has(r, "slot/extra"));
-  const emp = analyse({ candidate: "2026-10-16-acme-frontend", letter: { body: cleanAudit }, job: { frontmatter: { route: "employment", verdict: "go" }, body: "" }, profile, skillNames, voice, projects });
+  const emp = analyse({ candidate: "2026-10-16-acme-frontend", letter: { body: cleanAudit }, job: { frontmatter: { route: "employment", verdict: "go" }, body: "" }, profile, keywordNames, voice, projects });
   assert.ok(emp.findings.some((f) => f.id === "slot/parse"), "a freelance Letter does not read as a cover letter");
 });
 
@@ -274,7 +274,7 @@ Happy to answer any questions about my work.
 Kon`;
 
 function runCover(body: string, { candidate = "2026-10-16-acme-frontend" } = {}) {
-  return analyse({ candidate, letter: { body }, job: employmentJob(), profile, skillNames, voice, projects, answers });
+  return analyse({ candidate, letter: { body }, job: employmentJob(), profile, keywordNames, voice, projects, answers });
 }
 
 test("clean cover letter passes the script Checks within the template's character cap", () => {

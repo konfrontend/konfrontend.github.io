@@ -1,9 +1,8 @@
-// Profile commands. `check` runs the Profile check: every error printed, exit 1 when there is one,
-// warnings printed either way. `build` checks, then writes the generated skills.md.
-// CLI: node lib/cli.ts build|check [--root <profile dir>]
-import fs from "node:fs";
+// Profile command. `check` runs the Profile check on profile.md, voice.md and the Answers: every error
+// printed, exit 1 when there is one. A Project file is read as written and never fails it.
+// CLI: node lib/cli.ts check [--root <profile dir>]
 import path from "node:path";
-import { readProfile, renderSkills, repoRoot, skills } from "./index.ts";
+import { keywords, readProfile } from "./index.ts";
 
 function flag(args: string[], name: string): string | undefined {
   const i = args.indexOf(name);
@@ -11,24 +10,16 @@ function flag(args: string[], name: string): string | undefined {
 }
 
 const args = process.argv.slice(2);
-const cmd = args[0];
 const root = flag(args, "--root");
 
-if (cmd === "check" || cmd === "build") {
+if (args[0] === "check") {
   const profile = readProfile(root === undefined ? undefined : path.resolve(root));
-  for (const w of profile.warnings) console.error(`warning: ${w}`);
   if (profile.errors.length) {
     console.error(`profile: ${profile.errors.length} error${profile.errors.length === 1 ? "" : "s"}\n  ${profile.errors.join("\n  ")}`);
     process.exit(1);
   }
-  const count = `${profile.projects.length} Projects, ${profile.projects.reduce((n, p) => n + p.bullets.length, 0)} Bullets, ${skills(profile).length} Skills, ${profile.answers.length} Answers`;
-  if (cmd === "build") {
-    fs.writeFileSync(profile.files.skills, renderSkills(profile));
-    console.log(`Wrote ${path.relative(repoRoot(), profile.files.skills)} (${count})`);
-  } else {
-    console.log(`profile ok: ${count}`);
-  }
+  console.log(`profile ok: ${profile.projects.length} Projects, ${profile.projects.reduce((n, p) => n + p.bullets.length, 0)} Bullets, ${keywords(profile).length} Keywords, ${profile.answers.length} Answers`);
 } else {
-  console.error("usage: cli.ts build|check [--root <profile dir>]");
+  console.error("usage: cli.ts check [--root <profile dir>]");
   process.exit(2);
 }

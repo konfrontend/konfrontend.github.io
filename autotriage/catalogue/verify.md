@@ -54,7 +54,7 @@ Portable across Profiles. Personal inputs (the banned phrases, terms) come from 
 
 - `letter.md` of the current Candidate: body only, no frontmatter. The Letter ends at the sign-off line; the milestone lines and the bid after it are not part of it, and an optional fenced `Sent` block is skipped. An empty `letter.md` on the employment route is a resume-only application: valid, with no Letter in it.
 - `job.md`: `route`, `title`, `requirements`, the posting body (client facts, Job demands), and on the freelance route `flags`, from which the script recomputes the Alert Level and the Safeguards, and `rate` when the person set one.
-- Profile: `profile/profile.md` (`terms`), the Skills (`profile/skills.md`: names for the acronym list), `profile/projects/<slug>.md` (traceability source: the frontmatter meta, the Overview, the Bullets by key and the Notes, harvested by the script into the brief), `profile/answers/<slug>.md` (a Letter source, cited as `Answer <slug>`), `voice.md` (`banned_phrases`).
+- Profile: `profile/profile.md` (`terms`), `profile/projects/<slug>.md` (traceability source: the frontmatter meta, the name, the Description, the Bullets by heading and the Notes, harvested by the script into the brief; the Bullet groups' Keywords also feed the acronym list), `profile/answers/<slug>.md` (a Letter source, cited as `Answer <slug>`), `voice.md` (`banned_phrases`).
 - Catalogues: voice rules, Slot catalogue, the route's template, Flag catalogue.
 
 Nothing is stored. The report is session output; a Letter is final only after `verify` passes, so a stored pass carries no information.
@@ -81,7 +81,7 @@ A cover letter with fewer than five blocks, more than six, or any header line ra
 
 Blocks are separated by one blank line. A Letter this procedure cannot segment (too few blocks, a header where none is allowed, a block without a header straight after the hook, the same header twice) raises `slot/parse` and stops for the human. Hand-edited Letters go through the same procedure.
 
-`scripts/verify.ts <candidate>` reads the route from `job.md`, runs the segmentation and every script Check of the route, and prints the Findings, the Slot map with line numbers, the counts, and the brief for the model pass (route and template, the plan Slot, the Alert Level recomputed from `flags`, the Safeguards to look for with their target Slot, `when: job asks` Slots present, the lines after the sign-off, Profile terms and the Job's `rate`, one line per Project, the Answers). The Project's Overview, Bullets and Notes are read from its file, never printed. Exit 1 while any script Check fails. An empty `letter.md` on the employment route is a resume-only application: the script prints `letter pass: skipped` and nothing else runs. Its fixtures in `scripts/verify.test.ts` seed one Finding per Check group, on both routes.
+`scripts/verify.ts <candidate>` reads the route from `job.md`, runs the segmentation and every script Check of the route, and prints the Findings, the Slot map with line numbers, the counts, and the brief for the model pass (route and template, the plan Slot, the Alert Level recomputed from `flags`, the Safeguards to look for with their target Slot, `when: job asks` Slots present, the lines after the sign-off, Profile terms and the Job's `rate`, one line per Project, the Answers). The Project's Description, Bullets and Notes are read from its file, never printed. Exit 1 while any script Check fails. An empty `letter.md` on the employment route is a resume-only application: the script prints `letter pass: skipped` and nothing else runs. Its fixtures in `scripts/verify.test.ts` seed one Finding per Check group, on both routes.
 
 ## Checks
 
@@ -105,7 +105,7 @@ Script Checks read text and counts; model Checks read meaning. The script runs f
 
 - `markdown`: `**`, `*`, `_` used as emphasis, `#` at line start, `[text](url)`, `>` at line start, backticks.
 - `emoji`: any emoji or pictographic character.
-- `all-caps`: a word of three or more capitals that is not a known abbreviation: one the Skills name, one in the script's acronym list (URL, API, MVP, HIPAA, R3F), or one the Project files or the Job body use.
+- `all-caps`: a word of three or more capitals that is not a known abbreviation: one the Keywords name, one in the script's acronym list (URL, API, MVP, HIPAA, R3F), or one the Project files or the Job body use.
 - `indentation`: a line starting with a space or tab.
 - `contact`: email, phone number, `@handle`, messenger or social handle, booking-page domain. Both routes: the platform carries contact on the freelance route, the application form and the PDF on the employment route.
 - `url-count`: any URL that is not `https://`. The number of links is not capped.
@@ -132,7 +132,7 @@ Each length Check runs only when the route's template has the cap it reads; `let
 
 ### fact
 
-- `untraceable`: a fact with no source. The model lists every fact in the Letter (product name, URL, role, period, stack item, number, client quote) with its Slot and source: a Project's frontmatter field, its Overview, a Bullet by its key or a Notes line as the brief lists them, `Answer <slug>` for an Answer cited or tailored, a `profile.md` field, the `job.md` body for client facts, or `derived` for prices and due dates `scripts/proposal.ts milestones` computed from the person's answers. Fix: ask the human once whether the fact is true. True: append it as one list line under `## Notes` of the matching `profile/projects/<slug>.md`, then regenerate the Slot. False or unknown: regenerate the Slot without it. No State edits an Overview.
+- `untraceable`: a fact with no source. The model lists every fact in the Letter (product name, URL, role, period, stack item, number, client quote) with its Slot and source: a Project's frontmatter field, its name, its Description, a Bullet by its heading or a Notes line as the brief lists them, `Answer <slug>` for an Answer cited or tailored, a `profile.md` field, the `job.md` body for client facts, or `derived` for prices and due dates `scripts/proposal.ts milestones` computed from the person's answers. Fix: ask the human once whether the fact is true. True: append it as one line under `## Notes` of the matching `profile/projects/<slug>.md`, then regenerate the Slot. False or unknown: regenerate the Slot without it. No State edits a Description.
 - `arithmetic`: a milestone price that is not its hours times the rate (`job.md` `rate`, else Profile `terms.rate`), or a bid that does not sum the funded milestones. Warn.
 
 ### terms

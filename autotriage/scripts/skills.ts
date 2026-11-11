@@ -1,7 +1,7 @@
-// Skill matching for triage: which canonical Skills a Job item names, whole words, case-insensitive.
-// The Skills are the Profile's, read through profile/lib; nothing is stored here.
+// Keyword matching for triage: which Keywords a Job item names, whole words, case-insensitive.
+// The Keywords are the Projects' Bullet groups', read through profile/lib; nothing is stored here.
 // CLI: node scripts/skills.ts match <item>...
-import { profile, skills } from "./lib.ts";
+import { profile, keywords } from "./lib.ts";
 
 function escapeRe(s: string): string { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
 export function termRe(term: string): RegExp {
@@ -24,6 +24,6 @@ export function matchItem(names: string[], item: string): string[] {
 if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
   const [cmd, ...args] = process.argv.slice(2);
   if (cmd !== "match" || !args.length) { console.error("usage: skills.ts match <item>..."); process.exit(2); }
-  const names = skills(profile()).map((s) => s.name);
-  for (const item of args) console.log(`${item}: ${matchItem(names, item).join(", ") || "(no Skill)"}`);
+  const names = keywords(profile());
+  for (const item of args) console.log(`${item}: ${matchItem(names, item).join(", ") || "(no Keyword)"}`);
 }
