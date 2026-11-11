@@ -1,10 +1,10 @@
-// The Keyword lines of a Version filled from its picked Bullets' groups. Run: npm test
+// The Keywords each marker of a Version is offered, ranked from its picked Bullets' groups. Run: npm test
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { fillKeywords } from "./keywords.ts";
+import { rankKeywords } from "./keywords.ts";
 
 const ACME = `---
 url: https://acme.test
@@ -47,8 +47,8 @@ function version(text: string): string {
   return file;
 }
 
-test("a marker becomes the union of the picked Bullets' groups, deduplicated, most repeated first", () => {
-  const file = version(`### [Acme](../projects/acme.md)
+test("each marker is offered the union of the picked Bullets' groups, deduplicated, most repeated first; the file is untouched", () => {
+  const text = `### [Acme](../projects/acme.md)
 
 * [Charts](../projects/acme.md#charts)
 * [Tables](../projects/acme.md#tables)
@@ -56,19 +56,13 @@ test("a marker becomes the union of the picked Bullets' groups, deduplicated, mo
 * [Docs](../projects/acme.md#docs)
 
 {{keywords}}
-`);
-  assert.deepEqual(fillKeywords(file), {
+`;
+  const file = version(text);
+  assert.deepEqual(rankKeywords(file), {
+    markers: [{ line: 8, project: "Acme", keywords: ["TypeScript", "Shadow DOM", "Canvas", "SVG", "Markdown"] }],
     reports: [],
-    text: `### [Acme](../projects/acme.md)
-
-* [Charts](../projects/acme.md#charts)
-* [Tables](../projects/acme.md#tables)
-* [Recorder](../projects/acme.md#recorder)
-* [Docs](../projects/acme.md#docs)
-
-\`TypeScript\`, \`Shadow DOM\`, \`Canvas\`, \`SVG\`, \`Markdown\`
-`,
   });
+  assert.equal(fs.readFileSync(file, "utf8"), text);
 });
 
 test("an existing Keyword line is left untouched and the Keywords it lacks are reported", () => {
@@ -79,14 +73,13 @@ test("an existing Keyword line is left untouched and the Keywords it lacks are r
 
 \`typescript\`
 `;
-  const file = version(text);
-  assert.deepEqual(fillKeywords(file), {
-    text,
+  assert.deepEqual(rankKeywords(version(text)), {
+    markers: [],
     reports: ["line 1 Acme: the Keyword line lacks `Shadow DOM`, `Markdown`"],
   });
 });
 
-test("a marker under a Project that picks no Bullet is kept and reported", () => {
+test("a marker under a Project that picks no Bullet is offered nothing and reported", () => {
   const text = "### [Acme](../projects/acme.md)\n\n* [Gone](../projects/acme.md#gone)\n\n{{keywords}}\n";
-  assert.deepEqual(fillKeywords(version(text)), { text, reports: ["line 1 Acme: no Bullet picked, the marker is kept"] });
+  assert.deepEqual(rankKeywords(version(text)), { markers: [], reports: ["line 1 Acme: no Bullet picked, nothing to offer for the marker on line 5"] });
 });

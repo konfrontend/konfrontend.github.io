@@ -1,17 +1,19 @@
-// The Keyword lines of a Version. Under each Project heading, a {{keywords}} marker is overwritten with one
-// line of backtick Keywords: the union over the groups of the Bullets picked under that Project, once each
-// (case-insensitive, in the first spelling), the Keywords in the most groups first, ties in the order they
-// first appear. The person then trims the line by hand. A Project that already has a Keyword line keeps it
-// untouched; the Keywords it lacks are reported instead. A link resolve cannot fill picks nothing here; a
-// marker whose Project picks no Bullet is kept and reported.
-// CLI: node profile/versions/keywords.ts <version.md>   (rewrites the file, prints the reports)
+// The Keywords a Version's {{keywords}} markers are offered. Under each Project heading, a marker is offered
+// the union over the groups of the Bullets picked under that Project, once each (case-insensitive, in the
+// first spelling), the Keywords in the most groups first, ties in the order they first appear. The person
+// picks from that list at print time; nothing here writes the Version. A Project with a hand-written Keyword
+// line prints it as written; the Keywords it lacks are reported. A link resolve cannot fill picks nothing
+// here; a marker whose Project picks no Bullet is offered nothing and reported.
+// CLI: node profile/versions/keywords.ts <version.md>   (one line per marker: its line, the Project, the ranked
+// Keywords; then the reports)
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { KEYWORD_LINE, readProject, type Bullet } from "../lib/index.ts";
 import { BULLET_ITEM, MARKER, PROJECT_HEADING } from "./resolve.ts";
 
-export interface Filled { text: string; reports: string[] }
+export interface Offer { line: number; project: string; keywords: string[] }
+export interface Ranked { markers: Offer[]; reports: string[] }
 
 interface Section { line: number; name: string; picked: Bullet[]; marker: number | null; keywordLine: number | null }
 
@@ -31,7 +33,7 @@ function ranked(picked: Bullet[]): string[] {
 
 const backticks = (terms: string[]) => terms.map((t) => `\`${t}\``).join(", ");
 
-export function fillKeywords(file: string): Filled {
+export function rankKeywords(file: string): Ranked {
   const dir = path.dirname(file);
   const lines = fs.readFileSync(file, "utf8").split("\n");
   const sections: Section[] = [];
@@ -55,6 +57,7 @@ export function fillKeywords(file: string): Filled {
     else if (KEYWORD_LINE.test(text.trim())) current.keywordLine ??= i;
   });
 
+  const markers: Offer[] = [];
   const reports: string[] = [];
   for (const s of sections) {
     const terms = ranked(s.picked);
@@ -63,18 +66,17 @@ export function fillKeywords(file: string): Filled {
       const lacks = terms.filter((t) => !has.has(t.toLowerCase()));
       if (lacks.length) reports.push(`line ${s.line + 1} ${s.name}: the Keyword line lacks ${backticks(lacks)}`);
     } else if (s.marker !== null) {
-      if (terms.length) lines[s.marker] = backticks(terms);
-      else reports.push(`line ${s.line + 1} ${s.name}: no Bullet picked, the marker is kept`);
+      if (terms.length) markers.push({ line: s.marker + 1, project: s.name, keywords: terms });
+      else reports.push(`line ${s.line + 1} ${s.name}: no Bullet picked, nothing to offer for the marker on line ${s.marker + 1}`);
     }
   }
-  return { text: lines.join("\n"), reports };
+  return { markers, reports };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const file = process.argv[2];
   if (!file) { console.error("usage: keywords.ts <version.md>"); process.exit(2); }
-  const abs = path.resolve(file);
-  const { text, reports } = fillKeywords(abs);
-  fs.writeFileSync(abs, text);
+  const { markers, reports } = rankKeywords(path.resolve(file));
+  for (const m of markers) console.log(`line ${m.line} ${m.project}: ${backticks(m.keywords)}`);
   for (const r of reports) console.log(`${file}: ${r}`);
 }

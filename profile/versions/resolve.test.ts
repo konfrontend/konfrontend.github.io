@@ -111,3 +111,24 @@ test("a lone link to another site or to an anchor on the page prints as written"
   assert.deepEqual(problems, []);
   assert.equal(markdown, text.replace("[Acme](../projects/acme.md)", "Acme"));
 });
+
+test("a marker prints the Keywords kept for its line; an empty list prints nothing; a marker with no list warns", () => {
+  const file = version(`### [Acme](../projects/acme.md)
+
+* [Charts](../projects/acme.md#charts)
+
+{{keywords}}
+
+### [Acme](../projects/acme.md)
+
+{{keywords}}
+
+### [Acme](../projects/acme.md)
+
+{{keywords}}
+`);
+  const { markdown, problems, warnings } = resolveVersion(file, { 5: ["TypeScript", "Canvas"], 9: [] });
+  assert.deepEqual(problems, []);
+  assert.deepEqual(warnings, ["line 13: {{keywords}} marker still in the file"]);
+  assert.equal(markdown, "### Acme\n\n* Built live charts.\n\n`TypeScript`, `Canvas`\n\n### Acme\n\n\n### Acme\n\n");
+});
