@@ -43,4 +43,4 @@ The tracker is not stored: `node scripts/tracker.ts print`, behind `/tracker`, p
 
 ## The gaps print
 
-Not stored either: `node scripts/gaps.ts print`, behind `/gaps`, reads every dated Candidate's `requirements`, no-go Candidates included (a Gap is often the reason for a no-go), plus the Keywords of the Projects' Bullet groups through `profile/lib`, and never writes. It warns on an invalid `job.md` and still counts its `requirements`. Two tables, columns `skill | seen`: the Gaps first, then the Keywords a Job asked for, `seen` counting Candidates. Where a Gap was seen is not printed; a search over the Candidates answers that.
+Not stored either: `/gaps` reads every dated Candidate's `requirements`, no-go Candidates included (a Gap is often the reason for a no-go), plus the Keywords of the Projects, and never writes. Two tables, columns `item | seen`: the Gaps first, then the Keywords a Job asked for, `seen` counting Candidates. Where a Gap was seen is not printed; a search over the Candidates answers that.
