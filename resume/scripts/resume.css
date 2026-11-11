@@ -10,7 +10,7 @@ a { color: inherit; }
 p { margin: 0; }
 /* Bullets are text in ::before, not list markers: Chrome draws markers as paths, which the text layer lacks. */
 ul { list-style: none; margin: 0; padding-left: 0; }
-/* Hyphenated tokens, wrapped by the print script: a break at the hyphen de-hyphenates the word in the text layer. */
+/* Hyphenated tokens, to be wrapped by the print script the printing ticket brings back: a break at the hyphen de-hyphenates the word in the text layer. */
 .nb { white-space: nowrap; }
 
 /* Page margins live here, not on @page, so nothing lands in Chrome's margin boxes. At least 12.7mm. */

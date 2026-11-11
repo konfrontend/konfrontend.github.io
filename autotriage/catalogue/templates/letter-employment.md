@@ -31,7 +31,7 @@ The voice catalogue applies as on the freelance route, with these switches:
 
 1. The no-introduction rule is off: `intro` opens the Letter where the freelance route has the Hook Slot.
 2. A role title (`frontend developer`) is allowed in `intro` only. `senior`, `lead`, `expert`, `experienced` stay banned everywhere.
-3. `10+ years` is allowed as a fact in `intro`. `extensive experience` stays banned.
+3. `10+ years` is allowed as a fact in `intro`; its source in the fact table is this rule switch. `extensive experience` stays banned.
 4. The contact ban stays: the application form and the PDF carry contact.
 5. Length is this template's 500 characters. The 350-word prose cap, the 700-word total and the 4,500-character ceiling are freelance template numbers.
 6. `terms` renders when the posting asks.

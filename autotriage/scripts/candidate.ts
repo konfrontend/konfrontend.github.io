@@ -1,6 +1,7 @@
-// The Candidate contract (catalogue/candidate-artifacts.md): the folder layout and listing, the job.md read
-// with its schema errors, the Letter rule, the Candidate paths the write hook validates, and the three writes, intake's job.md, the Checkpoint's fields and proposal's rate. Every reader and
-// writer of a Candidate goes through here; the folder resolves from the repo root.
+// The Candidate contract (catalogue/candidate-artifacts.md): the folder layout and listing, the job.md
+// read with its schema errors, the Letter rule, the Candidate paths the write hook validates, and the
+// three writes, intake's job.md, the Checkpoint's fields and proposal's rate. Every reader and writer
+// of a Candidate goes through here; the folder resolves from the repo root.
 import fs from "node:fs";
 import path from "node:path";
 import { readArtifact, writeArtifact, validate, refuse, type Artifact, type Frontmatter, type Route } from "./lib.ts";

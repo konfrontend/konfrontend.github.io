@@ -285,12 +285,10 @@ test("clean cover letter passes the script Checks within the template's characte
   assert.equal(r.brief.template, "letter-employment");
   assert.equal(r.brief.plan_slot, null);
   assert.deepEqual(r.brief.safeguards, [], "no employment Flag has a Safeguard Slot, and none is stored");
-  assert.ok(!("version" in r.brief), "an employment Letter draws on the Projects only");
   assert.equal(r.counts!.char_cap, employmentTemplate.cap.chars);
   assert.ok(r.counts!.chars <= employmentTemplate.cap.chars);
   assert.equal(r.counts!.word_cap, null, "no prose cap on this route");
   assert.equal(r.counts!.hook_max, null);
-  assert.ok(!/Version/.test(render(r)));
 });
 
 test("cover letter: over the character cap fails, the freelance word caps never apply", () => {

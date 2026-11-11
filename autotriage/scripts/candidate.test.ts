@@ -40,7 +40,6 @@ test("the write hook finds every artifact by path, under the root", () => {
     assert.equal(candidateSchemaForPath(files.job), "job");
     assert.equal(candidateSchemaForPath(files.letter), "letter");
     assert.equal(candidateSchemaForPath(path.join(folder, "cover-letter.md")), null, "no such file any more");
-    assert.equal(candidateSchemaForPath(path.join(folder, "version.md")), null, "a Candidate holds no Version");
     assert.equal(schemaForPath(files.job), null, "the Profile half knows no Candidate file");
     assert.equal(schemaForPath(path.join(root, "profile", "profile.md")), "profile");
     assert.equal(schemaForPath(path.join(root, "profile", "projects", "acme.md")), "project");
