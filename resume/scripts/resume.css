@@ -34,7 +34,7 @@ h3 + p + ul { margin-top: 3pt; }
 /* The Keyword line: backtick Keywords as plain small text. */
 ul + p { margin-top: 3pt; font-size: 9pt; color: #555; }
 code { font-family: inherit; font-size: inherit; }
-hr { border: 0; margin: 0; }
+hr { border: 0; border-top: 1px solid #ddd; margin: 6pt 0 0; }
 /* Hanging indent: the glyph box takes the 1.1em the ul padding used to give the marker. Centered, the gap to the text
    stays under the 0.7em at which pdftotext splits the glyphs off into a column of their own. */
 li { margin: 1pt 0; padding-left: 1.1em; text-indent: -1.1em; }

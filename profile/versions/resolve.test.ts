@@ -104,3 +104,10 @@ test("a slot or link it cannot fill is a problem and a leftover marker a warning
   assert.deepEqual(warnings, ["line 9: {{keywords}} marker still in the file"]);
   assert.doesNotMatch(markdown, /\{\{keywords\}\}/);
 });
+
+test("a lone link to another site or to an anchor on the page prints as written", () => {
+  const text = "### [Acme](../projects/acme.md)\n\n* [Store](https://store.test/page#top)\n* [Top](#top)\n\n## [Site](https://site.test/readme.md)\n";
+  const { problems, markdown } = resolveVersion(version(text));
+  assert.deepEqual(problems, []);
+  assert.equal(markdown, text.replace("[Acme](../projects/acme.md)", "Acme"));
+});

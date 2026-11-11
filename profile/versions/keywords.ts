@@ -2,7 +2,8 @@
 // line of backtick Keywords: the union over the groups of the Bullets picked under that Project, once each
 // (case-insensitive, in the first spelling), the Keywords in the most groups first, ties in the order they
 // first appear. The person then trims the line by hand. A Project that already has a Keyword line keeps it
-// untouched; the Keywords it lacks are reported instead. A link resolve cannot fill picks nothing here.
+// untouched; the Keywords it lacks are reported instead. A link resolve cannot fill picks nothing here; a
+// marker whose Project picks no Bullet is kept and reported.
 // CLI: node profile/versions/keywords.ts <version.md>   (rewrites the file, prints the reports)
 import fs from "node:fs";
 import path from "node:path";
@@ -15,7 +16,7 @@ export interface Filled { text: string; reports: string[] }
 interface Section { line: number; name: string; picked: Bullet[]; marker: number | null; keywordLine: number | null }
 
 // Keywords of the picked Bullets' groups, each group counted once, most groups first.
-function union(picked: Bullet[]): string[] {
+function ranked(picked: Bullet[]): string[] {
   const groups = new Map<number, string[]>();
   for (const b of picked) groups.set(b.group, b.keywords);
   const counts = new Map<string, { term: string; n: number; first: number }>();
@@ -28,7 +29,7 @@ function union(picked: Bullet[]): string[] {
   return [...counts.values()].sort((a, b) => b.n - a.n || a.first - b.first).map((c) => c.term);
 }
 
-const line = (terms: string[]) => terms.map((t) => `\`${t}\``).join(", ");
+const backticks = (terms: string[]) => terms.map((t) => `\`${t}\``).join(", ");
 
 export function fillKeywords(file: string): Filled {
   const dir = path.dirname(file);
@@ -56,12 +57,15 @@ export function fillKeywords(file: string): Filled {
 
   const reports: string[] = [];
   for (const s of sections) {
-    const terms = union(s.picked);
+    const terms = ranked(s.picked);
     if (s.keywordLine !== null) {
       const has = new Set([...lines[s.keywordLine].matchAll(/`([^`]+)`/g)].map((m) => m[1].trim().toLowerCase()));
       const lacks = terms.filter((t) => !has.has(t.toLowerCase()));
-      if (lacks.length) reports.push(`line ${s.line + 1} ${s.name}: the Keyword line lacks ${line(lacks)}`);
-    } else if (s.marker !== null) lines[s.marker] = line(terms);
+      if (lacks.length) reports.push(`line ${s.line + 1} ${s.name}: the Keyword line lacks ${backticks(lacks)}`);
+    } else if (s.marker !== null) {
+      if (terms.length) lines[s.marker] = backticks(terms);
+      else reports.push(`line ${s.line + 1} ${s.name}: no Bullet picked, the marker is kept`);
+    }
   }
   return { text: lines.join("\n"), reports };
 }

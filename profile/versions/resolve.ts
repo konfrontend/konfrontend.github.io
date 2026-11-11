@@ -14,8 +14,9 @@ import { META_KEYS, readProject, type Project } from "../lib/index.ts";
 
 export interface Resolved { markdown: string; problems: string[]; warnings: string[] }
 
-export const PROJECT_HEADING = /^(#{1,6}\s+)\[([^\]]*)\]\(([^)#\s]+\.md)\)(.*)$/;
-export const BULLET_ITEM = /^(\s*[*+-]\s+)\[[^\]]*\]\(([^)#\s]*)#([^)\s]+)\)\s*$/;
+// A link target with a scheme (https:, mailto:) is another site; only a relative path reads a Project file.
+export const PROJECT_HEADING = /^(#{1,6}\s+)\[([^\]]*)\]\(([^)#\s:]+\.md)\)(.*)$/;
+export const BULLET_ITEM = /^(\s*[*+-]\s+)\[[^\]]*\]\(([^)#\s:]+)#([^)\s]+)\)\s*$/;
 const SLOT = /\{\{\s*([^}]*?)\s*\}\}/g;
 export const MARKER = /^\s*\{\{\s*keywords\s*\}\}\s*$/;
 

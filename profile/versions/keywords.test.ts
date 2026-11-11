@@ -85,3 +85,8 @@ test("an existing Keyword line is left untouched and the Keywords it lacks are r
     reports: ["line 1 Acme: the Keyword line lacks `Shadow DOM`, `Markdown`"],
   });
 });
+
+test("a marker under a Project that picks no Bullet is kept and reported", () => {
+  const text = "### [Acme](../projects/acme.md)\n\n* [Gone](../projects/acme.md#gone)\n\n{{keywords}}\n";
+  assert.deepEqual(fillKeywords(version(text)), { text, reports: ["line 1 Acme: no Bullet picked, the marker is kept"] });
+});
