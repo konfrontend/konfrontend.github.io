@@ -118,7 +118,7 @@ export function parseProject(body: string): ProjectBody {
   return { overview: overview.join("\n\n"), bullets, notes, errors };
 }
 
-// The Profile check on a Bullet (the Bullet rules, .claude/skills/pp-bullets/SKILL.md): the opener fails, the
+// The Profile check on a Bullet: the opener fails, the
 // claim count and the tense warn. A number is a digit run standing alone (100,000; 3.6; 10+; 2-person; a range 10–50 once), not 3D or i18n.
 // A claim is a number with its base or range: "85 to 99", "37 of its 84", "52 MB against 576 MB", "4.5:1" count once.
 export const DUTY_OPENERS = ["responsible", "helped", "assisted", "participated", "worked", "involved", "tasked", "duties"];

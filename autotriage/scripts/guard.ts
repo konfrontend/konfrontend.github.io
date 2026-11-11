@@ -5,12 +5,11 @@
 // CLI: node scripts/guard.ts <state> [candidate]
 import fs from "node:fs";
 import { refuse, Refusal, profile, type Profile, type Artifact } from "./lib.ts";
-import { candidateDir, candidateFiles, listCandidates, readJob, readLetter, versionName, type Job } from "./candidate.ts";
-import { introSummary } from "./version.ts";
+import { candidateDir, candidateFiles, listCandidates, readJob, readLetter, type Job } from "./candidate.ts";
 
-export const STATES = ["route", "intake", "triage", "version", "proposal", "verify"] as const;
+export const STATES = ["route", "intake", "triage", "proposal", "verify"] as const;
 export type State = (typeof STATES)[number];
-export const ORDER: State[] = ["intake", "triage", "version", "proposal", "verify"];
+export const ORDER: State[] = ["intake", "triage", "proposal", "verify"];
 
 interface Ctx { state: State; candidate?: string; out: string[] }
 type Guard = (ctx: Ctx) => void;
@@ -79,25 +78,11 @@ const GUARDS: Record<State, Guard> = {
     if (fm.verdict) out.push(`Note: the Verdict is already ${fm.verdict}; the Checkpoint rewrites it.`);
     if (fm.requirements?.length) out.push(`Note: requirements already recorded (${fm.requirements.length}); the Checkpoint rewrites them.`);
   },
-  version: ({ state, candidate, out }) => {
-    const { dir, files, route, fm } = candidateGate(state, candidate);
-    if (route !== "employment") refuse(state, `private/candidates/${candidate} is on the ${route} route; the version State runs on employment only.`, `Run /route-proposal ${candidate}.`);
-    verdictGate(state, candidate!, fm);
-    out.push(`Candidate: private/candidates/${candidate}`, `Title: ${fm.title}`, `Requirements: ${(fm.requirements ?? []).join(", ") || "none recorded"}`);
-    if (versionName(dir) === "tailored") out.push("Note: version.md exists; the Candidate is sent with its tailored Version.");
-    const letter = readLetter(dir);
-    if (letter?.body.trim()) out.push("Note: letter.md already holds a Letter; this run leaves it alone.");
-  },
   proposal: ({ state, candidate, out }) => {
-    const p = profileGate(state, 2);
-    const { dir, files, route, fm } = candidateGate(state, candidate);
+    profileGate(state, 2);
+    const { files, route, fm } = candidateGate(state, candidate);
     verdictGate(state, candidate!, fm);
-    if (route === "employment") {
-      letterGate(state, candidate!, dir, `Run /route-version ${candidate} first.`);
-      const intro = introSummary(dir, p);
-      if (intro.text === null) refuse(state, `the Version sent does not read: ${intro.errors.join("; ")}`, versionName(dir) === "tailored" ? `Run resume-version ${candidate} again.` : "Run resume-version to regenerate resume/versions/general.md.");
-      out.push(`Version: ${versionName(dir)}`, `Intro summary (${intro.source}): ${intro.text}`);
-    } else if (fs.existsSync(files.letter)) out.push("Note: letter.md exists; this run rewrites it.");
+    if (fs.existsSync(files.letter)) out.push("Note: letter.md exists; this run rewrites it.");
     out.push(`Candidate: private/candidates/${candidate}`, `Route: ${route}`, `Title: ${fm.title}`, `Requirements: ${(fm.requirements ?? []).join(", ") || "none recorded"}`);
     if (route === "freelance") out.push(`Flags: ${(fm.flags ?? []).join(", ") || "none"}`);
   },
@@ -107,7 +92,6 @@ const GUARDS: Record<State, Guard> = {
     verdictGate(state, candidate!, fm);
     letterGate(state, candidate!, dir, `Run /route-proposal ${candidate} first.`);
     out.push(`Candidate: private/candidates/${candidate}`, `Route: ${route}`, `Letter: letter.md`, `Template: ${route === "employment" ? "letter-employment" : "letter-freelance"}`);
-    if (route === "employment") out.push(`Version: ${versionName(dir)}`);
   },
 };
 

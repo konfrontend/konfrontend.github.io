@@ -95,9 +95,9 @@ Fill: one or two sentences opening with a phrase of understanding (`As I underst
 
 ### intro
 
-Prose, one paragraph, employment route only. Who is writing: the summary of the Version sent (the Candidate's `version.md` when tailored, else `resume/versions/general.md`) in first person, rephrased to the posting's keywords. One source for who the person is, so the cover letter and the PDF never drift apart.
+Prose, one paragraph, employment route only. Who is writing: who the person is, drawn from the Projects that match the Job: their `role` and the Keywords they prove, in first person, rephrased to the posting's keywords.
 
-Fill: the summary's facts only, reworded toward the Job's own terms. A role title (`frontend developer`) is allowed here and nowhere else; `10+ years` is allowed here as a fact. No Project names, no dates, no seniority words.
+Fill: the Projects' facts only, reworded toward the Job's own terms. A role title (`frontend developer`) is allowed here and nowhere else; `10+ years` is allowed here as a fact. No Project names, no dates, no seniority words.
 
 ### relevant_work
 

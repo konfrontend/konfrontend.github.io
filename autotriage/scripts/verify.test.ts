@@ -273,10 +273,8 @@ Happy to answer any questions about my work.
 
 Kon`;
 
-const generalVersion = { name: "general", source: "resume/versions/general.md", summary: "10+ years as a frontend developer in TypeScript: Vue and Nuxt sites.", skills: ["TypeScript", "React"], text: "Frontend Developer" };
-
-function runCover(body: string, { candidate = "2026-10-16-acme-frontend", version = generalVersion as typeof generalVersion | null } = {}) {
-  return analyse({ candidate, letter: { body }, job: employmentJob(), profile, skillNames, voice, projects, answers, version });
+function runCover(body: string, { candidate = "2026-10-16-acme-frontend" } = {}) {
+  return analyse({ candidate, letter: { body }, job: employmentJob(), profile, skillNames, voice, projects, answers });
 }
 
 test("clean cover letter passes the script Checks within the template's character cap", () => {
@@ -287,12 +285,10 @@ test("clean cover letter passes the script Checks within the template's characte
   assert.equal(r.brief.template, "letter-employment");
   assert.equal(r.brief.plan_slot, null);
   assert.deepEqual(r.brief.safeguards, [], "no employment Flag has a Safeguard Slot, and none is stored");
-  assert.deepEqual(r.brief.version, { name: "general", source: "resume/versions/general.md", summary: generalVersion.summary }, "the brief names the Version sent and its summary");
   assert.equal(r.counts!.char_cap, employmentTemplate.cap.chars);
   assert.ok(r.counts!.chars <= employmentTemplate.cap.chars);
   assert.equal(r.counts!.word_cap, null, "no prose cap on this route");
   assert.equal(r.counts!.hook_max, null);
-  assert.match(render(r), /Version sent: general \(resume\/versions\/general\.md\); summary: 10\+ years/);
 });
 
 test("cover letter: over the character cap fails, the freelance word caps never apply", () => {
@@ -343,7 +339,7 @@ test("an empty letter.md on the employment route is a resume-only application: n
   assert.deepEqual(r.findings, []);
   assert.equal(r.fails, 0);
   const out = render(r);
-  assert.match(out, /^letter pass: skipped, letter\.md is empty \(a resume-only application\)\nversion: general/);
+  assert.equal(out, "letter pass: skipped, letter.md is empty (a resume-only application)");
   assert.ok(!out.includes("slots:"));
 });
 

@@ -1,17 +1,16 @@
-// The Candidate contract (catalogue/candidate-artifacts.md): the folder layout and listing, the job.md read
-// with its schema errors, the Letter rule, the Version a Candidate is sent with, the Candidate paths the
-// write hook validates, and the three writes, intake's job.md, the Checkpoint's fields and proposal's rate. Every reader and
-// writer of a Candidate goes through here; the folder resolves from the repo root.
+// The Candidate contract (catalogue/candidate-artifacts.md): the folder layout and listing, the job.md
+// read with its schema errors, the Letter rule, the Candidate paths the write hook validates, and the
+// three writes, intake's job.md, the Checkpoint's fields and proposal's rate. Every reader and writer
+// of a Candidate goes through here; the folder resolves from the repo root.
 import fs from "node:fs";
 import path from "node:path";
 import { readArtifact, writeArtifact, validate, refuse, type Artifact, type Frontmatter, type Route } from "./lib.ts";
 import { repoRoot } from "../../profile/lib/index.ts";
 
-const FILES = { job: "job.md", letter: "letter.md", version: "version.md" } as const;
+const FILES = { job: "job.md", letter: "letter.md" } as const;
 const FOLDER = /^\d{4}-\d{2}-\d{2}-[a-z0-9-]+$/;
 
 export const candidatesDir = (): string => path.join(repoRoot(), "private", "candidates");
-export const generalVersion = (): string => path.join(repoRoot(), "resume", "versions", "general.md");
 
 export function candidateDir(candidate: string | undefined): string | null {
   if (!candidate || !FOLDER.test(candidate)) return null;
@@ -24,8 +23,8 @@ export function listCandidates(dir = candidatesDir()): string[] {
   return fs.readdirSync(dir).filter((d) => /^\d{4}-\d{2}-\d{2}-/.test(d)).sort();
 }
 
-export function candidateFiles(dir: string): { job: string; letter: string; version: string } {
-  return { job: path.join(dir, FILES.job), letter: path.join(dir, FILES.letter), version: path.join(dir, FILES.version) };
+export function candidateFiles(dir: string): { job: string; letter: string } {
+  return { job: path.join(dir, FILES.job), letter: path.join(dir, FILES.letter) };
 }
 
 export interface JobFields {
@@ -52,14 +51,6 @@ export function letterErrors(art: Pick<Artifact, "frontmatter">): string[] {
 export function readLetter(dir: string): (Artifact & { errors: string[] }) | null {
   const art = readArtifact(candidateFiles(dir).letter);
   return art && { ...art, errors: letterErrors(art) };
-}
-
-// The Version a Candidate is sent with: its own version.md when one was tailored, else the general Version.
-export function versionName(dir: string): "tailored" | "general" {
-  return fs.existsSync(candidateFiles(dir).version) ? "tailored" : "general";
-}
-export function versionFile(dir: string): string {
-  return versionName(dir) === "tailored" ? candidateFiles(dir).version : generalVersion();
 }
 
 // Which Candidate file a path is, for the write hook, or null when the path is not one.
