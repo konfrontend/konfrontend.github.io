@@ -1,6 +1,6 @@
 // The Guard as a transition table: the Profile gate reads the Profile through profile/lib, a
 // refusal is printed on stdout with exit 0 so the model always sees it, the PreToolUse hook turns the
-// same Refusal into a deny, and the write hook validates every Profile and Candidate file.
+// same Refusal into a deny, and the write hook validates profile.md, voice.md and the Candidate files.
 // Run: npm test
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -16,23 +16,20 @@ test("the route gate passes on a valid Profile", () => {
   assert.equal(r.stdout.trim(), "Profile gate passed.");
 });
 
-test("a refusal is printed on stdout with exit 0 and names the Profile errors", () => {
-  const { root } = fixture({ project: project(["React"], "## Bullets\n\n- Built the admin without a key.\n") });
+test("no Profile error refuses a State: a Project file in any shape and a broken voice.md pass the gate", () => {
+  const bad = VOICE.replace(/greeting: .*/, 'greeting: "Hi,"');
+  const { root } = fixture({ voice: bad, project: "- [old] An old-shape Bullet.\n", candidates: { "2026-10-16-acme-fix": { "job.md": freelanceJob({ verdict: "go" }), "letter.md": "Hi,\n" } } });
+  assert.equal(run(root, "guard.ts", "route").stdout.trim(), "Profile gate passed.");
+  assert.match(run(root, "guard.ts", "verify", "2026-10-16-acme-fix").stdout, /^Candidate: private\/candidates\/2026-10-16-acme-fix\n/);
+});
+
+test("a refusal is printed on stdout with exit 0: the Letter States need one Project file", () => {
+  const { root } = fixture();
+  fs.rmSync(path.join(root, "profile", "projects", "acme.md"));
   const r = run(root, "guard.ts", "route");
   assert.equal(r.status, 0);
   assert.equal(r.stderr, "");
-  assert.match(r.stdout, /^autotriage: route refused\. the Profile has 1 error:\n  projects\/acme\.md: Bullet without a key: "Built the admin without a key\."\nFix the file by hand\./);
-});
-
-test("triage needs only profile.md; the Letter States need every Profile file", () => {
-  const bad = VOICE.replace(/greeting: .*/, 'greeting: "Hi,"');
-  const { root } = fixture({ voice: bad, candidates: { "2026-10-16-acme-fix": { "job.md": freelanceJob({ verdict: "go" }), "letter.md": "Hi,\n" } } });
-  const t = run(root, "guard.ts", "triage", "2026-10-16-acme-fix");
-  assert.match(t.stdout, /letter\.md already exists; the Route has passed triage/, t.stdout);
-  const v = run(root, "guard.ts", "verify", "2026-10-16-acme-fix");
-  assert.match(v.stdout, /verify refused\. the Profile has 1 error:\n  voice\.md: \/greeting must be object/);
-  const body = fixture({ voice: `${VOICE}Hi,\n\nA calibration Letter.\n` });
-  assert.match(run(body.root, "guard.ts", "route").stdout, /voice\.md: body must be empty/);
+  assert.match(r.stdout, /^autotriage: route refused\. no Project file under profile\/projects\/\.\nAdd at least one Project file\./);
 });
 
 test("an unknown State and a missing Candidate argument refuse with the fix named", () => {
@@ -106,7 +103,8 @@ test("the write hook validates Profile and Candidate files by their path and ign
   assert.match(JSON.parse(write(path.join(dir, "letter.md")).stdout).reason, /the Candidate contract:\n  letter\.md carries frontmatter; a Letter is body only/);
   assert.equal(write(path.join(root, "resume", "versions", "frontend.md")).stdout, "", "a Version is the person's prose, with no schema");
   assert.equal(write(path.join(root, "README.md")).stdout, "");
-  assert.equal(write(path.join(root, "profile", "skills.md")).stdout, "", "generated files have no schema");
+  fs.writeFileSync(path.join(root, "profile", "projects", "acme.md"), "No frontmatter, no sections.\n");
+  assert.equal(write(path.join(root, "profile", "projects", "acme.md")).stdout, "", "a Project file is never blocked");
 });
 
 test("every State's guard line runs with CLAUDE_PROJECT_DIR unset, from a subfolder, falling back to the repo root", () => {

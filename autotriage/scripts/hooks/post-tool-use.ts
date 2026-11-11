@@ -1,4 +1,4 @@
-// PostToolUse hook on Write|Edit: validate any artifact written under the Profile against its schema, and
+// PostToolUse hook on Write|Edit: validate profile.md and voice.md against their schemas (a Project file has none), and
 // any Candidate file against the Candidate contract (job.md on both routes; letter.md carries no frontmatter).
 // The scripts write job.md through the contract; this is the net for a hand edit. The write has already
 // landed; a failing artifact returns the errors to the model so the State fixes it, and the next Guard

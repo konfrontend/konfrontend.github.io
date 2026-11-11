@@ -28,17 +28,25 @@ sign_off: Kon
 banned_phrases: ["I'm excited"]
 ---
 `;
-export const project = (keywords: string[], body = "## Bullets\n\n- [rbac-admin] Built the RBAC admin and the SAML login.\n\n## Notes\n\n- Collaborator and admin roles.\n") => `---
-name: Acme
+export const project = (keywords: string[], body = "### RBAC Admin\nBuilt the RBAC admin and the SAML login.\n") => `---
 url: https://acme.example
 role: Full Stack Developer
 employment: contract
 start: 2021-02
-naming: public
-description: B2B dashboard.
-keywords: [${keywords.join(", ")}]
 ---
-${body}`;
+# Acme
+
+## Description
+B2B dashboard.
+
+${body}
+${keywords.map((k) => `\`${k}\``).join(", ")}
+
+***
+
+## Notes
+- Collaborator and admin roles.
+`;
 // A job.md: the identity fields, then the Checkpoint fields when a verdict is given.
 export const employmentJob = ({ title = "Senior Frontend Developer", verdict = "go" as string | "absent", requirements = [] as string[] } = {}) => `---
 title: "${title}"

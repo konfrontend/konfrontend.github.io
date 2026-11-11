@@ -4,8 +4,8 @@ import { ledger, renderLedger } from "./gaps.ts";
 import type { Profile, Project } from "./lib.ts";
 import { fixture, run, employmentJob, freelanceJob } from "./fixture.ts";
 
-const project = (slug: string, keywords: string[]): Project => ({ slug, file: `${slug}.md`, errors: [], warnings: [], overview: "", bullets: [], notes: [], meta: { name: slug, role: "R", employment: "contract", start: "2020-01", naming: "public", description: "D", keywords } });
-const profile = { projects: [project("engine", ["Punched cards", "Bernoulli numbers"]), project("notes", ["punched cards", "Writing"])], listedSkills: ["Quill pens"] } as unknown as Profile;
+const project = (slug: string, keywords: string[]): Project => ({ slug, file: `${slug}.md`, name: slug, meta: {}, description: "", bullets: [], keywords, notes: [] });
+const profile: Pick<Profile, "projects"> = { projects: [project("engine", ["Punched cards", "Bernoulli numbers"]), project("notes", ["punched cards", "Writing", "Quill pens"])] };
 
 test("ledger counts Candidates once per Skill and adds Gaps for requirements no Skill names, Gaps first", () => {
   const rows = ledger(profile, [
@@ -18,7 +18,7 @@ test("ledger counts Candidates once per Skill and adds Gaps for requirements no 
   assert.match(out, /\| Writing \| 1 \|/);
   assert.ok(out.indexOf("Gaps (1)") < out.indexOf("Skills seen (3)"), "Gaps first");
   assert.doesNotMatch(out, /Bernoulli/, "a Skill no Job asked for is not printed");
-  assert.match(out, /\| Quill pens \| 1 \|/, "a Skill with empty evidence is a Skill");
+  assert.match(out, /\| Quill pens \| 1 \|/, "a Keyword of a later Project counts");
 });
 
 test("an invalid job.md is warned about and its requirements still count", () => {

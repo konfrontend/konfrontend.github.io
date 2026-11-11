@@ -4,7 +4,42 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { readProfile, parseProject, checkBullet, skills, skillFor, renderSkills, writeArtifact, repoRoot } from "./index.ts";
+import { readProfile, parseProject, keywords, writeArtifact, repoRoot } from "./index.ts";
+
+const ENGINE = `---
+url: https://example.com/engine
+role: Programmer
+employment: contract
+start: Jan 1842
+end: 1843-09
+---
+# Analytical Engine
+
+## Description
+A mechanical computer.
+
+### Bernoulli Program
+Wrote the first program, computing Bernoulli numbers.
+
+### Loops
+Described loops
+and conditional branches.
+
+\`Punched cards\`, \`Bernoulli numbers\`
+
+***
+
+### Translation
+Translated Menabrea's memoir.
+
+\`Writing\`, \`punched cards\`,
+
+***
+
+## Notes
+[published] Published in 1843.
+- A raw line.
+`;
 
 function fixture(): string {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "profile-"));
@@ -14,81 +49,46 @@ function fixture(): string {
     terms: { rate: 60 },
   });
   writeArtifact(path.join(root, "voice.md"), { language: "en-US", greeting: { freelance: "Hi,", employment: "Hello," }, sign_off: "Ada", banned_phrases: [] });
-  writeArtifact(path.join(root, "projects", "engine.md"), {
-    name: "Analytical Engine", url: "https://example.com/engine", role: "Programmer", employment: "contract", start: "1842-01", end: "1843-09", naming: "public", description: "A mechanical computer.", keywords: ["Punched cards", "Bernoulli numbers"],
-  }, "## Overview\n\nThe Engine had no program. I wrote one.\n\n## Bullets\n\n- [bernoulli] Wrote the first program, computing Bernoulli numbers.\n- [loops] Described loops and conditional branches.\n\n## Notes\n\n- Published in 1843.\n");
-  writeArtifact(path.join(root, "projects", "notes.md"), {
-    name: "Notes", role: "Author", employment: "independent", start: "1843-01", naming: "public", description: "Translation notes.", keywords: ["punched cards", "Writing"],
-  }, "## Bullets\n\n- [translation] Translated Menabrea's memoir with notes three times its length.\n");
+  fs.mkdirSync(path.join(root, "projects"));
+  fs.writeFileSync(path.join(root, "projects", "engine.md"), ENGINE);
+  fs.writeFileSync(path.join(root, "projects", "notes.md"), "---\nrole: Author\n---\n# Notes\n\n## Description\nTranslation notes.\n\n\`Quill pens\`, \`writing\`\n\n***\n");
   fs.mkdirSync(path.join(root, "answers"));
   writeArtifact(path.join(root, "answers", "why.md"), { question: "Why compute?" }, "Because the Engine can.\n");
   return root;
 }
 
-test("parseProject reads the Overview, the Bullets and the Notes", () => {
-  const body = "## Overview\n\nProblem.\n\n- Solution and outcome.\n\n## Bullets\n\n- [rbac] Built the RBAC admin.\n- [saml] Added SAML login,\n  the second line.\n\n## Notes\n\n- Raw line one.\n- Raw line two.\n";
-  const p = parseProject(body);
-  assert.deepEqual(p.errors, []);
-  assert.equal(p.overview, "Problem.\n\n- Solution and outcome.");
-  assert.deepEqual(p.bullets.map((b) => [b.key, b.text]), [["rbac", "Built the RBAC admin."], ["saml", "Added SAML login, the second line."]]);
-  assert.deepEqual(Object.keys(p.bullets[0]), ["key", "text"], "a Bullet is its key and text only");
-  assert.deepEqual(p.notes, ["Raw line one.", "Raw line two."]);
-  assert.deepEqual(parseProject("").errors, []);
-  assert.equal(parseProject("## Overview\n\n## Bullets\n").overview, "");
+test("parseProject reads the name, the five frontmatter values as written, the Description, the Bullets with anchors and group Keywords, and the Notes", () => {
+  const p = parseProject(ENGINE);
+  assert.equal(p.name, "Analytical Engine");
+  assert.deepEqual(p.meta, { url: "https://example.com/engine", role: "Programmer", employment: "contract", start: "Jan 1842", end: "1843-09" });
+  assert.equal(p.description, "A mechanical computer.");
+  assert.deepEqual(p.bullets, [
+    { anchor: "bernoulli-program", title: "Bernoulli Program", text: "Wrote the first program, computing Bernoulli numbers.", keywords: ["Punched cards", "Bernoulli numbers"] },
+    { anchor: "loops", title: "Loops", text: "Described loops\nand conditional branches.", keywords: ["Punched cards", "Bernoulli numbers"] },
+    { anchor: "translation", title: "Translation", text: "Translated Menabrea's memoir.", keywords: ["Writing", "punched cards"] },
+  ]);
+  assert.deepEqual(p.keywords, ["Punched cards", "Bernoulli numbers", "Writing"], "every group's Keywords, once each, case-insensitive");
+  assert.deepEqual(p.notes, ["[published] Published in 1843.", "- A raw line."]);
 });
 
-test("parseProject reports a Bullet without a key, a duplicate key, an unknown section (Stories included), a ### line and text outside the sections", () => {
-  const p = parseProject("Stray.\n\n## Themes\n\n## Bullets\n\n- No key.\n- [a] One.\n- [a] Two.\n\n## Stories\n\n## Overview\n\n### Admin\n");
-  assert.deepEqual(p.errors, ['text outside the sections: "Stray."', 'unknown section "## Themes"', 'Bullet without a key: "No key."', "duplicate Bullet key [a]", 'unknown section "## Stories"', 'a "###" line: "### Admin"']);
+test("parseProject reads any value and refuses nothing: other frontmatter keys are dropped, a file without frontmatter or sections is empty", () => {
+  const p = parseProject("---\nname: Old\nstart: 2019\nkeywords: [A]\n---\nStray.\n\n## Other\n\n### CAD Engine\nText.\n\n### CAD Engine\nMore.\n");
+  assert.deepEqual(p.meta, { start: "2019" }, "a number is kept as written, a key outside the five is dropped");
+  assert.equal(p.name, "");
+  assert.deepEqual(p.bullets.map((b) => [b.anchor, b.keywords]), [["cad-engine", []], ["cad-engine-1", []]], "a repeated heading takes the next anchor; a group with no Keyword line has no Keywords");
+  assert.deepEqual(parseProject(""), { name: "", meta: {}, description: "", bullets: [], keywords: [], notes: [] });
 });
 
-test("checkBullet fails a duty opener, warns on more than three measured claims and on a present-tense opener", () => {
-  const b = (text: string) => checkBullet({ key: "k", text });
-  assert.deepEqual(b("Built 314 of the 332 components on a 2-person team."), { errors: [], warnings: [] });
-  assert.match(b("Responsible for the admin.").errors[0], /opens with a duty/);
-  assert.deepEqual(b("Scaled it from 1 to 2,600 positions at 10–50 samples in 40 ms to 15 s, 37 of its 84 at 4.5:1.").warnings.length, 1, "a base, a range and a ratio count with their claim");
-  assert.match(b("Scaled it from 1 to 2,600 positions at 10–50 samples in 40 ms to 15 s, 37 of its 84 at 4.5:1.").warnings[0], /has 5 measured claims \(at most 3\): 1 to 2,600, 10–50, 40 ms to 15, 37 of its 84, 4.5:1/);
-  assert.deepEqual(b("Cut LCP from 3.6 s to 1.1 s and memory to 52 MB against 576 MB to 1.3 GB.").warnings, []);
-  assert.deepEqual(b("Rendered 3D roofs in i18n-ready UI with Vue 3.").warnings, [], "3D and i18n are not numbers");
-  assert.match(b("Builds the admin.").warnings[0], /past tense/);
-});
-
-test("readProfile validates every file, reads Projects in filename order and reads Answers", () => {
+test("readProfile reads every Project in filename order and the Answers", () => {
   const p = readProfile(fixture());
   assert.deepEqual(p.errors, []);
-  assert.deepEqual(p.warnings, []);
-  assert.deepEqual(p.projects.map((x) => x.slug), ["engine", "notes"]);
-  assert.equal(p.projects[0].overview, "The Engine had no program. I wrote one.");
-  assert.equal(p.projects[0].bullets.length, 2);
-  assert.deepEqual(p.projects[0].notes, ["Published in 1843."]);
+  assert.deepEqual(p.projects.map((x) => [x.slug, x.name, x.bullets.length]), [["engine", "Analytical Engine", 3], ["notes", "Notes", 0]]);
   assert.deepEqual(p.answers.map((a) => [a.question, a.text]), [["Why compute?", "Because the Engine can."]]);
 });
 
-test("readProfile names a Bullet that breaks a rule", () => {
-  const root = fixture();
-  writeArtifact(path.join(root, "projects", "extra.md"), { name: "X", role: "R", employment: "independent", start: "1850-01", naming: "public", description: "D", keywords: ["Writing"] }, "## Bullets\n\n- [x] Helped with 1, 2, 3 and 4.\n");
-  const p = readProfile(root);
-  assert.ok(p.errors.includes('projects/extra.md: [x] opens with a duty, not an active verb: "Helped with 1, 2, 3 and 4."'));
-  assert.ok(p.warnings.some((e) => e.startsWith("projects/extra.md: [x] has 4 measured claims")));
-});
-
-test("skills derive from keywords: canonical spelling from the first Project in filename order, exact match only; skills.md lists them", () => {
+test("keywords are the Bullet groups' Keywords of every Project, spelled as the first Project in filename order spells them", () => {
   const p = readProfile(fixture());
-  assert.deepEqual(skills(p).map((s) => [s.name, s.evidence]), [["Punched cards", ["engine", "notes"]], ["Bernoulli numbers", ["engine"]], ["Writing", ["notes"]]]);
-  assert.equal(skillFor(p, "punched CARDS")?.name, "Punched cards");
-  assert.equal(skillFor(p, "cards"), null);
-  assert.match(renderSkills(p), /3 Skills\.\n\n\| skill \| evidence \|\n\| --- \| --- \|\n\| Bernoulli numbers \| engine \|\n\| Punched cards \| engine, notes \|\n\| Writing \| notes \|\n$/);
-});
-
-test("skills.md rows with empty evidence are Skills; the build keeps them and regenerates the rest", () => {
-  const root = fixture();
-  const file = path.join(root, "skills.md");
-  fs.writeFileSync(file, "| skill | evidence |\n|---|---|\n| Quill pens |  |\n| Writing | gone |\n| Bernoulli numbers |  |\n");
-  const p = readProfile(root);
-  assert.deepEqual(p.listedSkills, ["Quill pens", "Bernoulli numbers"]);
-  assert.deepEqual(skillFor(p, "quill PENS"), { name: "Quill pens", evidence: [] });
-  assert.deepEqual(skillFor(p, "Bernoulli numbers"), { name: "Bernoulli numbers", evidence: ["engine"] }, "a keyword wins over its empty row");
-  assert.match(renderSkills(p), /4 Skills\.\n\n\| skill \| evidence \|\n\| --- \| --- \|\n\| Bernoulli numbers \| engine \|\n\| Punched cards \| engine, notes \|\n\| Quill pens \|  \|\n\| Writing \| notes \|\n$/);
+  assert.deepEqual(keywords(p), ["Punched cards", "Bernoulli numbers", "Writing", "Quill pens"]);
 });
 
 test("repoRoot is CLAUDE_PROJECT_DIR when set, else the repo this module sits in, read on each call", () => {

@@ -2,14 +2,14 @@
 // the route's template (letter-freelance or letter-employment) and runs every Check marked `by: script`;
 // the model Checks, the Fixes, and the cycles are the skill's job. Prints Findings, the Slot map with line
 // numbers, the counts, and the brief the model pass reads (Safeguards to look for, `when: job asks` Slots
-// present, Profile terms, the Projects' facts, the Answers, the Skills).
+// present, Profile terms, the Projects' facts, the Answers, the Keywords).
 // The Letter body ends at the sign-off line: the milestone lines and the bid after it are copied into
 // Upwork's fields, and a fenced Sent block is the person's record of what went out; neither is checked.
 // An empty letter.md on the employment route is a resume-only application: nothing to check.
 // CLI: node scripts/verify.ts <candidate> [--json]
 //   exit 0 when no script Check fails, 1 when one does, 2 on usage or a missing input.
 import path from "node:path";
-import { readArtifact, loadCatalogue, flagsFor, templateFor, profile, skills, AUTOTRIAGE_ROOT, type Project } from "./lib.ts";
+import { readArtifact, loadCatalogue, flagsFor, templateFor, profile, keywords, AUTOTRIAGE_ROOT, type Project } from "./lib.ts";
 import { candidateDir, readJob, readLetter } from "./candidate.ts";
 import { compute } from "./verdict.ts";
 
@@ -33,7 +33,7 @@ type Any = Record<string, any>;
 export interface Letter { body: string }
 export interface Job { frontmatter: Any | null; body: string }
 export interface Answer { slug: string; question: string }
-export interface Inputs { candidate: string; letter: Letter; job: Job; profile: Any; skillNames: string[]; voice: Any; projects: Project[]; answers?: Answer[] }
+export interface Inputs { candidate: string; letter: Letter; job: Job; profile: Any; keywordNames: string[]; voice: Any; projects: Project[]; answers?: Answer[] }
 
 // The verify Guard has already checked job.md and letter.md; only their absence stops here.
 export function loadInputs(candidate: string): Inputs {
@@ -42,10 +42,10 @@ export function loadInputs(candidate: string): Inputs {
   const letter = dir && readLetter(dir);
   if (!dir || !job || !letter) throw new Error(`private/candidates/${candidate} has no job.md and letter.md; run the verify Guard first`);
   const p = profile();
-  const projects = p.projects.filter((x) => !x.errors.length);
-  const skillNames = skills(p).map((s) => s.name);
+  const projects = p.projects;
+  const keywordNames = keywords(p);
   const answers = p.answers.map((a) => ({ slug: path.basename(a.file, ".md"), question: a.question }));
-  return { candidate, letter: { body: letter.body }, job, profile: p.profile ?? {}, skillNames, voice: p.voice ?? {}, projects, answers };
+  return { candidate, letter: { body: letter.body }, job, profile: p.profile ?? {}, keywordNames, voice: p.voice ?? {}, projects, answers };
 }
 
 function loadCatalogues(route: string) {
@@ -245,15 +245,15 @@ export function postingRuns(body: string): Set<string> {
 export function projectFacts(p: Project) {
   const m = p.meta;
   return {
-    slug: p.slug, name: m.name, url: m.url ?? null, role: m.role, employment: m.employment,
-    period: `${m.start} – ${m.end ?? "present"}`, naming: m.naming, description: m.description ?? null,
-    keywords: m.keywords ?? [], overview: p.overview, bullets: p.bullets, notes: p.notes,
+    slug: p.slug, name: p.name, url: m.url ?? null, role: m.role ?? null, employment: m.employment ?? null,
+    period: `${m.start ?? "?"} – ${m.end ?? "present"}`, description: p.description,
+    keywords: p.keywords, bullets: p.bullets, notes: p.notes,
   };
 }
 
 export interface Analysis { findings: Finding[]; letter_skipped: boolean; slots: Any[]; counts: Any | null; brief: Any; fails: number; warns: number }
 
-export function analyse({ candidate, letter, job, profile: profileMeta, skillNames = [], voice, projects, answers = [] }: Inputs): Analysis {
+export function analyse({ candidate, letter, job, profile: profileMeta, keywordNames = [], voice, projects, answers = [] }: Inputs): Analysis {
   const route: string = job.frontmatter?.route ?? "freelance";
   const employment = route === "employment";
   const cat = loadCatalogues(route);
@@ -323,14 +323,14 @@ export function analyse({ candidate, letter, job, profile: profileMeta, skillNam
   // format
   const acronyms = new Set(COMMON_ACRONYMS);
   const harvest = (text: unknown) => { for (const t of String(text ?? "").matchAll(ACRONYM)) acronyms.add(t[0]); };
-  for (const s of skillNames) harvest(s);
+  for (const s of keywordNames) harvest(s);
   harvest(job.body);
   // the Letter's fact source: its acronyms are the Profile's own
   for (const pj of projects) {
-    for (const b of pj.bullets) harvest(b.text);
-    harvest(pj.overview);
+    for (const b of pj.bullets) { harvest(b.title); harvest(b.text); }
+    harvest(pj.description);
     for (const n of pj.notes) harvest(n);
-    harvest((pj.meta.keywords ?? []).join(" ")); harvest(pj.meta.name); harvest(pj.meta.description);
+    harvest(pj.keywords.join(" ")); harvest(pj.name);
   }
   const urls: { url: string; line: number; slot: string }[] = [];
   lines.forEach((line, i) => {
@@ -410,7 +410,7 @@ export function analyse({ candidate, letter, job, profile: profileMeta, skillNam
     template_slots: templateSlots, terms: profileMeta.terms ?? {}, projects: projects.map(projectFacts),
     answers,
     mandatory_keyword: flags.includes("mandatory-keyword"),
-    skills: skillNames,
+    keywords: keywordNames,
   };
   const slots = seg.slots.map((s) => ({ id: s.id, header: s.header, demand: s.demand, header_line: s.headerLine, paragraphs: s.paragraphs.map((p) => [p.start, p.end]), words: words(s.text), chars: s.text.length }));
   const order = { fail: 0, warn: 1 };
@@ -448,9 +448,9 @@ export function render(r: Analysis): string {
   out.push(`  Answers (a Letter source, cited as "Answer <slug>"; a question block matching none is printed after verify as a draft Answer):`);
   for (const a of b.answers) out.push(`    ${a.slug}: ${a.question}`);
   if (!b.answers.length) out.push("    none");
-  out.push(`  Projects (facts the Letter may cite: read profile/projects/<slug>.md for the Overview, Bullets by key, then Notes):`);
-  for (const p of b.projects) out.push(`    ${p.slug}: ${p.name}${p.url ? ` (${p.url})` : ""}, ${p.role}, ${p.employment}, ${p.period}, naming ${p.naming}, ${p.bullets.length} Bullets, ${p.notes.length} Notes`);
-  out.push(`  Profile Skills: ${b.skills.join(", ")}`);
+  out.push(`  Projects (facts the Letter may cite: read profile/projects/<slug>.md for the Description, the Bullets by heading, then the Notes):`);
+  for (const p of b.projects) out.push(`    ${p.slug}: ${p.name}${p.url ? ` (${p.url})` : ""}, ${[p.role, p.employment].filter(Boolean).map((x) => `${x}, `).join("")}${p.period}, ${p.bullets.length} Bullets, ${p.notes.length} Notes`);
+  out.push(`  Profile Keywords: ${b.keywords.join(", ")}`);
   return out.join("\n");
 }
 

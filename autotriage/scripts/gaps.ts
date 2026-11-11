@@ -1,10 +1,10 @@
 // The Gap print: every Gap and every Skill a Job asked for, with how many Candidates asked.
 // Reads the Candidates' `requirements` (one field of job.md, every dated folder, no-go included) and
-// the Skills through profile/lib; nothing is stored. An invalid job.md is warned about and still counted.
+// the Keywords of the Projects' Bullet groups through profile/lib; nothing is stored. An invalid job.md is warned about and still counted.
 // Where a Gap was seen is not printed; a search answers that.
 // CLI: node scripts/gaps.ts print
 import path from "node:path";
-import { skills, profile, type Profile } from "./lib.ts";
+import { keywords, profile, type Profile } from "./lib.ts";
 import { candidatesDir, listCandidates, readJob } from "./candidate.ts";
 
 export interface Requirement { candidate: string; requirements: string[] }
@@ -23,9 +23,9 @@ export function readCandidateRequirements(candidatesRoot = candidatesDir()): { r
   return { requirements, warnings };
 }
 
-// Seen counts Candidates, not mentions; a requirement no Skill names is a Gap, spelled as first seen.
-export function ledger(p: Profile, reqs: Requirement[]): Row[] {
-  const rows: Row[] = skills(p).map((s) => ({ name: s.name, level: "shipped", seen: 0 }));
+// Seen counts Candidates, not mentions; a requirement no Keyword names is a Gap, spelled as first seen.
+export function ledger(p: Pick<Profile, "projects">, reqs: Requirement[]): Row[] {
+  const rows: Row[] = keywords(p).map((name) => ({ name, level: "shipped", seen: 0 }));
   const byKey = new Map(rows.map((r) => [r.name.toLowerCase(), r]));
   for (const { requirements } of reqs) {
     const once = new Set<string>();
