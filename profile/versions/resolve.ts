@@ -3,16 +3,16 @@
 // Bullet links below it read, down to the next such heading. {{url}}, {{role}}, {{employment}}, {{start}}
 // and {{end}} print the Project's frontmatter values, {{Description}} its Description; a list item that is
 // only a link to a Bullet's anchor prints that Bullet's claim. A {{keywords}} marker prints the Keywords
-// kept for its line as one backtick line, or nothing when the list is empty; a marker with no list prints
-// nothing and is a warning. A slot or link that cannot be filled is a problem; both are named with their
-// line. Everything else prints as written and nothing else is checked. The Version file is never written.
-// CLI: node profile/versions/resolve.ts <version.md> [--keywords <kept.json>]   (kept.json maps a marker's line
-// to the Keywords kept, {"22": ["TypeScript"]}; Markdown on stdout, problems and warnings on stderr, exit 1 on
-// a problem)
+// keywords.ts offers it, as one backtick line; a marker with nothing to offer prints nothing and is a
+// warning. A slot or link that cannot be filled is a problem; both are named with their line. Everything
+// else prints as written and nothing else is checked. The Version file is never written.
+// CLI: node profile/versions/resolve.ts <version.md>   (Markdown on stdout, problems and warnings on stderr,
+// exit 1 on a problem)
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { META_KEYS, readProject, type Project } from "../lib/index.ts";
+import { rankKeywords } from "./keywords.ts";
 
 export interface Resolved { markdown: string; problems: string[]; warnings: string[] }
 
@@ -22,10 +22,8 @@ export const BULLET_ITEM = /^(\s*[*+-]\s+)\[[^\]]*\]\(([^)#\s:]+)#([^)\s]+)\)\s*
 const SLOT = /\{\{\s*([^}]*?)\s*\}\}/g;
 export const MARKER = /^\s*\{\{\s*keywords\s*\}\}\s*$/;
 
-// The Keywords kept for each marker, by the marker's line.
-export type Kept = Record<number, string[]>;
-
-export function resolveVersion(file: string, kept: Kept = {}): Resolved {
+export function resolveVersion(file: string): Resolved {
+  const offered = new Map(rankKeywords(file).markers.map((m) => [m.line, m.keywords]));
   const dir = path.dirname(file);
   const problems: string[] = [];
   const warnings: string[] = [];
@@ -55,9 +53,9 @@ export function resolveVersion(file: string, kept: Kept = {}): Resolved {
   lines.forEach((line, i) => {
     const n = i + 1;
     if (MARKER.test(line)) {
-      const keep = kept[n];
-      if (!keep) warnings.push(`line ${n}: {{keywords}} marker still in the file`);
-      else if (keep.length) out.push(keep.map((k) => `\`${k}\``).join(", "));
+      const keywords = offered.get(n);
+      if (keywords) out.push(keywords.map((k) => `\`${k}\``).join(", "));
+      else warnings.push(`line ${n}: {{keywords}} marker has no Keywords to print`);
       return;
     }
     const h = PROJECT_HEADING.exec(line);
@@ -89,10 +87,9 @@ export function resolveVersion(file: string, kept: Kept = {}): Resolved {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const [file, flag, keptFile] = process.argv.slice(2);
-  if (!file || (flag !== undefined && (flag !== "--keywords" || !keptFile))) { console.error("usage: resolve.ts <version.md> [--keywords <kept.json>]"); process.exit(2); }
-  const kept = keptFile ? (JSON.parse(fs.readFileSync(keptFile, "utf8")) as Kept) : {};
-  const { markdown, problems, warnings } = resolveVersion(path.resolve(file), kept);
+  const file = process.argv[2];
+  if (!file) { console.error("usage: resolve.ts <version.md>"); process.exit(2); }
+  const { markdown, problems, warnings } = resolveVersion(path.resolve(file));
   process.stdout.write(markdown);
   for (const p of problems) console.error(`${file}: ${p}`);
   for (const w of warnings) console.error(`${file}: warning: ${w}`);

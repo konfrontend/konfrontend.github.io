@@ -2,12 +2,13 @@
    Everything a parser should read is text in the layer: the name alone on line one, list bullets as ::before glyphs
    rather than drawn markers, hyphenated words kept whole with .nb. The page is plain Markdown HTML without classes,
    so the parts are styled by position: the two paragraphs after the h1 are the headline and the contact line, the
-   paragraph after an h3 the role row and Description, a paragraph after a list the Keyword line. */
+   paragraph after an h3 the Description, a paragraph after a list the Keyword line. An h3 holds the Project name,
+   its url and, in a <span>, the role row, set flush right on the same line. */
 @page { size: A4; margin: 0; }
 * { box-sizing: border-box; }
 html { --sans: "Helvetica Neue", Helvetica, Arial, sans-serif; --serif: Georgia, serif; }
 body { margin: 0; background: #fff; color: #1a1a1a; font-family: var(--serif); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-h1, h2, h3, h1 + p, h1 + p + p, h3 + p { font-family: var(--sans); }
+h1, h2, h3, h1 + p, h1 + p + p { font-family: var(--sans); }
 a { color: inherit; }
 p { margin: 0; }
 /* Bullets are text in ::before, not list markers: Chrome draws markers as paths, which the text layer lacks. */
@@ -22,14 +23,15 @@ main { padding: 12.7mm 16mm; font-size: 10pt; line-height: 1.15; }
 
 h1 { display: block; font-size: 19pt; font-weight: 700; margin: 0; }
 h1 + p { font-size: 12pt; color: #666; }
-h1 + p + p { margin-top: 3pt; font-size: 9pt; color: #555; }
+h1 + p + p { margin-top: 3pt; font-size: 9pt; color: #555; white-space: nowrap; }
 h1 + p + p + p { margin-top: 6pt; }
 
 h2 { font-size: 12pt; text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid #222; padding-bottom: 2pt; margin: 12pt 0 5pt; }
-h3 { font-size: 11pt; margin: 9pt 0 1pt; }
+h3 { display: flex; align-items: baseline; gap: .3em; font-size: 11pt; margin: 9pt 0 1pt; }
+/* The role row: a direct span other than a .nb one, pushed to the right edge. */
+h3 > span:not(.nb) { margin-left: auto; white-space: nowrap; font-size: 9.5pt; font-weight: 400; font-style: italic; color: #333; }
 h3 a { text-decoration: none; font-weight: 400; color: #555; font-size: 9.5pt; }
 
-h3 + p { font-size: 9.5pt; font-style: italic; color: #333; }
 h3 + p + ul { margin-top: 3pt; }
 /* The Keyword line: backtick Keywords as plain small text. */
 ul + p { margin-top: 3pt; font-size: 9pt; color: #555; }

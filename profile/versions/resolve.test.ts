@@ -79,7 +79,7 @@ Load testing for websites.
   });
 });
 
-test("a slot or link it cannot fill is a problem and a leftover marker a warning, each named with its line", () => {
+test("a slot or link it cannot fill is a problem and a marker with nothing to offer a warning, each named with its line", () => {
   const file = version(`{{role}}
 
 ### [Acme](../projects/acme.md)
@@ -101,7 +101,7 @@ test("a slot or link it cannot fill is a problem and a leftover marker a warning
     "line 11: Project heading links ../projects/ghost.md, which does not exist",
     "line 11: {{url}} reads ../projects/ghost.md, which does not exist",
   ]);
-  assert.deepEqual(warnings, ["line 9: {{keywords}} marker still in the file"]);
+  assert.deepEqual(warnings, ["line 9: {{keywords}} marker has no Keywords to print"]);
   assert.doesNotMatch(markdown, /\{\{keywords\}\}/);
 });
 
@@ -112,7 +112,7 @@ test("a lone link to another site or to an anchor on the page prints as written"
   assert.equal(markdown, text.replace("[Acme](../projects/acme.md)", "Acme"));
 });
 
-test("a marker prints the Keywords kept for its line; an empty list prints nothing; a marker with no list warns", () => {
+test("a marker prints its Project's ranked Keywords; a marker with nothing to offer prints nothing and warns", () => {
   const file = version(`### [Acme](../projects/acme.md)
 
 * [Charts](../projects/acme.md#charts)
@@ -122,13 +122,9 @@ test("a marker prints the Keywords kept for its line; an empty list prints nothi
 ### [Acme](../projects/acme.md)
 
 {{keywords}}
-
-### [Acme](../projects/acme.md)
-
-{{keywords}}
 `);
-  const { markdown, problems, warnings } = resolveVersion(file, { 5: ["TypeScript", "Canvas"], 9: [] });
+  const { markdown, problems, warnings } = resolveVersion(file);
   assert.deepEqual(problems, []);
-  assert.deepEqual(warnings, ["line 13: {{keywords}} marker still in the file"]);
-  assert.equal(markdown, "### Acme\n\n* Built live charts.\n\n`TypeScript`, `Canvas`\n\n### Acme\n\n\n### Acme\n\n");
+  assert.deepEqual(warnings, ["line 9: {{keywords}} marker has no Keywords to print"]);
+  assert.equal(markdown, "### Acme\n\n* Built live charts.\n\n`TypeScript`, `Canvas`\n\n### Acme\n\n");
 });

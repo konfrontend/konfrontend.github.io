@@ -2,14 +2,13 @@
 
 Frontend Developer
 
-Gijon, Spain (CET, UTC+1) • [cossamedia@gmail.com](mailto:cossamedia@gmail.com) • [github.com/konfrontend](https://github.com/konfrontend) • [linkedin.com/in/konstantin-dolbilov-94720b361](https://www.linkedin.com/in/konstantin-dolbilov-94720b361)
+Gijon, Spain (CET, UTC+1) | [cossamedia@gmail.com](mailto:cossamedia@gmail.com) | [github.com/konfrontend](https://github.com/konfrontend) | [linkedin.com/in/konstantin-dolbilov-94720b361](https://www.linkedin.com/in/konstantin-dolbilov-94720b361)
 
 TypeScript / React / WebGL generalist, specializing in interactive 2D/3D graphics and UI/UX. I have an eye for design, value clean software architecture, accessibility, and performance.
 
 ## Professional Experience
 
-### [Loadster](../projects/loadster.md) {{url}}
-{{role}} ({{employment}}) | {{start}} – {{end}}
+### [Loadster](../projects/loadster.md) {{url}} <span>{{role}} ({{employment}}) | {{start}} – {{end}}</span>
 {{Description}}
 
 * [Frontend Architecture](../projects/loadster.md#frontend-architecture)
@@ -23,8 +22,7 @@ TypeScript / React / WebGL generalist, specializing in interactive 2D/3D graphic
 
 ***
 
-### [Jigawatt Solar](../projects/jigawatt.md) {{url}}
-{{role}} ({{employment}}) | {{start}} – {{end}}
+### [Jigawatt Solar](../projects/jigawatt.md) {{url}} <span>{{role}} ({{employment}}) | {{start}} – {{end}}</span>
 {{Description}}
 
 * [CAD Engine](../projects/jigawatt.md#cad-engine)
@@ -37,8 +35,7 @@ TypeScript / React / WebGL generalist, specializing in interactive 2D/3D graphic
 
 *** 
 
-### [Nataliia Musikhina Website](../projects/hermit.md) {{url}}
-{{role}} ({{employment}}) | {{start}} – {{end}}
+### [Nataliia Musikhina Website](../projects/hermit.md) {{url}} <span>{{role}} ({{employment}}) | {{start}} – {{end}}</span>
 {{Description}}
 
 * [Multilingual SSG Website](../projects/hermit.md#multilingual-ssg-website)
@@ -49,8 +46,7 @@ TypeScript / React / WebGL generalist, specializing in interactive 2D/3D graphic
 
 ## Open-Source Projects
 
-### [timestop](../projects/timestop.md) {{url}}
-{{role}} ({{employment}}) | {{start}} – {{end}}
+### [timestop](../projects/timestop.md) {{url}} <span>{{role}} ({{employment}}) | {{start}} – {{end}}</span>
 {{Description}}
 
 * [Optional Sync Server](../projects/timestop.md#optional-sync-server)

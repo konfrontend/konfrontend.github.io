@@ -1,7 +1,7 @@
 // The Keywords a Version's {{keywords}} markers are offered. Under each Project heading, a marker is offered
 // the union over the groups of the Bullets picked under that Project, once each (case-insensitive, in the
-// first spelling), the Keywords in the most groups first, ties in the order they first appear. The person
-// picks from that list at print time; nothing here writes the Version. A Project with a hand-written Keyword
+// first spelling), the Keywords in the most groups first, ties in the order they first appear. Resolve prints
+// that list in place of the marker; nothing here writes the Version. A Project with a hand-written Keyword
 // line prints it as written; the Keywords it lacks are reported. A link resolve cannot fill picks nothing
 // here; a marker whose Project picks no Bullet is offered nothing and reported.
 // CLI: node profile/versions/keywords.ts <version.md>   (one line per marker: its line, the Project, the ranked
