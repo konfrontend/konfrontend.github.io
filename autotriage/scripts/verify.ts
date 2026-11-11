@@ -2,15 +2,15 @@
 // the route's template (letter-freelance or letter-employment) and runs every Check marked `by: script`;
 // the model Checks, the Fixes, and the cycles are the skill's job. Prints Findings, the Slot map with line
 // numbers, the counts, and the brief the model pass reads (Safeguards to look for, `when: job asks` Slots
-// present, Profile terms, the Projects' facts, the Answers, the Version sent, the Skills).
+// present, Profile terms, the Projects' facts, the Answers, the Skills).
 // The Letter body ends at the sign-off line: the milestone lines and the bid after it are copied into
 // Upwork's fields, and a fenced Sent block is the person's record of what went out; neither is checked.
 // An empty letter.md on the employment route is a resume-only application: nothing to check.
 // CLI: node scripts/verify.ts <candidate> [--json]
 //   exit 0 when no script Check fails, 1 when one does, 2 on usage or a missing input.
 import path from "node:path";
-import { readArtifact, loadCatalogue, flagsFor, templateFor, profile, skills, readVersion, versionSkillTerms, AUTOTRIAGE_ROOT, type Profile, type Project } from "./lib.ts";
-import { candidateDir, readJob, readLetter, versionFile, versionName } from "./candidate.ts";
+import { readArtifact, loadCatalogue, flagsFor, templateFor, profile, skills, AUTOTRIAGE_ROOT, type Project } from "./lib.ts";
+import { candidateDir, readJob, readLetter } from "./candidate.ts";
 import { compute } from "./verdict.ts";
 
 const LIST_LINE = /^(?:-|\d+[.)])\s/;
@@ -32,10 +32,8 @@ const COPY_RUN = 6;
 type Any = Record<string, any>;
 export interface Letter { body: string }
 export interface Job { frontmatter: Any | null; body: string }
-// The Version sent, as the brief shows it: its name, source, summary and Skills terms, read from its body.
-export interface VersionText { name: string; source: string; summary: string | null; skills: string[]; text: string | null }
 export interface Answer { slug: string; question: string }
-export interface Inputs { candidate: string; letter: Letter; job: Job; profile: Any; skillNames: string[]; voice: Any; projects: Project[]; answers?: Answer[]; version?: VersionText | null }
+export interface Inputs { candidate: string; letter: Letter; job: Job; profile: Any; skillNames: string[]; voice: Any; projects: Project[]; answers?: Answer[] }
 
 // The verify Guard has already checked job.md and letter.md; only their absence stops here.
 export function loadInputs(candidate: string): Inputs {
@@ -46,19 +44,8 @@ export function loadInputs(candidate: string): Inputs {
   const p = profile();
   const projects = p.projects.filter((x) => !x.errors.length);
   const skillNames = skills(p).map((s) => s.name);
-  const version = job.frontmatter?.route === "employment" ? readVersionText(dir, p) : null;
   const answers = p.answers.map((a) => ({ slug: path.basename(a.file, ".md"), question: a.question }));
-  return { candidate, letter: { body: letter.body }, job, profile: p.profile ?? {}, skillNames, voice: p.voice ?? {}, projects, answers, version };
-}
-
-// The Version the Candidate is sent with (its own version.md, else the general Version): its summary and
-// Skills terms, read from the Version body.
-export function readVersionText(dir: string, p: Profile): VersionText {
-  const name = versionName(dir);
-  const source = name === "tailored" ? "version.md in the Candidate folder" : "resume/versions/general.md";
-  const v = readVersion(versionFile(dir), p);
-  if (v.errors.length) return { name, source, summary: null, skills: [], text: null };
-  return { name, source, summary: v.summary || null, skills: versionSkillTerms(v.skills), text: [v.title, v.summary, ...v.skills, ...v.bullets.map((b) => b.text)].join("\n") };
+  return { candidate, letter: { body: letter.body }, job, profile: p.profile ?? {}, skillNames, voice: p.voice ?? {}, projects, answers };
 }
 
 function loadCatalogues(route: string) {
@@ -266,7 +253,7 @@ export function projectFacts(p: Project) {
 
 export interface Analysis { findings: Finding[]; letter_skipped: boolean; slots: Any[]; counts: Any | null; brief: Any; fails: number; warns: number }
 
-export function analyse({ candidate, letter, job, profile: profileMeta, skillNames = [], voice, projects, answers = [], version = null }: Inputs): Analysis {
+export function analyse({ candidate, letter, job, profile: profileMeta, skillNames = [], voice, projects, answers = [] }: Inputs): Analysis {
   const route: string = job.frontmatter?.route ?? "freelance";
   const employment = route === "employment";
   const cat = loadCatalogues(route);
@@ -286,7 +273,7 @@ export function analyse({ candidate, letter, job, profile: profileMeta, skillNam
   const { body: text, after } = splitLetter(letter.body, voice.sign_off);
   const body = text.replace(/\s+$/, "");
   if (employment && !body.trim()) {
-    const brief = { route, template: cat.templateName, resume_only: true, version: version ? { name: version.name, source: version.source, summary: version.summary } : null };
+    const brief = { route, template: cat.templateName, resume_only: true };
     return { findings, letter_skipped: true, slots: [], counts: null, brief, fails: 0, warns: 0 };
   }
   const seg = employment ? segmentEmployment(body) : segment(body, { headers: cat.slots.headers, planSlots });
@@ -422,7 +409,6 @@ export function analyse({ candidate, letter, job, profile: profileMeta, skillNam
     job_asks_present: seg.slots.filter((s) => jobAsks.has(s.id)).map((s) => s.id),
     template_slots: templateSlots, terms: profileMeta.terms ?? {}, projects: projects.map(projectFacts),
     answers,
-    version: version ? { name: version.name, source: version.source, summary: version.summary } : null,
     mandatory_keyword: flags.includes("mandatory-keyword"),
     skills: skillNames,
   };
@@ -436,7 +422,6 @@ export function render(r: Analysis): string {
   const out: string[] = [];
   if (r.letter_skipped) {
     out.push("letter pass: skipped, letter.md is empty (a resume-only application)");
-    if (r.brief.version) out.push(`version: ${r.brief.version.name} (${r.brief.version.source})`);
     return out.join("\n");
   }
   out.push(`script: ${r.fails} fail, ${r.warns} warn (line numbers count from the start of letter.md)`);
@@ -454,7 +439,6 @@ export function render(r: Analysis): string {
   out.push("", `counts: ${parts.join(", ")}`);
   const b = r.brief;
   out.push("", `brief: route ${b.route}, template ${b.template}${b.plan_slot ? `, plan Slot ${b.plan_slot}` : ""}, Alert Level ${b.alert_level}, Flags: ${b.flags.join(", ") || "none"}`);
-  if (b.version) out.push(`  Version sent: ${b.version.name} (${b.version.source}); summary: ${b.version.summary ?? "does not read"}`);
   out.push(`  safeguards to find (${b.safeguards.length}):`);
   for (const mit of b.safeguards) out.push(`    ${mit.id} (level ${mit.level}) in ${mit.slot}: ${mit.safeguard}`);
   out.push(`  when-job-asks Slots present: ${b.job_asks_present.join(", ") || "none"}`);

@@ -54,7 +54,6 @@ Portable across Profiles. Personal inputs (the banned phrases, terms) come from 
 
 - `letter.md` of the current Candidate: body only, no frontmatter. The Letter ends at the sign-off line; the milestone lines and the bid after it are not part of it, and an optional fenced `Sent` block is skipped. An empty `letter.md` on the employment route is a resume-only application: valid, with no Letter in it.
 - `job.md`: `route`, `title`, `requirements`, the posting body (client facts, Job demands), and on the freelance route `flags`, from which the script recomputes the Alert Level and the Safeguards, and `rate` when the person set one.
-- The Version sent on the employment route: the Candidate's `version.md` when it exists, else `resume/versions/general.md`; its summary is what `intro` derives from.
 - Profile: `profile/profile.md` (`terms`), the Skills (`profile/skills.md`: names for the acronym list), `profile/projects/<slug>.md` (traceability source: the frontmatter meta, the Overview, the Bullets by key and the Notes, harvested by the script into the brief), `profile/answers/<slug>.md` (a Letter source, cited as `Answer <slug>`), `voice.md` (`banned_phrases`).
 - Catalogues: voice rules, Slot catalogue, the route's template, Flag catalogue.
 
@@ -82,7 +81,7 @@ A cover letter with fewer than five blocks, more than six, or any header line ra
 
 Blocks are separated by one blank line. A Letter this procedure cannot segment (too few blocks, a header where none is allowed, a block without a header straight after the hook, the same header twice) raises `slot/parse` and stops for the human. Hand-edited Letters go through the same procedure.
 
-`scripts/verify.ts <candidate>` reads the route from `job.md`, runs the segmentation and every script Check of the route, and prints the Findings, the Slot map with line numbers, the counts, and the brief for the model pass (route and template, the plan Slot, the Alert Level recomputed from `flags`, the Safeguards to look for with their target Slot, `when: job asks` Slots present, the lines after the sign-off, Profile terms and the Job's `rate`, one line per Project, the Answers, the Version sent). The Project's Overview, Bullets and Notes are read from its file, never printed. Exit 1 while any script Check fails. An empty `letter.md` on the employment route is a resume-only application: the script prints `letter pass: skipped` and nothing else runs. Its fixtures in `scripts/verify.test.ts` seed one Finding per Check group, on both routes.
+`scripts/verify.ts <candidate>` reads the route from `job.md`, runs the segmentation and every script Check of the route, and prints the Findings, the Slot map with line numbers, the counts, and the brief for the model pass (route and template, the plan Slot, the Alert Level recomputed from `flags`, the Safeguards to look for with their target Slot, `when: job asks` Slots present, the lines after the sign-off, Profile terms and the Job's `rate`, one line per Project, the Answers). The Project's Overview, Bullets and Notes are read from its file, never printed. Exit 1 while any script Check fails. An empty `letter.md` on the employment route is a resume-only application: the script prints `letter pass: skipped` and nothing else runs. Its fixtures in `scripts/verify.test.ts` seed one Finding per Check group, on both routes.
 
 ## Checks
 

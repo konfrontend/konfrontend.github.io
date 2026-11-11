@@ -12,14 +12,14 @@ slots:
 
 # Letter template: employment
 
-The cover letter of the employment route, selected by `route: employment` in `job.md`; `letter-freelance.md` serves the freelance route. It goes out with the application form and the resume PDF, so it says who is writing and what they work in, and leaves the roles, the dates and the contact details to the PDF. `proposal` writes it into `letter.md`, which the `version` State created empty; `verify` checks it against this template. A resume-only application leaves `letter.md` empty. Order and the rules for every route are in the Slot catalogue `letter-slots.md`, `Employment route`.
+The cover letter of the employment route, selected by `route: employment` in `job.md`; `letter-freelance.md` serves the freelance route. It goes out with the application form and the resume PDF, so it says who is writing and what they work in, and leaves the roles, the dates and the contact details to the PDF. `proposal` writes it into `letter.md` from the Projects only; `verify` checks it against this template. A resume-only application leaves `letter.md` empty. Order and the rules for every route are in the Slot catalogue `letter-slots.md`, `Employment route`.
 
 Cap: 500 characters for the whole Letter, greeting and sign-off included (`cap.chars`). No word cap, no Hook Slot, no `answers`, no headers, no lists.
 
 Slot notes for this template:
 
 - `greeting`: the Profile `voice.md` `greeting.employment` (`Hello,`).
-- `intro`: the summary of the Version sent (the Candidate's `version.md` when tailored, else `resume/versions/general.md`) in first person, rephrased to the posting's keywords. A role title and `10+ years` are allowed here only.
+- `intro`: who the person is, drawn from the Projects that match the Job: their `role` and the Keywords they prove, in first person, rephrased to the posting's keywords. A role title and `10+ years` are allowed here only.
 - `relevant_work`: one paragraph, the same rule as the proposal: the product with its URL, one or two things done there that match the Job's requirements, and ownership where the Project's role says so, every item traced to a Project's `keywords`, Overview, Bullets or Notes. No role and no dates: the PDF carries them. When a required item has no Project proving it, the nearest thing done may appear here as work done, with no mention of the item.
 - `terms`: only when the posting asks (availability, notice, location, overlap). Same fill as the Slot catalogue `terms`; no salary figure unless the posting asks for one.
 - `closing`: one line, always, the same rule as the proposal.

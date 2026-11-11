@@ -37,7 +37,7 @@ test("triage needs only profile.md; the Letter States need every Profile file", 
 
 test("an unknown State and a missing Candidate argument refuse with the fix named", () => {
   const { root } = fixture({ candidates: { "2026-10-16-acme-fix": { "job.md": freelanceJob() } } });
-  assert.match(run(root, "guard.ts", "bogus").stdout, /^autotriage: bogus refused\. unknown State\. Known: route, intake, triage, version, proposal, verify\./);
+  assert.match(run(root, "guard.ts", "bogus").stdout, /^autotriage: bogus refused\. unknown State\. Known: route, intake, triage, proposal, verify\./);
   assert.match(run(root, "guard.ts", "triage").stdout, /triage refused\. needs a Candidate folder name as argument\.\nKnown Candidates:\n  2026-10-16-acme-fix\nUsage: \/route-triage <YYYY-MM-DD-slug>/);
   assert.match(run(root, "guard.ts", "triage", "2026-10-16-nope").stdout, /no Candidate folder private\/candidates\/2026-10-16-nope\./);
 });
@@ -67,6 +67,18 @@ test("the Letter States check the Verdict the human confirmed and recompute noth
   assert.match(run(go.root, "guard.ts", "verify", "2026-10-16-acme-fix").stdout.trim(), /^Candidate: .*\nRoute: freelance\nLetter: letter\.md\nTemplate: letter-freelance$/);
 });
 
+test("employment goes from triage straight to the Letter: proposal and verify read no Version", () => {
+  const c = "2026-10-17-acme-frontend";
+  const { root, candidate } = fixture({ candidates: { [c]: { "job.md": employmentJob({ requirements: ["React"] }) } } });
+  const p = run(root, "guard.ts", "proposal", c);
+  assert.equal(p.stdout.trim(), `Candidate: private/candidates/${c}\nRoute: employment\nTitle: Senior Frontend Developer\nRequirements: React`, "no letter.md needed, no Version named");
+  fs.writeFileSync(path.join(candidate(c), "letter.md"), "Hello,\n");
+  assert.match(run(root, "guard.ts", "proposal", c).stdout, /^Note: letter\.md exists; this run rewrites it\./);
+  const v = run(root, "guard.ts", "verify", c);
+  assert.equal(v.stdout.trim(), `Candidate: private/candidates/${c}\nRoute: employment\nLetter: letter.md\nTemplate: letter-employment`);
+  assert.match(run(root, "guard.ts", "version", c).stdout, /version refused\. unknown State/);
+});
+
 test("the PreToolUse hook denies a refused State and stays silent on a passing one", () => {
   const { root } = fixture();
   const deny = hook(root, "pre-tool-use.ts", { tool_input: { skill: "route-triage", args: "" } });
@@ -92,8 +104,7 @@ test("the write hook validates Profile and Candidate files by their path and ign
   assert.equal(write(path.join(dir, "letter.md")).stdout, "", "a body-only Letter passes");
   fs.writeFileSync(path.join(dir, "letter.md"), "---\nfamily: audit\n---\nHello,\n");
   assert.match(JSON.parse(write(path.join(dir, "letter.md")).stdout).reason, /the Candidate contract:\n  letter\.md carries frontmatter; a Letter is body only/);
-  assert.equal(write(path.join(dir, "version.md")).stdout, "", "a Version has no schema; render.ts checks it");
-  assert.equal(write(path.join(root, "resume", "versions", "general.md")).stdout, "");
+  assert.equal(write(path.join(root, "resume", "versions", "frontend.md")).stdout, "", "a Version is the person's prose, with no schema");
   assert.equal(write(path.join(root, "README.md")).stdout, "");
   assert.equal(write(path.join(root, "profile", "skills.md")).stdout, "", "generated files have no schema");
 });
@@ -107,7 +118,7 @@ test("every State's guard line runs with CLAUDE_PROJECT_DIR unset, from a subfol
     const file = path.join(skills, s, "SKILL.md");
     return fs.existsSync(file) ? (fs.readFileSync(file, "utf8").match(/^!`(.+)`$/gm) ?? []).map((l) => [s, l.slice(2, -1).replace("$ARGUMENTS", "")]) : [];
   });
-  assert.ok(lines.length >= 6, "the route, intake and four State guard lines");
+  assert.ok(lines.length >= 5, "the route, intake and three State guard lines");
   for (const [skill, line] of lines) {
     const r = spawnSync("sh", ["-c", line], { cwd: path.join(repo, "autotriage"), env, encoding: "utf8" });
     assert.equal(r.stderr, "", `${skill}: ${line}`);

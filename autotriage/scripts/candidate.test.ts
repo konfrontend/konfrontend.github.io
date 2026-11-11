@@ -5,7 +5,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import { readJob, letterErrors, candidateSchemaForPath, candidatesDir, candidateFiles, generalVersion } from "./candidate.ts";
+import { readJob, letterErrors, candidateSchemaForPath, candidatesDir, candidateFiles } from "./candidate.ts";
 import { schemaForPath } from "./lib.ts";
 import { fixture, run, pipe, employmentJob, freelanceJob } from "./fixture.ts";
 import { repoRoot } from "../../profile/lib/index.ts";
@@ -40,8 +40,7 @@ test("the write hook finds every artifact by path, under the root", () => {
     assert.equal(candidateSchemaForPath(files.job), "job");
     assert.equal(candidateSchemaForPath(files.letter), "letter");
     assert.equal(candidateSchemaForPath(path.join(folder, "cover-letter.md")), null, "no such file any more");
-    assert.equal(candidateSchemaForPath(files.version), null, "a Version is generated prose, checked by render.ts");
-    assert.equal(candidateSchemaForPath(generalVersion()), null);
+    assert.equal(candidateSchemaForPath(path.join(folder, "version.md")), null, "a Candidate holds no Version");
     assert.equal(schemaForPath(files.job), null, "the Profile half knows no Candidate file");
     assert.equal(schemaForPath(path.join(root, "profile", "profile.md")), "profile");
     assert.equal(schemaForPath(path.join(root, "profile", "projects", "acme.md")), "project");
