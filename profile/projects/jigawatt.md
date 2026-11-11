@@ -8,7 +8,7 @@ end: 2026-07
 # Jigawatt Solar
 
 ## Description
-SaaS for solar dealers and installers: from interactive 2D/3D design and energy modeling to CRM
+SaaS for solar dealers and installers: from interactive 2D/3D design and energy modeling to CRM.
 
 ### CAD Engine
 Engineered the user-facing 3D CAD-style modeling system in React Three Fiber, Zustand, and shadcn/ui. Shipped 80+ features, including procedural 3D mesh generation, real-time 3D topology editing, REST API and Google Maps API integrations.
@@ -26,21 +26,21 @@ Authored the time-based shade simulation on WebGL in a Web Worker: an async algo
 
 ### Public Wiz
 <https://site.wiz.solar>
-Built a public web experience for potential clients to plan solar installation themselves: 2D SVG drawing engine, custom packing algorithm with O(n) complexity, draggable controls, Google Maps API integration, and solar energy production calculator.
+Built a public web experience for potential clients to plan a solar installation themselves: a 2D SVG drawing engine, a custom packing algorithm with O(n) complexity, draggable controls, Google Maps API integration, and a solar energy production calculator.
 
-`Vue.js`, `Vuex`, `GSAP`, `SVG`, `Google Maps API`, `Microsoft SQL Server`,
+`Vue.js`, `Vuex`, `GSAP`, `SVG`, `Google Maps API`, `Microsoft SQL Server`
 
 ***
 
 ### AI and Contribution
-Owned 47% of total commits among the other eight contributors. Introduced coding standards, developed domain glossary, architecture decision records, and agentic skills using vendor-neutral format.
+Owned 47% of total commits among nine contributors. Introduced coding standards, developed a domain glossary, architecture decision records, and agentic skills using a vendor-neutral format.
 
 `Claude Code`, `Test-driven Development (TDD)`, `Specification-driven Development (SDD)`, `Feature-driven Development (FDD)`, `Domain-driven Design (DDD)`, `Architecture Decision Records (ADR)`
 
 ***
 
 ### PWA Update
-Built the PWA auto-update feature, preventing version skewing and data loss.
+Built the PWA auto-update feature, preventing version skew and data loss.
 
 `Progressive Web Application (PWA)`, `Service Worker API`, `Vue.js`
 
@@ -49,7 +49,7 @@ Built the PWA auto-update feature, preventing version skewing and data loss.
 ### PDF Sign
 Developed a role-based PDF viewer with multi-party e-signing support and integrated it into the existing lead processing workflow.
 
-`pdf-lib`, `pdf.js`, `AcroForms`, `PDF DOM Parsing`, `PDF Incremental Updates`
+`pdf-lib`, `PDF.js`, `AcroForms`, `PDF DOM Parsing`, `PDF Incremental Updates`
 
 ***
 
@@ -63,5 +63,5 @@ Built the task planning board for CRM: reusable checklist templates in a node-ba
 ## Notes
 
 - Scaled the shade simulation from 1 to 2,600 sun positions across a year at 10–50 samples per m², finishing in 40 ms to 15 s without blocking the editor.
-- Wrote 93% of the layout tool's vector geometry core over 231 commits,
+- Wrote 93% of the layout tool's vector geometry core over 231 commits.
 
