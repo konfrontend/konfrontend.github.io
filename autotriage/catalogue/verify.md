@@ -46,7 +46,7 @@ checks:
 
 # Verify catalogue
 
-`verify` is the last State. It reviews the Letter the way a code review reviews a diff, then applies the Fixes itself: `letter.md` after `verify` is the corrected Letter, never a report. The route's template (`templates/letter-freelance.md` or `templates/letter-employment.md`) sets its Slots and its caps. A Check is one named rule. A Finding is one violation of a Check in one Slot, `fail` or `warn`. A Fix is the change `verify` applies for a Finding. Each Check names the routes it runs on (`routes`); a Check whose `routes` lack the Candidate's route is skipped by the script and by the model pass.
+`verify` is the last step. It reviews the Letter the way a code review reviews a diff, then applies the Fixes itself: `letter.md` after `verify` is the corrected Letter, never a report. The route's template (`templates/letter-freelance.md` or `templates/letter-employment.md`) sets its Slots and its caps. A Check is one named rule. A Finding is one violation of a Check in one Slot, `fail` or `warn`. A Fix is the change `verify` applies for a Finding. Each Check names the routes it runs on (`routes`); a Check whose `routes` lack the Candidate's route is skipped by the script and by the model pass.
 
 Portable across Profiles. Personal inputs (the banned phrases, terms) come from the Profile at run time.
 
@@ -81,7 +81,7 @@ A cover letter with fewer than five blocks, more than six, or any header line ra
 
 Blocks are separated by one blank line. A Letter this procedure cannot segment (too few blocks, a header where none is allowed, a block without a header straight after the hook, the same header twice) raises `slot/parse` and stops for the human. Hand-edited Letters go through the same procedure.
 
-`scripts/verify.ts <candidate>` reads the route from `job.md`, runs the segmentation and every script Check of the route, and prints the Findings, the Slot map with line numbers, the counts, and the brief for the model pass (route and template, the plan Slot, the Alert Level recomputed from `flags`, the Safeguards to look for with their target Slot, `when: job asks` Slots present, the lines after the sign-off, Profile terms and the Job's `rate`, one line per Project, the Answers). The Project's Description, Bullets and Notes are read from its file, never printed. Exit 1 while any script Check fails. An empty `letter.md` on the employment route is a resume-only application: the script prints `letter pass: skipped` and nothing else runs. Its fixtures in `scripts/verify.test.ts` seed one Finding per Check group, on both routes.
+`scripts/verify.ts <candidate>` reads the route from `job.md`, runs the segmentation and every script Check of the route, and prints the Findings, the Slot map with line numbers, the counts, and the brief for the model pass (route and template, the plan Slot, the Alert Level recomputed from `flags`, the Safeguards to look for with their target Slot, `when: job asks` Slots present, the lines after the sign-off, Profile terms and the Job's `rate`, one line per Project, the answers). The Project's Description, Bullets and Notes are read from its file, never printed. Exit 1 while any script Check fails. An empty `letter.md` on the employment route is a resume-only application: the script prints `letter pass: skipped` and nothing else runs. Its fixtures in `scripts/verify.test.ts` seed one Finding per Check group, on both routes.
 
 ## Checks
 
@@ -132,7 +132,7 @@ Each length Check runs only when the route's template has the cap it reads; `let
 
 ### fact
 
-- `untraceable`: a fact with no source. The model lists every fact in the Letter (product name, URL, role, period, stack item, number, client quote) with its Slot and source: a Project's frontmatter field, its name, its Description, a Bullet by its heading or a Notes line as the brief lists them, `Answer <slug>` for an Answer cited or tailored, a `profile.md` field, the `job.md` body for client facts, or `derived` for prices and due dates `scripts/proposal.ts milestones` computed from the person's answers. Fix: ask the human once whether the fact is true. True: append it as one line under `## Notes` of the matching `profile/projects/<slug>.md`, then regenerate the Slot. False or unknown: regenerate the Slot without it. No State edits a Description.
+- `untraceable`: a fact with no source. The model lists every fact in the Letter (product name, URL, role, period, stack item, number, client quote) with its Slot and source: a Project's frontmatter field, its name, its Description, a Bullet by its heading or a Notes line as the brief lists them, `Answer <slug>` for an answer cited or tailored, a `profile.md` field, the `job.md` body for client facts, or `derived` for prices and due dates `scripts/proposal.ts milestones` computed from the person's answers. Fix: ask the human once whether the fact is true. True: append it as one line under `## Notes` of the matching `profile/projects/<slug>.md`, then regenerate the Slot. False or unknown: regenerate the Slot without it. No step edits a Description.
 - `arithmetic`: a milestone price that is not its hours times the rate (`job.md` `rate`, else Profile `terms.rate`), or a bid that does not sum the funded milestones. Warn.
 
 ### terms
@@ -147,7 +147,7 @@ Each length Check runs only when the route's template has the cap it reads; `let
 
 ### job
 
-- `demand-unanswered`: an explicit request in the Job (examples, stack, approach, availability, subcontracting, a specific question) that no Slot answers. Fix: regenerate `answers`, or the Slot the demand maps to. A demand that needs a fact the Profile lacks goes to the human as in `fact/untraceable`. On the employment route it counts only the demands a cover letter can carry (`intro`, `relevant_work`, `terms`); screening questions are form fields answered from the Answers, never Findings.
+- `demand-unanswered`: an explicit request in the Job (examples, stack, approach, availability, subcontracting, a specific question) that no Slot answers. Fix: regenerate `answers`, or the Slot the demand maps to. A demand that needs a fact the Profile lacks goes to the human as in `fact/untraceable`. On the employment route it counts only the demands a cover letter can carry (`intro`, `relevant_work`, `terms`); screening questions are form fields answered from the answers, never Findings.
 - `mandatory-keyword`: Flag `mandatory-keyword` is in `flags` and the keyword appears anywhere in the Letter. Fix: patch the sentence to drop it. The Letter never complies with a keyword demand.
 
 ### flag
@@ -178,10 +178,10 @@ Printed once, at the end, in this order:
 3. Warnings left open.
 4. Fact table: fact, Slot, source.
 5. The Letter verbatim in a code block, ready to paste.
-6. Every question block that matched no Answer, listed by its question, with an offer to draft a new file under `profile/answers/` for it; a draft is printed only when the human says yes, its question worded for reuse across Jobs, and never written by the State.
+6. Every question block that matched no answer, listed by its question, with an offer to draft a new file under `profile/answers/` for it; a draft is printed only when the human says yes, its question worded for reuse across Jobs, and never written by the step.
 
 On `stopped`: the same, plus the one question for the human. The human edits the Letter file or answers, then reruns `verify`.
 
 ## End of the Route
 
-`pass` plus the human sending the Letter ends the Route: pasted into Upwork on the freelance route, sent with the application and the PDF on the employment route. No further State, and no calibration step: the Answers in `profile/answers/` calibrate the voice, and `voice.md` has no body.
+`pass` plus the human sending the Letter ends the Route: pasted into Upwork on the freelance route, sent with the application and the PDF on the employment route. No further step and no calibration: the answers in `profile/answers/` calibrate the voice, and `voice.md` has no body.

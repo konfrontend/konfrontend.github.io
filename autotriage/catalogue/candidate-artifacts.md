@@ -1,6 +1,6 @@
 # Candidate artifacts
 
-A Candidate is one folder under `private/candidates/`, gitignored. It stores only what the person confirmed or what happened: `job.md` on both routes, `letter.md` on both routes. It never holds a Version: the person picks the Version an employment application is sent with, outside the Route. Anything recomputable, derivable from the files, or inferable from absence is not stored: the scores, the Alert Level, the recommendation, the Safeguards and the evidence are session output and are thrown away. Nothing is written outside the folder; the Gap print and the Tracker derive from the Candidates at print time.
+A Candidate is one folder under `private/candidates/`, gitignored. It stores only what the person confirmed or what happened: `job.md` on both routes, `letter.md` on both routes. It never holds a Version: the person picks the Version an employment application is sent with, outside the Route. Anything recomputable, derivable from the files, or inferable from absence is not stored: the scores, the Alert Level, the recommendation, the Safeguards and the evidence are session output and are thrown away. Nothing is written outside the folder; the gaps print and the tracker derive from the Candidates at print time.
 
 ## Folder
 
@@ -18,7 +18,7 @@ location: New York                # optional; on freelance from the parameter li
 company: Heymondo                 # employment only, required, never null: an agency posting that hides the employer names the agency
 employment: full-time             # employment only, required: full-time | part-time | contract (B2B is contract)
 verdict: go                       # the Checkpoint, both routes: go | no-go
-requirements: [React, Stripe Connect]   # the Checkpoint, both routes: the Job's required Skill-shaped items
+requirements: [React, Stripe Connect]   # the Checkpoint, both routes: the Job's required skill-shaped items
 flags: [non-technical-founder, paid-first-milestone]   # the Checkpoint, freelance only: the Flag ids triggered
 rate: 45                          # optional, freelance only: the rate the person set for this Job at proposal's batched question
 outcome: sent                     # by hand, only on verdict go: sent | interview | offer
@@ -28,7 +28,7 @@ Rules:
 
 - `title`, `route`, `timezone` identify the record on both routes; `location` is optional. On the employment route `company` and `employment` are required; neither exists on the freelance route. No other top-level field: a fact the body carries is read from the body.
 - The Checkpoint fields are written by `triage` in one write, once the person has answered go or no-go, on go and on no-go alike. If the person never answers, nothing is written. `verdict` is the go or no-go the person confirmed; the scores, the Flags' evidence and the script's recommendation behind it stay in the session. The `proposal` and `verify` Guards check `verdict: go` and recompute nothing; `no-go` ends the Route.
-- `requirements` holds only Skill-shaped items from the posting's required list: technologies and domain practices, never nice-to-haves, years of experience, spoken languages or degrees (a required degree is `unmet-constraint` evidence). Each is spelled as the Keyword when a Skill matches it, and as the posting spells it otherwise; that spelling becomes the Gap's name. Readers: the Gap print and the Letter States.
+- `requirements` holds only skill-shaped items from the posting's required list: technologies and domain practices, never nice-to-haves, years of experience, spoken languages or degrees (a required degree is `unmet-constraint` evidence). Each is spelled as the Keyword when a Keyword matches it, and as the posting spells it otherwise; that spelling becomes the Gap's name. Readers: the gaps print and the Letter steps.
 - `flags` is freelance only: the ids of every triggered Flag, green and stop Flags included. `proposal` reads it for the Safeguards; `verify` reads it for `flag/safeguard-missing`, `job/mandatory-keyword` and the Alert Level, which it recomputes from the ids. Employment Flags are not stored: every one has `slot: none`, so nothing reads them after the Checkpoint.
 - `rate` is freelance only and optional: the hourly rate the person set for this Job, written once by `proposal` with `scripts/proposal.ts write-rate` after the person answered. Without it the Profile `terms.rate` applies.
 - `outcome` is the furthest point the Candidate reached, set by hand on both routes once the application went out: `sent`, then `interview`, then `offer`. A missing next step is the negative outcome: a `sent` with no movement is no reply, by definition. No field for a rejection or a withdrawal. A win is the Project file the person creates by hand. The schema allows `outcome` only on `verdict: go`.
@@ -37,10 +37,10 @@ Rules:
 
 Body only, no frontmatter, on both routes: the Letter as pasted, plain text, no Markdown. On the freelance route the Letter ends at the sign-off; the milestone lines and the bid follow it, loose lines the person copies into Upwork's fields. An optional fenced `Sent` block at the end holds the text as sent, written by the person; `verify` skips it, and nothing compares it against the template: dropped headers, milestones in the body and a missing bid line are expected there. On the freelance route `proposal` writes it from `templates/letter-freelance.md`; on the employment route `proposal` writes it from `templates/letter-employment.md`, within that template's 500 characters, drawing on the Projects only. An empty `letter.md` on the employment route is valid: the person wrote it empty because the resume went out without a Letter, a resume-only application. `verify` checks the file and applies its Fixes in place; its result is not stored, since a Letter is final only after `verify` passes.
 
-## Tracker
+## The tracker
 
-The Tracker is not stored: `node scripts/tracker.ts print`, behind `/tracker`, prints it from every Candidate's `job.md` frontmatter and never writes. One table for both routes, columns `candidate | route | verdict | outcome`, sorted by folder name descending, so the newest Candidate is on top. No groups: a `no-go` or a Candidate with no movement reads from its columns. The print warns only on an invalid `job.md` and keeps its row, and skips any folder under `private/candidates/` that is not a dated Candidate, such as the archive.
+The tracker is not stored: `node scripts/tracker.ts print`, behind `/tracker`, prints it from every Candidate's `job.md` frontmatter and never writes. One table for both routes, columns `candidate | route | verdict | outcome`, sorted by folder name descending, so the newest Candidate is on top. No groups: a `no-go` or a Candidate with no movement reads from its columns. The print warns only on an invalid `job.md` and keeps its row, and skips any folder under `private/candidates/` that is not a dated Candidate, such as the archive.
 
-## Gap print
+## The gaps print
 
-Not stored either: `node scripts/gaps.ts print`, behind `/gaps`, reads every dated Candidate's `requirements`, no-go Candidates included (a Gap is often the reason for a no-go), plus the Keywords of the Projects' Bullet groups through `profile/lib`, and never writes. It warns on an invalid `job.md` and still counts its `requirements`. Two tables, columns `skill | seen`: the Gaps first, then the Skills a Job asked for, `seen` counting Candidates. Where a Gap was seen is not printed; a search over the Candidates answers that.
+Not stored either: `node scripts/gaps.ts print`, behind `/gaps`, reads every dated Candidate's `requirements`, no-go Candidates included (a Gap is often the reason for a no-go), plus the Keywords of the Projects' Bullet groups through `profile/lib`, and never writes. It warns on an invalid `job.md` and still counts its `requirements`. Two tables, columns `skill | seen`: the Gaps first, then the Keywords a Job asked for, `seen` counting Candidates. Where a Gap was seen is not printed; a search over the Candidates answers that.

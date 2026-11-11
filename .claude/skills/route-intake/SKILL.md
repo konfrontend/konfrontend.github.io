@@ -1,13 +1,13 @@
 ---
 name: route-intake
-description: Record a pasted Job as a Candidate folder under private/candidates/ (job.md). First State of the Route.
+description: Record a pasted Job as a Candidate folder under private/candidates/ (job.md). First step of the Route.
 argument-hint: "<posting body; route, the client's timezone, employment terms>"
 ---
 !`node ${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel)}/autotriage/scripts/guard.ts intake`
 
 A guard line above that starts with `autotriage:` and says `refused` is the answer: print it verbatim and stop; it names the fix.
 
-A Candidate is `private/candidates/YYYY-MM-DD-<slug>/` with `job.md` as the input record; contract in `autotriage/catalogue/candidate-artifacts.md`. The frontmatter holds the identity fields; the body is the paste verbatim, every line kept: the parameter line, the screening questions, the blank lines. Nothing is parsed out of it and nothing is dropped, so a later State reads the same Job the human read: the budget, the remote policy, the salary and the hours are read from the body by whoever needs them.
+A Candidate is `private/candidates/YYYY-MM-DD-<slug>/` with `job.md` as the input record; contract in `autotriage/catalogue/candidate-artifacts.md`. The frontmatter holds the identity fields; the body is the paste verbatim, every line kept: the parameter line, the screening questions, the blank lines. Nothing is parsed out of it and nothing is dropped, so a later step reads the same Job the human read: the budget, the remote policy, the salary and the hours are read from the body by whoever needs them.
 
 ## Reading the paste
 

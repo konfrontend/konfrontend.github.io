@@ -297,7 +297,7 @@ hard_stops:
 scores:
   scale: 1-5
   skill_fit:
-    # an item a Skill names is covered
+    # an item a Keyword names is covered
     "1": "core stack or domain absent from the Profile"
     "2": "half or less of the required items covered"
     "3": "most items covered, one Gap in a secondary item"
@@ -331,7 +331,7 @@ verdict_mapping:
 checkpoint_fields:
   # written into job.md at the Checkpoint, once the human has answered; see catalogue/candidate-artifacts.md
   verdict: go | no-go, the human's answer
-  requirements: the Job's required Skill-shaped items, Keyword spelling where a Project matches
+  requirements: the Job's required skill-shaped items, Keyword spelling where a Project matches
   flags: freelance only; list of triggered Flag ids, green and stop Flags included
 ---
 
