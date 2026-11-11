@@ -63,9 +63,9 @@ test("parseProject reads the name, the five frontmatter values as written, the D
   assert.deepEqual(p.meta, { url: "https://example.com/engine", role: "Programmer", employment: "contract", start: "Jan 1842", end: "1843-09" });
   assert.equal(p.description, "A mechanical computer.");
   assert.deepEqual(p.bullets, [
-    { anchor: "bernoulli-program", title: "Bernoulli Program", text: "Wrote the first program, computing Bernoulli numbers.", keywords: ["Punched cards", "Bernoulli numbers"] },
-    { anchor: "loops", title: "Loops", text: "Described loops\nand conditional branches.", keywords: ["Punched cards", "Bernoulli numbers"] },
-    { anchor: "translation", title: "Translation", text: "Translated Menabrea's memoir.", keywords: ["Writing", "punched cards"] },
+    { anchor: "bernoulli-program", title: "Bernoulli Program", text: "Wrote the first program, computing Bernoulli numbers.", keywords: ["Punched cards", "Bernoulli numbers"], group: 0 },
+    { anchor: "loops", title: "Loops", text: "Described loops\nand conditional branches.", keywords: ["Punched cards", "Bernoulli numbers"], group: 0 },
+    { anchor: "translation", title: "Translation", text: "Translated Menabrea's memoir.", keywords: ["Writing", "punched cards"], group: 1 },
   ]);
   assert.deepEqual(p.keywords, ["Punched cards", "Bernoulli numbers", "Writing"], "every group's Keywords, once each, case-insensitive");
   assert.deepEqual(p.notes, ["[published] Published in 1843.", "- A raw line."]);

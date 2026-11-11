@@ -79,13 +79,13 @@ export function validateArtifact(name: SchemaName, art: Pick<Artifact, "frontmat
 // A Project file: frontmatter with url, role, employment, start and end, read as written; the name in the
 // `# h1`; `## Description` prose; each `###` heading under it one Bullet, addressed by the heading's anchor;
 // a group of Bullets ends with one line of backtick Keywords and `***`, the Keywords belonging to every
-// Bullet of the group; `## Notes` raw lines. Anything else is skipped, nothing is refused.
+// Bullet of the group, and a Bullet's group is numbered from 0 in file order; `## Notes` raw lines. Anything else is skipped, nothing is refused.
 export const META_KEYS = ["url", "role", "employment", "start", "end"] as const;
 export type ProjectMeta = Partial<Record<(typeof META_KEYS)[number], string>>;
-export interface Bullet { anchor: string; title: string; text: string; keywords: string[] }
+export interface Bullet { anchor: string; title: string; text: string; keywords: string[]; group: number }
 export interface ProjectBody { name: string; meta: ProjectMeta; description: string; bullets: Bullet[]; keywords: string[]; notes: string[] }
 
-const KEYWORD_LINE = /^`[^`]+`(?:\s*,\s*`[^`]+`)*\s*,?$/;
+export const KEYWORD_LINE = /^`[^`]+`(?:\s*,\s*`[^`]+`)*\s*,?$/;
 
 // The anchor a Markdown renderer gives a heading: lower case, punctuation dropped, spaces as hyphens, a
 // repeat suffixed -1, -2.
@@ -116,6 +116,7 @@ export function parseProject(text: string): ProjectBody {
   // A `##` other than Description and Notes still holds Bullets; only its loose prose is skipped.
   let section: "description" | "notes" | "other" | null = null;
   let group: Bullet[] = [];
+  let groups = 0;
   let bullet: (Bullet & { lines: string[] }) | null = null;
   for (const raw of (m ? m[2] : text).split(/\r?\n/)) {
     const line = raw.trim();
@@ -129,7 +130,8 @@ export function parseProject(text: string): ProjectBody {
     if (section === "notes") { if (line) notes.push(raw.trimEnd()); continue; }
     if (h) {
       const title = h[2].trim();
-      bullet = { anchor: anchorOf(title, anchors), title, text: "", keywords: [], lines: [] };
+      if (!group.length && bullets.length) groups++;
+      bullet = { anchor: anchorOf(title, anchors), title, text: "", keywords: [], group: groups, lines: [] };
       bullets.push(bullet); group.push(bullet); continue;
     }
     if (KEYWORD_LINE.test(line)) {

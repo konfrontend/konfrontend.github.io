@@ -16,7 +16,7 @@ const cap = (id: string) => slotCatalogue.slots.find((s) => s.id === id)!.cap;
 const profile = { terms: { rate: 60 } };
 const keywordNames = ["TypeScript", "React", "Postgres"];
 const voice = { language: "en-US", greeting: { freelance: "Hi,", employment: "Hello," }, sign_off: "Kon", banned_phrases: ["I'm excited", "synergy", "I am writing to apply"] };
-const bullet = { anchor: "rbac-admin", title: "RBAC Admin", text: "Built the RBAC admin and the SAML login.", keywords: ["TypeScript"] };
+const bullet = { anchor: "rbac-admin", title: "RBAC Admin", text: "Built the RBAC admin and the SAML login.", keywords: ["TypeScript"], group: 0 };
 const projects: Project[] = [{
   slug: "acme", file: "acme.md", name: "Acme",
   meta: { url: "https://acme.example", role: "Full Stack Developer", employment: "contract", start: "2021-02" },

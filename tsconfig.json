@@ -12,5 +12,5 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["profile/lib/**/*.ts", "autotriage/scripts/**/*.ts", ".claude/hooks/**/*.ts"]
+  "include": ["profile/lib/**/*.ts", "profile/versions/**/*.ts", "resume/scripts/**/*.ts", "autotriage/scripts/**/*.ts", ".claude/hooks/**/*.ts"]
 }
