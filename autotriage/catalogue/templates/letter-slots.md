@@ -55,8 +55,8 @@ Portable across Profiles. Personal facts come from the Profile at fill time. Voi
 - `greeting` is line 1 of every Letter: the Profile `voice.md` `greeting` for the Letter's route, then a blank line.
 - A Slot with nothing to say renders nothing. The block and its blank line disappear. The route sections below name the Slots that always render.
 - Only the paragraphs the Job or the template demands. A paragraph that answers nothing in the Job is dropped.
-- Every fact in any Slot traces to a Profile entry: a Project's meta, its Description, a Bullet by heading, a line of its Notes, or an Answer. A fact the Profile lacks is asked for before the Slot is filled.
-- A Gap never enters a Letter. A required item no Skill names is not named, not excused and not apologised for; `relevant_work` may show the nearest thing done as work done, with no mention of the item.
+- Every fact in any Slot traces to a Profile entry: a Project's meta, its Description, a Bullet by heading, a line of its Notes, or an answer. A fact the Profile lacks is asked for before the Slot is filled.
+- A Gap never enters a Letter. A required item no Keyword names is not named, not excused and not apologised for; `relevant_work` may show the nearest thing done as work done, with no mention of the item.
 - A Slot named in the template with `when: job asks` renders only when the Job asks for its content explicitly. `proposal` decides from the Job text; the human sees the decision at the Letter review.
 
 ## Freelance route
@@ -78,7 +78,7 @@ The cover letter sent with an application and the resume PDF, from `letter-emplo
 
 - Order: `greeting`, `intro`, `relevant_work`, `terms`, `closing`, `sign_off`.
 - Always rendered: `greeting`, `intro`, `relevant_work`, `closing`, `sign_off`. `terms` renders only when the Job asks (`when: job asks` in the template).
-- No headers, no lists, no Hook Slot, no `answers`: every block is a prose paragraph. Screening questions are form fields outside the Letter, answered by hand from the Answers in `profile/answers/`.
+- No headers, no lists, no Hook Slot, no `answers`: every block is a prose paragraph. Screening questions are form fields outside the Letter, answered by hand from the answers in `profile/answers/`.
 - Length: all characters within the template's `cap.chars`, greeting and sign-off included. No word cap.
 
 ## Slots
@@ -135,7 +135,7 @@ Fill: at least two sentences, within `cap.sentences`. Names the queue (Upwork me
 
 Prose. One short paragraph per Job demand that no other Slot answered: a proposed stack, subcontracting, an approach, a specific question. Renders only when such a demand exists. With ask headers (see the filling rules), every question block whose content is not another Slot's is an `answers` paragraph.
 
-Fill: answer in the order the Job asked. Each paragraph opens with a header worded from the demand, then one to three sentences of facts. An answer to a "how would you" question states the approach; the evidence for it stays in `relevant_work`. A question that matches an Answer in `profile/answers/` cites it word for word or tailors it, and the fact table names `Answer <slug>` as the source; a question block that matched no Answer is printed after `verify` as a draft for a new Answer file, never written. Excluded from the prose word cap; the template's `cap.total_words` still applies. Safeguards that land here: answer the targeted questions well (`moderate-gauntlet`).
+Fill: answer in the order the Job asked. Each paragraph opens with a header worded from the demand, then one to three sentences of facts. An answer to a "how would you" question states the approach; the evidence for it stays in `relevant_work`. A question that matches an answer in `profile/answers/` cites it word for word or tailors it, and the fact table names `Answer <slug>` as the source; a question block that matched no answer is printed after `verify` as a draft for a new answer file, never written. Excluded from the prose word cap; the template's `cap.total_words` still applies. Safeguards that land here: answer the targeted questions well (`moderate-gauntlet`).
 
 ### terms
 

@@ -8,7 +8,7 @@ argument-hint: "[paste the Job here or in the next message]"
 
 A guard line above that starts with `autotriage:` and says `refused` is the answer: print it verbatim and stop; it names the fix.
 
-The Route is one sitting: the human pastes a Job, reads a one-screen triage summary, answers go or no-go at the Checkpoint, and receives the Letter. Each State is its own skill; invoke them in order with the Skill tool and forward the Candidate folder name between them. The guards refuse a State out of order in both this mode and manual mode.
+The Route is one sitting: the human pastes a Job, reads a one-screen triage summary, answers go or no-go at the Checkpoint, and receives the Letter. Each step is its own skill; invoke them in order with the Skill tool and forward the Candidate folder name between them. The guards refuse a step out of order in both this mode and manual mode.
 
 ## Steps
 
@@ -16,4 +16,4 @@ The Route is one sitting: the human pastes a Job, reads a one-screen triage summ
 2. **Intake.** Invoke `route-intake` with the collected material as its argument. Its last line names the Candidate folder (`YYYY-MM-DD-<slug>`). Done when that folder name is in hand.
 3. **Triage and the Letter.** Invoke `route-triage <candidate>`. It prints the summary, asks the human for go or no-go, writes the Verdict into `job.md`, and on `go` invokes `route-proposal <candidate>` itself on both routes, which invokes `route-verify <candidate>` in turn. A `no-go` ends the Route: say so and stop. `verify` output ends with the Letter in a code block, ready to paste. The Route ends when the human has sent it, on the employment route with the Version they chose, and set `outcome: sent` in `job.md`.
 
-A State that answers with a line starting `autotriage:` and saying `refused` has refused. Print that line verbatim and stop; it names the fix.
+A step that answers with a line starting `autotriage:` and saying `refused` has refused. Print that line verbatim and stop; it names the fix.

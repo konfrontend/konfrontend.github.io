@@ -1,9 +1,9 @@
 ---
 name: tracker
-description: Print the Tracker - every Candidate and where it stands, newest first - from the Candidates' job.md frontmatter.
+description: Print the tracker - every Candidate and where it stands, newest first - from the Candidates' job.md frontmatter.
 argument-hint: "print"
 ---
-The Tracker is printed from each Candidate's `job.md` frontmatter under `private/candidates/` (catalogue `autotriage/catalogue/candidate-artifacts.md`: `verdict`, `outcome`, the Tracker section). Rendering is the script's; `print` shows its output and nothing else. Nothing is stored: the human sets `outcome` in `job.md` by hand.
+The tracker is printed from each Candidate's `job.md` frontmatter under `private/candidates/` (catalogue `autotriage/catalogue/candidate-artifacts.md`: `verdict`, `outcome`, the tracker section). Rendering is the script's; `print` shows its output and nothing else. Nothing is stored: the human sets `outcome` in `job.md` by hand.
 
 ## Commands
 
