@@ -125,8 +125,8 @@ test("verdict arithmetic counts only the Flags of the Candidate's route", () => 
 
 test("the Profile may state a salary_floor; summaries left profile.md for the Version", () => {
   const profile = {
-    identity: { name: "A", timezone: "Europe/Berlin", constraints: [] }, contact: { location: "Berlin", email: "a@b.de" }, resume_order: ["x"],
-    terms: { rate: 50, rate_floor: 40 },
+    identity: { name: "A", timezone: "Europe/Berlin", constraints: [] }, contact: { email: "a@b.de" },
+    terms: { rate: 50 },
   };
   assert.deepEqual(validate("profile", profile), [], "salary_floor is optional");
   assert.deepEqual(validate("profile", { ...profile, terms: { ...profile.terms, salary_floor: { type: "annual", amount: 60000, currency: "EUR" } } }), []);

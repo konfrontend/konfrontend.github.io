@@ -35,14 +35,14 @@ export const period = (meta: Pick<ProjectMeta, "start" | "end">): string => `${m
 export const roleLine = (meta: ProjectMeta): string => `${meta.role}${SUFFIX[meta.employment] ?? ""}`;
 export const projectName = (meta: ProjectMeta): string => (meta.naming === "nda" ? "NDA client" : meta.naming === "public" && meta.url ? `[${meta.name}](${meta.url})` : meta.name);
 export const isExperience = (meta: ProjectMeta): boolean => meta.employment !== "independent";
-export const contactLine = (c: Contact): string => [c.location, `[${c.email}](mailto:${c.email})`, c.github && `[${c.github.replace(/^https?:\/\//, "")}](${c.github})`, c.linkedin && `[${c.linkedin.replace(/^https?:\/\/(www\.)?/, "")}](${c.linkedin})`].filter(Boolean).join(" • ");
+export const contactLine = (c: Contact): string => [`[${c.email}](mailto:${c.email})`, c.github && `[${c.github.replace(/^https?:\/\//, "")}](${c.github})`, c.linkedin && `[${c.linkedin.replace(/^https?:\/\/(www\.)?/, "")}](${c.linkedin})`].filter(Boolean).join(" • ");
 export const heading = (p: Project): string => `[${p.slug}] ${projectName(p.meta)} – ${p.meta.description}`;
 export const roleRow = (p: Project): string => `${roleLine(p.meta)} | ${period(p.meta)}`;
 
 export const projectOf = (profile: Profile, slug: string): Project | undefined => profile.projects.find((p) => p.slug === slug);
 export const canonical = (p: Project, key: string): string | undefined => p.bullets.find((b) => b.key === key)?.text;
 
-// Projects in resume order; inside a Project, Bullets in Plan rank. A Plan that names a Project or a Bullet the
+// Projects in filename order; inside a Project, Bullets in Plan rank. A Plan that names a Project or a Bullet the
 // Profile lacks throws: generate.ts validates the Plan first.
 export function assemble(plan: Plan, profile: Profile): string {
   const meta = profile.profile!;

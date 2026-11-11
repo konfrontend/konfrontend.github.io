@@ -14,10 +14,8 @@ test("skillsIn finds canonical names as whole words, several rows for a slash it
   assert.deepEqual(skillsIn(names, "C++ / WebAssembly tooling"), ["C++ / WebAssembly"]);
 });
 
-test("matchItem names proved Skills first, then claimed Skills, marked by level", () => {
-  const claimed = ["Figma", "react"];
-  assert.deepEqual(matchItem(names, claimed, "React and Figma"), [{ name: "React", level: "shipped" }, { name: "Figma", level: "claimed" }], "a proved Skill wins over a claimed spelling of it");
-  assert.deepEqual(matchItem(names, claimed, "Figma mockups"), [{ name: "Figma", level: "claimed" }]);
-  assert.deepEqual(matchItem(["GitHub Actions"], ["GitHub"], "GitHub Actions CI"), [{ name: "GitHub Actions", level: "shipped" }], "a claimed name inside a proved one");
-  assert.deepEqual(matchItem(names, claimed, "Sketch"), []);
+test("matchItem names every Skill in an item, less a name another found name holds", () => {
+  assert.deepEqual(matchItem([...names, "Figma"], "React and Figma"), ["React", "Figma"]);
+  assert.deepEqual(matchItem(["GitHub Actions", "GitHub"], "GitHub Actions CI"), ["GitHub Actions"]);
+  assert.deepEqual(matchItem(names, "Sketch"), []);
 });

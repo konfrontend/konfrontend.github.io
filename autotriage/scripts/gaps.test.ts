@@ -5,20 +5,20 @@ import type { Profile, Project } from "./lib.ts";
 import { fixture, run, employmentJob, freelanceJob } from "./fixture.ts";
 
 const project = (slug: string, keywords: string[]): Project => ({ slug, file: `${slug}.md`, errors: [], warnings: [], overview: "", bullets: [], notes: [], meta: { name: slug, role: "R", employment: "contract", start: "2020-01", naming: "public", description: "D", keywords } });
-const profile = { projects: [project("engine", ["Punched cards", "Bernoulli numbers"]), project("notes", ["punched cards", "Writing"])], profile: { skills: { claimed: ["Quill pens"] } } } as unknown as Profile;
+const profile = { projects: [project("engine", ["Punched cards", "Bernoulli numbers"]), project("notes", ["punched cards", "Writing"])], listedSkills: ["Quill pens"] } as unknown as Profile;
 
-test("ledger counts Candidates once per Skill and adds Gaps for unproved requirements, Gaps first", () => {
+test("ledger counts Candidates once per Skill and adds Gaps for requirements no Skill names, Gaps first", () => {
   const rows = ledger(profile, [
     { candidate: "c1", requirements: ["Writing", "writing", "Steam"] },
     { candidate: "c2", requirements: ["steam", "Punched cards", "quill pens"] },
   ]);
-  assert.deepEqual(rows.map((r) => [r.name, r.level, r.seen]), [["Steam", "gap", 2], ["Punched cards", "shipped", 1], ["Writing", "shipped", 1], ["Bernoulli numbers", "shipped", 0]]);
+  assert.deepEqual(rows.map((r) => [r.name, r.level, r.seen]), [["Steam", "gap", 2], ["Punched cards", "shipped", 1], ["Quill pens", "shipped", 1], ["Writing", "shipped", 1], ["Bernoulli numbers", "shipped", 0]]);
   const out = renderLedger(rows);
   assert.match(out, /\| Steam \| 2 \|/);
   assert.match(out, /\| Writing \| 1 \|/);
-  assert.ok(out.indexOf("Gaps (1)") < out.indexOf("Skills seen (2)"), "Gaps first");
+  assert.ok(out.indexOf("Gaps (1)") < out.indexOf("Skills seen (3)"), "Gaps first");
   assert.doesNotMatch(out, /Bernoulli/, "a Skill no Job asked for is not printed");
-  assert.doesNotMatch(out, /quill/i, "a claimed Skill is neither a Gap nor a proved Skill");
+  assert.match(out, /\| Quill pens \| 1 \|/, "a Skill with empty evidence is a Skill");
 });
 
 test("an invalid job.md is warned about and its requirements still count", () => {

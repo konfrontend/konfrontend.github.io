@@ -56,7 +56,7 @@ Portable across Profiles. Personal facts come from the Profile at fill time. Voi
 - A Slot with nothing to say renders nothing. The block and its blank line disappear. The route sections below name the Slots that always render.
 - Only the paragraphs the Job or the template demands. A paragraph that answers nothing in the Job is dropped.
 - Every fact in any Slot traces to a Profile entry: a Project's meta, its Overview, a Bullet by key, a line of its Notes, or an Answer. A fact the Profile lacks is asked for before the Slot is filled.
-- A Gap never enters a Letter. A required item no Project proves is not named, not excused and not apologised for; `relevant_work` may show the nearest thing done as work done, with no mention of the item.
+- A Gap never enters a Letter. A required item no Skill names is not named, not excused and not apologised for; `relevant_work` may show the nearest thing done as work done, with no mention of the item.
 - A Slot named in the template with `when: job asks` renders only when the Job asks for its content explicitly. `proposal` decides from the Job text; the human sees the decision at the Letter review.
 
 ## Freelance route
@@ -139,9 +139,9 @@ Fill: answer in the order the Job asked. Each paragraph opens with a header word
 
 ### terms
 
-Prose, within `cap.sentences`. On a Letter with `milestones`, it opens with the acceptance sentence (`Each milestone is accepted against a written check before the next one starts.`), on an hourly Job adding that the hours are an estimate and unused hours are not billed. Then location, timezone overlap with the client, weekly hours. No rate, no `Billing:` header. The location is Profile `identity.location` as written; the IANA `identity.timezone` names a zone, never a city, and no place name is ever read out of it.
+Prose, within `cap.sentences`. On a Letter with `milestones`, it opens with the acceptance sentence (`Each milestone is accepted against a written check before the next one starts.`), on an hourly Job adding that the hours are an estimate and unused hours are not billed. Then location and timezone overlap with the client. No rate, no `Billing:` header. The location is Profile `identity.location` as written; the IANA `identity.timezone` names a zone, never a city, and no place name is ever read out of it.
 
-Fill: overlap as the client's part of the day computed from the two timezones (`overlaps with your mornings`, `your full working day`), never as an hour range in the client's zone. Weekly hours from Profile `terms.weekly_hours`. The freelancer is available unless the Profile says otherwise: when the Job asks about availability, `available now`, or `available from <date>` when Profile `terms.availability_from` is set. Never a bounded window: `through the next 90 days` reads as unavailable after.
+Fill: overlap as the client's part of the day computed from the two timezones (`overlaps with your mornings`, `your full working day`), never as an hour range in the client's zone. The freelancer is available unless the Profile says otherwise: when the Job asks about availability, `available now`, or `available from <date>` when Profile `terms.availability_from` is set. Never a bounded window: `through the next 90 days` reads as unavailable after.
 
 ### closing
 

@@ -12,9 +12,8 @@ import { bulletLines } from "./render.ts";
 
 const PROFILE = `---
 identity: { name: Kon, timezone: Europe/Madrid, constraints: [] }
-contact: { location: "Gijon, Spain (UTC+2)", email: kon@example.com, github: https://github.com/kon }
-resume_order: [acme, side]
-terms: { rate: 60, rate_floor: 40 }
+contact: { email: kon@example.com, github: https://github.com/kon }
+terms: { rate: 60 }
 ---
 `;
 const VOICE = "---\nlanguage: en-US\ngreeting: { freelance: \"Hi,\", employment: \"Hello,\" }\nsign_off: Kon\nbanned_phrases: [passionate]\n---\n";
@@ -67,11 +66,11 @@ function profileAt() {
 const plan = (bullets: Plan["bullets"], summary = "Full stack developer with 10+ years in TypeScript and React."): Plan => ({ title: "Full Stack Developer", summary, skills: ["Core: React, TypeScript", "Data: Postgres"], bullets });
 const write = (root: string, name: string, md: string) => { const f = path.join(root, name); fs.writeFileSync(f, md); return f; };
 
-test("assemble writes the Version in resume order with Bullets in Plan rank; readVersion reads it back", () => {
+test("assemble writes the Version in filename order with Bullets in Plan rank; readVersion reads it back", () => {
   const { root, profile } = profileAt();
   const p = plan([{ project: "side", key: "site" }, { project: "acme", key: "saml" }, { project: "acme", key: "admin" }]);
   const md = assemble(p, profile);
-  assert.match(md, /^# Kon\n\nFull Stack Developer\n\nGijon, Spain \(UTC\+2\) • \[kon@example.com\]\(mailto:kon@example.com\) • \[github.com\/kon\]\(https:\/\/github.com\/kon\)\n\nFull stack developer/);
+  assert.match(md, /^# Kon\n\nFull Stack Developer\n\n\[kon@example.com\]\(mailto:kon@example.com\) • \[github.com\/kon\]\(https:\/\/github.com\/kon\)\n\nFull stack developer/);
   assert.match(md, /## Skills\n\n- Core: React, TypeScript\n- Data: Postgres\n\n## Professional Experience\n\n### \[acme\] \[Acme\]\(https:\/\/acme.example\) – B2B dashboard.\n\nFull Stack Developer \(Contract\) \| Feb 2021 – Present\n\n- \[saml\] Built the SAML login[^\n]*\n- \[admin\] Built the React admin/);
   assert.match(md, /## Projects\n\n### \[side\] side – A side project.\n\nAuthor \| Jan 2024 – Jun 2024\n\n- \[site\] Built the site in Vue.js.\n$/);
   const v = readVersion(write(root, "general.md", md), profile);

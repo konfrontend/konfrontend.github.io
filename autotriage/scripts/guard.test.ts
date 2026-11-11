@@ -82,10 +82,10 @@ test("the write hook validates Profile and Candidate files by their path and ign
   const { root, candidate } = fixture({ candidates: { "2026-10-17-acme-frontend": { "job.md": employmentJob(), "letter.md": "Hello,\n" } } });
   const write = (file: string) => hook(root, "post-tool-use.ts", { tool_input: { file_path: file } });
   assert.equal(write(path.join(root, "profile", "profile.md")).stdout, "", "a valid file passes");
-  fs.writeFileSync(path.join(root, "profile", "profile.md"), PROFILE.replace("resume_order: [acme]\n", ""));
+  fs.writeFileSync(path.join(root, "profile", "profile.md"), PROFILE.replace("terms: { rate: 60 }\n", ""));
   const blocked = JSON.parse(write(path.join(root, "profile", "profile.md")).stdout);
   assert.equal(blocked.decision, "block");
-  assert.match(blocked.reason, /does not match the profile schema:\n  \/ must have required property 'resume_order'/);
+  assert.match(blocked.reason, /does not match the profile schema:\n  \/ must have required property 'terms'/);
   const dir = candidate("2026-10-17-acme-frontend");
   fs.writeFileSync(path.join(dir, "job.md"), employmentJob().replace("company: Acme\n", ""));
   assert.match(JSON.parse(write(path.join(dir, "job.md")).stdout).reason, /the Candidate contract:\n  \/ must have required property 'company'/);
