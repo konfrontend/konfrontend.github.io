@@ -7,68 +7,28 @@ One person's Profile, the resumes made from it, and the triage of the Jobs it is
 ### Profile
 
 **Profile**:
-The person's data every Version and Letter derives from: the Projects with their Overviews, Bullets and Notes, the Skills they prove, the Answers, the contact facts, the voice and the Route's settings.
+The person's data every Version and Letter derives from: the Projects with their descriptions, Bullets and notes, the answers to recurring questions, the contact facts, the voice and the Route's settings.
 _Avoid_: user profile, persona, data folder, master
 
 **Version**:
-One resume as its PDF shows it: a title, a summary, the Skills lines and the Bullets it shows, generated from the Project files. The general Version is behind the public PDF; a tailored Version is one Candidate's own and may carry Variants.
+One resume, written by the person: a title, a summary, the Projects and Bullets picked for it, each picked Project's Keywords, and the Skills lines. The descriptions and Bullets it shows are the Projects' own text.
 _Avoid_: draft, template, selection, CV, CV file, resume file
-
-**Plan**:
-The ranked choice a Version is generated from: its title, summary, Skills lines and the Bullets in order of worth, a Variant's text where one is wanted. Passed, never stored; the Version is the record.
-_Avoid_: selection, outline, config
 
 **Project**:
 One job, engagement or personal project, done or ongoing; an ongoing Project has no end date.
 _Avoid_: past job, company, client, position, experience, portfolio item
 
-**Project file**:
-The full record of one Project: its meta, the Keywords it proves, its Overview, its canonical Bullets and its Notes.
-_Avoid_: pool, inventory, log, project log
-
-**Overview**:
-The person's free prose about a Project, in its Project file: no rules, and no State edits it. Never shown on a resume.
-_Avoid_: story, summary, case study, description
-
 **Bullet**:
-The one- or two-line claim about one achievement of a Project that a resume shows, under a key that never changes.
+One achievement of a Project: a heading that names it and the claim in the person's prose. Related Bullets are grouped, and a group lists the Keywords its Bullets prove. A Version picks a Bullet by its heading and shows the claim.
 _Avoid_: highlight, point, achievement, lead, lead line
 
-**Variant**:
-A Bullet reworded for one tailored Version under the key of a canonical Bullet: it reorders and re-emphasises that Bullet, never adds a claim; every number and Keyword comes from it. Never in the general Version.
-_Avoid_: tailored bullet, rewrite, override
-
-**Work repository**:
-The git repository a Project's work was done in: the source a Bullet is verified against.
-_Avoid_: repo, codebase, source, project repo
-
-**Notes**:
-Raw lines about a Project, kept in its Project file. A Letter may cite them; a Version never shows them.
-_Avoid_: facts, context, backlog, scratch
-
-**Fact**:
-Any claim in a Project's meta, Overview, Bullets or Notes, verified against the work when written and trusted afterwards. A Letter cites it; a Variant may not invent one.
-_Avoid_: detail, data point, context
-
-**Skill**:
-One technology or domain practice the person holds, named by one canonical Keyword. A Project whose keywords name it is its evidence; a Skill may have none. Years of experience and spoken languages are not Skills.
-_Avoid_: technology, stack item, competency, capability, ledger row
-
 **Keyword**:
-The one spelling of a Skill, as a posting or an ATS would match it: the same in a Project file, a Version's Skills lines and a Candidate's requirements. A required item no Skill matches keeps the posting's spelling.
+The one spelling of a technology or practice the person holds, as a posting or an ATS would match it: the same on a Bullet, in a Version and in a Candidate's requirements. A required item no Keyword matches keeps the posting's spelling.
 _Avoid_: tag, tech name, alias, term
 
 **Gap**:
-A Skill-shaped item a Job required that no Skill names, named as the posting spells it. Exists only because a Job required it; counted by the Gap print, never declared and never written into a Letter or a Version.
+An item a Job required that no Keyword names, named as the posting spells it. Exists only because a Job required it; never declared and never written into a Letter or a Version.
 _Avoid_: missing skill, weakness, hole, target
-
-**Gap print**:
-The table of every Gap and every Skill a Job asked for, with how many Candidates asked, no-go Candidates included.
-_Avoid_: ledger, skill ledger, demand report
-
-**Answer**:
-The person's hand-written reply to one recurring question a Job may ask. A Letter cites it word for word or tailors it; the Answers together are what the voice is tuned by.
-_Avoid_: snippet, canned answer, calibration
 
 ### Jobs
 
@@ -77,29 +37,21 @@ One posting, freelance or employment: its free-form text plus the parameters its
 _Avoid_: posting, listing, gig, opportunity
 
 **Candidate**:
-A Job being pursued through a Route, recorded as one folder: the Job, the Letter, a tailored Version when one was made, and the PDF sent on the employment route. Becomes a Project when won.
+A Job being pursued through a Route, recorded as one folder: the Job and the Letter. Becomes a Project when won.
 _Avoid_: application, lead, intake
 
 **Outcome**:
 The furthest point a pursued Candidate reached: sent, interview or offer, set by the person. A missing next step is the negative outcome.
 _Avoid_: status, stage, result
 
-**Tracker**:
-The table of every Candidate and where it stands: its Route, its Verdict, its Outcome.
-_Avoid_: pipeline view, dashboard, board
-
 ### Route
 
 **Route**:
-A fixed sequence of States for one kind of work: the freelance route or the employment route.
+A fixed sequence of steps for one kind of work: the freelance route or the employment route.
 _Avoid_: pipeline, flow, workflow, state machine
 
-**State**:
-One step of a Route and the one output it produces.
-_Avoid_: stage, phase, step
-
 **Guard**:
-The condition a State needs before it runs: the previous State's output exists and is valid, and the Route's preconditions hold.
+The condition a step of a Route needs before it runs: the previous step's output exists and is valid, and the Route's preconditions hold.
 _Avoid_: gate, precondition check, validation step
 
 **Checkpoint**:

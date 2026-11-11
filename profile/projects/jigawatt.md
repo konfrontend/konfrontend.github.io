@@ -5,39 +5,63 @@ role: Senior Frontend Developer
 employment: contract
 start: 2019-10
 end: 2026-07
-naming: public
-description: "Software suite for solar installers: interactive 3D design and energy modeling."
-keywords: [TypeScript, React, Vue.js, three.js, React Three Fiber, drei, 3D Modeling, Vite, Zustand, Redux, Vuex, Tailwind CSS, shadcn/ui, GSAP, Vitest, Google Maps API, PDF.js, WebGL, GLSL, SVG, Constructive Solid Geometry (CSG), Web Workers, OffscreenCanvas, PWA, Service Workers, IndexedDB, Code Quality, Code Review, Jira, Agile/Scrum, pdf-lib, MongoDB, Azure Functions, C++ / WebAssembly, CGAL]
+keywords: [TypeScript, React, Vue.js, three.js, React Three Fiber, drei, 3D Modeling, Vite, Zustand, Redux, Vuex, Tailwind CSS, shadcn/ui, GSAP, Vitest, Google Maps API, PDF.js, WebGL, GLSL, SVG, Web Workers, OffscreenCanvas, PWA, Service Workers, IndexedDB, Jira, Trello, pdf-lib, MongoDB, Azure Functions, C++, WebAssembly (WASM), CGAL, Computational Geometry]
 ---
-## Overview
+# Jigawatt Solar
 
-## Bullets
+## Description
+SaaS for solar dealers and installers: from interactive 2D/3D design and energy modeling to CRM
 
-- [roof-engine] Authored the 3D roof modeling engine in React Three Fiber, WebGL and GLSL, 120+ modules and 34 components, tested by 64 Vitest cases: procedural roof volumes, reconstruction of roof structures by DCEL convex decomposition, and realtime editing.
-- [roof-topology] Persisted each roof as a topology graph and rebuilt its 3D geometry from it deterministically, so every roof edit, dormer, and panel layout derives from one source of truth.
-- [shade-simulation] Built the shade simulation in a Web Worker: raycasting toward the sun over a Bounding Volume Hierarchy (BVH) finds each roof surface's shade fraction, and OffscreenCanvas renders shade heatmaps.
-- [shade-scale] Scaled the shade simulation from 1 to 2,600 sun positions across a year at 10–50 samples per m², finishing in 40 ms to 15 s without blocking the editor.
-- [layout-tool] Extended the solar estimator's drawing engine into a Vue.js PV array layout tool: an SVG editor over Google Maps imagery with per-section azimuth and pitch, per-edge setbacks, and panel autofill.
-- [layout-geometry] Wrote 93% of the layout tool's vector geometry core over 231 commits, starting from the estimator's library: edge snapping, overlap avoidance, and obstruction polygons that panels must clear.
-- [cad-drawing] Added CAD-style polygon drawing with 90° and 45° snapping, inference lines, keyboard nudging, and live measurement labels.
-- [panel-autofill] Made panel autofill non-blocking: it tries 76 grid offsets per roof section, one per requestAnimationFrame tick, and keeps the offset that fits the most panels.
-- [panel-editing] Built panel editing on GSAP Draggable: drag with snapping, Alt-drag duplication, multi-select, and group rotation with a custom rotary control.
-- [estimator-engine] Built the drawing engine of the public solar estimator installers link from their websites: homeowners draw roof sections in SVG over Google Maps imagery, with map-synced pan and zoom and checkpoint undo.
-- [estimator-geometry] Wrote the estimator's geometry library alone to drive automatic panel layout: convex hull, minimum bounding box, Web Mercator image scale, and pitch correction.
-- [pdf-viewer] Built the in-browser PDF viewer where homeowners fill and sign proposals and contracts: PDF.js renders AcroForms as editable fields, merge tags prefill them, and installers lock fields and assign signers.
-- [e-signing] Built multi-party e-signing on pdf-lib: each submission locks the filled fields for the next signer, drawn signatures are placed as PNG images, and the PDF flattens once every party has signed.
-- [checklist-editor] Built a node-based editor for checklist templates in SVG: one GSAP Draggable proxy moves task nodes and wires, and wires only run to later tasks, so templates stay acyclic.
-- [task-calendar] Extended vue-simple-calendar into the per-project task calendar: a grid-based day view, month and week views of the project's tasks, and a toggle for completed tasks.
-- [stack-choice] Chose the 3D designer's frontend stack alone: React, TypeScript, Vite, Zustand, and three.js, with a feature-driven structure, lint rules, and a documented Z-up to Y-up coordinate boundary.
-- [pwa-update] Built the Vue.js app's PWA auto-update: it checks for a new service worker on startup and every route change, and loads the new version on the next navigation.
-- [vitest-intro] Introduced Vitest to the 3D designer and wrote all 17 of its test files, 140 cases.
-- [agent-guide] Wrote the 3D designer's AI coding agent guide, domain glossary, coding standards, and 11 architecture decision records.
-- [commit-share] Authored 47% of the 3D designer's commits and 37 of its 84 merged PRs among 8 contributors.
+### [cad-engine] 
+Engineered the user-facing 3D CAD-style modeling system in React Three Fiber, Zustand, and shadcn/ui. Shipped 80+ features, including procedural 3D mesh generation, real-time 3D topology editing, REST API and Google Maps API integrations.
 
-## Notes
+`TypeScript`, `React 19`, `React Three Fiber`, `three.js`, `shadcn/ui`, `Tailwind CSS`, `Zustand`, `WebAssembly (WASM)`, `Azure Functions`, `Google Maps API`, `Computational Geometry`, `Computer-Aided Design (CAD)`
 
-- The editor reconstructs existing sites from LIDAR or builds new 3D roof models, then lays out PV arrays on the surfaces. C++ computational geometry (CGAL) is compiled to WebAssembly for the design engine.
-- Users draw footprints and extrude them into volumes; dormer surfaces are derived live.
-- The simulation follows the sun path over time to compute irradiance, shading and per-minute production, modeled against time-of-use rates.
-- Jigawatt Solar is a CRM platform for solar professionals; the 2D/3D design editor is one module inside it, greenfield within an existing product ecosystem. Designed how the module fits the rest of the CRM: module dependencies, dependency injection, and API integration with the other parts of the system. Backend integration via Azure Functions and MongoDB; multi-environment builds on Azure.
-- Authored the team's coding standards, ADRs and architecture docs; the repo carries ADRs, architecture docs and a domain glossary, and a zero-warning ESLint and typecheck gate every change.
+***
+
+### [shade-simulation] 
+Authored the time-based shade simulation on WebGL in a Web Worker: an async algorithm for converting more than 2,600 sun positions into a precise energy-loss data model for a given solar array installation. Featuring the GPU-based image generation pipeline for instant visual representation of raw data as high-resolution heat map textures.
+
+`TypeScript`, `Web Workers API`, `WebGL`, `GLSL`, `three.js`, `Azure Blob Storage`, `Bounding Volume Hierarchy (BVH)`
+
+***
+
+### [public-wiz] - https://site.wiz.solar
+Built a public web experience for potential clients to plan solar installation themselves: 2D SVG drawing engine, custom packing algorithm with O(n) complexity, draggable controls, Google Maps API integration, and solar energy production calculator.
+
+`Vue.js`, `Vuex`, `GSAP`, `SVG`, `Google Maps API`, `Microsoft SQL Server`,
+
+***
+
+### [ai-and-contribution]
+Owned 47% of total commits among the other eight contributors. Introduced coding standards, developed domain glossary, architecture decision records, and agentic skills using vendor-neutral format.
+
+`Claude Code`, `Test-driven Development (TDD)`, `Specification-driven Development (SDD)`, `Feature-driven Development (FDD)`, `Domain-driven Design (DDD)`, `Architecture Decision Records (ADR)`
+
+***
+
+### [pwa-update]
+Built the PWA auto-update feature, preventing version skewing and data loss.
+
+`Progressive Web Application (PWA)`, `Service Worker API`, `Vue.js`
+
+***
+
+### [pdf-sign] 
+Developed a role-based PDF viewer with multi-party e-signing support and integrated it into the existing lead processing workflow.
+
+`pdf-lib`, `pdf.js`, `AcroForms`, `PDF DOM Parsing`, `PDF Incremental Updates`
+
+***
+
+### [task-planning]
+Built the task planning board for CRM: reusable checklist templates in a node-based interactive editor with calendar integration.
+
+`SVG`, `Vue.js`, `GSAP`
+
+
+## Miscellaneous
+
+- Scaled the shade simulation from 1 to 2,600 sun positions across a year at 10–50 samples per m², finishing in 40 ms to 15 s without blocking the editor.
+- Wrote 93% of the layout tool's vector geometry core over 231 commits,
+
