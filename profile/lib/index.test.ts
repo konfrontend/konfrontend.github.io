@@ -18,6 +18,12 @@ end: 1843-09
 ## Description
 A mechanical computer.
 
+## Keywords
+\`Punched cards\`, \`Bernoulli numbers\`
+\`Writing\`, \`punched cards\`,
+
+***
+
 ### Bernoulli Program
 Wrote the first program, computing Bernoulli numbers.
 
@@ -25,14 +31,8 @@ Wrote the first program, computing Bernoulli numbers.
 Described loops
 and conditional branches.
 
-\`Punched cards\`, \`Bernoulli numbers\`
-
-***
-
 ### Translation
 Translated Menabrea's memoir.
-
-\`Writing\`, \`punched cards\`,
 
 ***
 
@@ -51,31 +51,32 @@ function fixture(): string {
   writeArtifact(path.join(root, "voice.md"), { language: "en-US", greeting: { freelance: "Hi,", employment: "Hello," }, sign_off: "Ada", banned_phrases: [] });
   fs.mkdirSync(path.join(root, "projects"));
   fs.writeFileSync(path.join(root, "projects", "engine.md"), ENGINE);
-  fs.writeFileSync(path.join(root, "projects", "notes.md"), "---\nrole: Author\n---\n# Notes\n\n## Description\nTranslation notes.\n\n\`Quill pens\`, \`writing\`\n\n***\n");
+  fs.writeFileSync(path.join(root, "projects", "notes.md"), "---\nrole: Author\n---\n# Notes\n\n## Description\nTranslation notes.\n\n## Keywords\n\`Quill pens\`, \`writing\`\n\n***\n");
   fs.mkdirSync(path.join(root, "answers"));
   writeArtifact(path.join(root, "answers", "why.md"), { question: "Why compute?" }, "Because the Engine can.\n");
   return root;
 }
 
-test("parseProject reads the name, the five frontmatter values as written, the Description, the Bullets with anchors and group Keywords, and the Notes", () => {
+test("parseProject reads the name, the five frontmatter values as written, the Description, the Keywords of its Keywords section, the Bullets with anchors, and the Notes", () => {
   const p = parseProject(ENGINE);
   assert.equal(p.name, "Analytical Engine");
   assert.deepEqual(p.meta, { url: "https://example.com/engine", role: "Programmer", employment: "contract", start: "Jan 1842", end: "1843-09" });
   assert.equal(p.description, "A mechanical computer.");
   assert.deepEqual(p.bullets, [
-    { anchor: "bernoulli-program", title: "Bernoulli Program", text: "Wrote the first program, computing Bernoulli numbers.", keywords: ["Punched cards", "Bernoulli numbers"], group: 0 },
-    { anchor: "loops", title: "Loops", text: "Described loops\nand conditional branches.", keywords: ["Punched cards", "Bernoulli numbers"], group: 0 },
-    { anchor: "translation", title: "Translation", text: "Translated Menabrea's memoir.", keywords: ["Writing", "punched cards"], group: 1 },
+    { anchor: "bernoulli-program", title: "Bernoulli Program", text: "Wrote the first program, computing Bernoulli numbers." },
+    { anchor: "loops", title: "Loops", text: "Described loops\nand conditional branches." },
+    { anchor: "translation", title: "Translation", text: "Translated Menabrea's memoir." },
   ]);
-  assert.deepEqual(p.keywords, ["Punched cards", "Bernoulli numbers", "Writing"], "every group's Keywords, once each, case-insensitive");
+  assert.deepEqual(p.keywords, ["Punched cards", "Bernoulli numbers", "Writing"], "the section's Keywords, once each, case-insensitive, in file order");
   assert.deepEqual(p.notes, ["[published] Published in 1843.", "- A raw line."]);
 });
 
 test("parseProject reads any value and refuses nothing: other frontmatter keys are dropped, a file without frontmatter or sections is empty", () => {
-  const p = parseProject("---\nname: Old\nstart: 2019\nkeywords: [A]\n---\nStray.\n\n## Other\n\n### CAD Engine\nText.\n\n### CAD Engine\nMore.\n");
+  const p = parseProject("---\nname: Old\nstart: 2019\nkeywords: [A]\n---\nStray.\n\n## Other\n\n### CAD Engine\nText.\n\n### CAD Engine\nMore.\n\n\`Stray\`\n");
   assert.deepEqual(p.meta, { start: "2019" }, "a number is kept as written, a key outside the five is dropped");
   assert.equal(p.name, "");
-  assert.deepEqual(p.bullets.map((b) => [b.anchor, b.keywords]), [["cad-engine", []], ["cad-engine-1", []]], "a repeated heading takes the next anchor; a group with no Keyword line has no Keywords");
+  assert.deepEqual(p.bullets.map((b) => b.anchor), ["cad-engine", "cad-engine-1"], "a repeated heading takes the next anchor");
+  assert.deepEqual(p.keywords, [], "a Keyword line outside the Keywords section names no Keyword");
   assert.deepEqual(parseProject(""), { name: "", meta: {}, description: "", bullets: [], keywords: [], notes: [] });
 });
 
@@ -86,7 +87,7 @@ test("readProfile reads every Project in filename order and the Answers", () => 
   assert.deepEqual(p.answers.map((a) => [a.question, a.text]), [["Why compute?", "Because the Engine can."]]);
 });
 
-test("keywords are the Bullet groups' Keywords of every Project, spelled as the first Project in filename order spells them", () => {
+test("keywords are the Keywords of every Project, spelled as the first Project in filename order spells them", () => {
   const p = readProfile(fixture());
   assert.deepEqual(keywords(p), ["Punched cards", "Bernoulli numbers", "Writing", "Quill pens"]);
 });

@@ -11,7 +11,7 @@ end: Present
 Cloud SaaS for load testing and uptime monitoring of websites and APIs.
 
 ## Keywords
-`TypeScript`, `JavaScript`, `Java`, `Vue`, `Vuex`, `Tailwind CSS`, `Canvas API`, `Stripe`, `Spring Boot`, `Spring Data JPA`, `Spring AI`, `MariaDB`, `WebSockets`, `Service Worker API`, `Playwright`, `Docker`, `WebExtension API`, `Chrome DevTools Protocol (CDP)`, `Manifest V3`, `Shadow DOM`, `i18n`
+`TypeScript`, `JavaScript`, `Java`, `Vue`, `Vuex`, `Tailwind CSS`, `Canvas API`, `Stripe`, `Spring Boot`, `Spring AI`, `MariaDB`, `WebSockets`, `Playwright`, `Docker`, `WebExtension API`, `Chrome DevTools Protocol (CDP)`, `Manifest V3`, `Shadow DOM`, `i18n`
 
 ***
 
@@ -19,13 +19,13 @@ Cloud SaaS for load testing and uptime monitoring of websites and APIs.
 Shipped 300+ Vue 3 components, shared by 3 user-facing products and following the brand design system.
 
 ### Agentic Workflow
-Authored a Human-in-the-Loop AI-assisted engineering workflow, increasing the monthly average number of pull requests by 11.9 times.
+Authored an AI-assisted engineering workflow, increasing the monthly average of pull requests by 11.9 times.
 
 ### Free Speed Test Funnel
 Optimized UI/UX in a free-trial flow, increasing sign-up conversion by 20%.
 
 ### MCP Server
-Built an MCP server with Spring AI and role-based access control (RBAC) that limits what an AI agent can do, from read-only access up to launching cloud load tests that spend the customer's money.
+Built an MCP server with role-based access control (RBAC) that limits what an AI agent can do, from read-only access up to launching cloud load tests that spend the customer's money.
 
 ### MCP Testing
 Introduced a deterministic approach to MCP development, reducing the time to release new versions from weeks to days.
@@ -37,13 +37,13 @@ Built the script editor's GUI with revision history and an undo/redo stack.
 Resolved conflicting edits and out-of-sync tabs in the web dashboard by moving the Pusher client into a SharedWorker, so every tab shares one WebSocket.
 
 ### Vue 3 Migration
-Performed the progressive migration from JavaScript/Webpack/Vue 2 to TypeScript/Vite/Vue 3, introducing type safety and unit testing, and reducing build time to seconds.
+Performed the progressive migration from JS/Webpack/Vue 2 to TS/Vite/Vue 3, introducing unit testing and reducing build time to seconds.
 
 ### Data Visualization
 Built interactive Canvas charts that render load test metrics in real time, with filters, zoom, and aggregation, plus CSV and PDF export and sharing by public URL.
 
 ### Browser Extension
-Co-authored the public Loadster Recorder Extension, used by 4,000 users and rated 4.9/5.0 stars in the Chrome Web Store.
+Co-authored the public browser extension, used by 4,000 users and rated 4.9/5.0 in the Chrome Web Store.
 
 ***
 

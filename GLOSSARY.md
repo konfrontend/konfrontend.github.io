@@ -7,7 +7,7 @@ One person's Profile, the resumes made from it, and the triage of the Jobs it is
 ### Profile
 
 **Profile**:
-The person's data every Version and Letter derives from: the Projects with their descriptions, Bullets and notes, the answers to recurring questions, the contact facts, the voice and the Route's settings.
+The person's data every Version and Letter derives from: the Projects with their descriptions, Keywords, Bullets and notes, the answers to recurring questions, the contact facts, the voice and the Route's settings.
 _Avoid_: user profile, persona, data folder, master
 
 **Version**:
@@ -19,11 +19,11 @@ One job, engagement or personal project, done or ongoing; an ongoing Project has
 _Avoid_: past job, company, client, position, experience, portfolio item
 
 **Bullet**:
-One achievement of a Project: a heading that names it and the claim in the person's prose. Related Bullets are grouped, and a group lists the Keywords its Bullets prove. A Version picks a Bullet by its heading and shows the claim.
+One achievement of a Project: a heading that names it and the claim in the person's prose. A Version picks a Bullet by its heading and shows the claim.
 _Avoid_: highlight, point, achievement, lead, lead line
 
 **Keyword**:
-The one spelling of a technology or practice the person holds, as a posting or an ATS would match it: the same on a Bullet, in a Version and in a Candidate's requirements. A required item no Keyword matches keeps the posting's spelling.
+The one spelling of a technology or practice the person holds, as a posting or an ATS would match it: the same in a Project, in a Version and in a Candidate's requirements. A required item no Keyword matches keeps the posting's spelling.
 _Avoid_: tag, tech name, alias, term
 
 **Gap**:

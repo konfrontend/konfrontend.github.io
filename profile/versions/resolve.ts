@@ -2,28 +2,27 @@
 // opens with a link to a Project file prints its link text and makes that Project the one the slots and
 // Bullet links below it read, down to the next such heading. {{url}}, {{role}}, {{employment}}, {{start}}
 // and {{end}} print the Project's frontmatter values, {{Description}} its Description; a list item that is
-// only a link to a Bullet's anchor prints that Bullet's claim. A {{keywords}} marker prints the Keywords
-// keywords.ts offers it, as one backtick line; a marker with nothing to offer prints nothing and is a
-// warning. A slot or link that cannot be filled is a problem; both are named with their line. Everything
-// else prints as written and nothing else is checked. The Version file is never written.
+// only a link to a Bullet's anchor prints that Bullet's claim. A {{keywords}} marker, in either case, alone
+// on its line prints the Project's Keywords as one backtick line, in the Project file's order; a marker
+// whose Project has no Keywords prints nothing and is a warning. A slot or link that cannot be filled is a
+// problem; both are named with their line. Everything else prints as written and nothing else is checked.
+// The Version file is never written.
 // CLI: node profile/versions/resolve.ts <version.md>   (Markdown on stdout, problems and warnings on stderr,
 // exit 1 on a problem)
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { META_KEYS, readProject, type Project } from "../lib/index.ts";
-import { rankKeywords } from "./keywords.ts";
 
 export interface Resolved { markdown: string; problems: string[]; warnings: string[] }
 
 // A link target with a scheme (https:, mailto:) is another site; only a relative path reads a Project file.
-export const PROJECT_HEADING = /^(#{1,6}\s+)\[([^\]]*)\]\(([^)#\s:]+\.md)\)(.*)$/;
-export const BULLET_ITEM = /^(\s*[*+-]\s+)\[[^\]]*\]\(([^)#\s:]+)#([^)\s]+)\)\s*$/;
+const PROJECT_HEADING = /^(#{1,6}\s+)\[([^\]]*)\]\(([^)#\s:]+\.md)\)(.*)$/;
+const BULLET_ITEM = /^(\s*[*+-]\s+)\[[^\]]*\]\(([^)#\s:]+)#([^)\s]+)\)\s*$/;
 const SLOT = /\{\{\s*([^}]*?)\s*\}\}/g;
-export const MARKER = /^\s*\{\{\s*keywords\s*\}\}\s*$/;
+const MARKER = /^\s*\{\{\s*keywords\s*\}\}\s*$/i;
 
 export function resolveVersion(file: string): Resolved {
-  const offered = new Map(rankKeywords(file).markers.map((m) => [m.line, m.keywords]));
   const dir = path.dirname(file);
   const problems: string[] = [];
   const warnings: string[] = [];
@@ -53,9 +52,9 @@ export function resolveVersion(file: string): Resolved {
   lines.forEach((line, i) => {
     const n = i + 1;
     if (MARKER.test(line)) {
-      const keywords = offered.get(n);
-      if (keywords) out.push(keywords.map((k) => `\`${k}\``).join(", "));
-      else warnings.push(`line ${n}: {{keywords}} marker has no Keywords to print`);
+      const keywords = current?.project?.keywords ?? [];
+      if (keywords.length) out.push(keywords.map((k) => `\`${k}\``).join(", "));
+      else warnings.push(`line ${n}: {{keywords}} marker prints nothing: ${!current ? "it is under no Project heading" : !current.project ? `${current.target} does not exist` : "the Project has no Keywords"}`);
       return;
     }
     const h = PROJECT_HEADING.exec(line);

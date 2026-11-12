@@ -9,6 +9,7 @@ end: Nov 2018
 ## Description
 Web agency building e-commerce and marketing sites.
 
+## Keywords
 `JavaScript`, `PHP`, `WordPress`, `Vue.js`, `GSAP`, `Shopify`, `Magento`
 
 ***

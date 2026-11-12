@@ -5,7 +5,7 @@ argument-hint: "<version name, default frontend>"
 disable-model-invocation: true
 ---
 
-A Version is a resume the person writes by hand under `profile/versions/` (`GLOSSARY.md`). This skill prints one to a PDF beside it, named after it. It never edits the Version and asks nothing: a `{{keywords}}` marker prints every Keyword of the groups of the Bullets picked under that Project, most repeated first. A Keyword line the person writes in place of the marker prints as written.
+A Version is a resume the person writes by hand under `profile/versions/` (`GLOSSARY.md`). This skill prints one to a PDF beside it, named after it. It never edits the Version and asks nothing: a `{{keywords}}` marker prints the Keywords of its Project, in the Project file's order. A Keyword line the person writes in place of the marker prints as written.
 
 `<name>` is the argument (default `frontend`); `$ROOT` is `${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel)}`.
 

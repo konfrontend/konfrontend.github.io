@@ -39,9 +39,12 @@ start: 2021-02
 ## Description
 B2B dashboard.
 
-${body}
+## Keywords
 ${keywords.map((k) => `\`${k}\``).join(", ")}
 
+***
+
+${body}
 ***
 
 ## Notes

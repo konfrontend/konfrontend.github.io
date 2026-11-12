@@ -1,5 +1,5 @@
 // The Profile reader: the one implementation that parses the authored Markdown (profile.md, voice.md,
-// answers/, projects/), collects the Keywords from the Projects' Bullet groups, and runs the Profile check
+// answers/, projects/), collects the Keywords from the Projects' Keywords sections, and runs the Profile check
 // on profile.md, voice.md and the Answers. A Project file is read as written and never invalid.
 // Every consumer (the autotriage scripts, the resume scripts) imports from here and never parses a
 // Profile file itself. This module reads the Profile only: never private/, never resume/.
@@ -77,15 +77,15 @@ export function validateArtifact(name: SchemaName, art: Pick<Artifact, "frontmat
 }
 
 // A Project file: frontmatter with url, role, employment, start and end, read as written; the name in the
-// `# h1`; `## Description` prose; each `###` heading under it one Bullet, addressed by the heading's anchor;
-// a group of Bullets ends with one line of backtick Keywords and `***`, the Keywords belonging to every
-// Bullet of the group, and a Bullet's group is numbered from 0 in file order; `## Notes` raw lines. Anything else is skipped, nothing is refused.
+// `# h1`; `## Description` prose; `## Keywords` lines of backtick Keywords, the Project's Keywords, once each
+// in file order; each `###` heading one Bullet, addressed by the heading's anchor, its text ending at the
+// next heading or `***`; `## Notes` raw lines. Anything else is skipped, nothing is refused.
 export const META_KEYS = ["url", "role", "employment", "start", "end"] as const;
 export type ProjectMeta = Partial<Record<(typeof META_KEYS)[number], string>>;
-export interface Bullet { anchor: string; title: string; text: string; keywords: string[]; group: number }
+export interface Bullet { anchor: string; title: string; text: string }
 export interface ProjectBody { name: string; meta: ProjectMeta; description: string; bullets: Bullet[]; keywords: string[]; notes: string[] }
 
-export const KEYWORD_LINE = /^`[^`]+`(?:\s*,\s*`[^`]+`)*\s*,?$/;
+const KEYWORD_LINE = /^`[^`]+`(?:\s*,\s*`[^`]+`)*\s*,?$/;
 
 // The anchor a Markdown renderer gives a heading: lower case, punctuation dropped, spaces as hyphens, a
 // repeat suffixed -1, -2.
@@ -113,10 +113,9 @@ export function parseProject(text: string): ProjectBody {
   const keywords: string[] = [];
   const notes: string[] = [];
   const anchors = new Map<string, number>();
-  // A `##` other than Description and Notes still holds Bullets; only its loose prose is skipped.
-  let section: "description" | "notes" | "other" | null = null;
-  let group: Bullet[] = [];
-  let groups = 0;
+  // A `##` other than Notes still holds Bullets; only its loose prose is skipped. The Keywords section ends
+  // at its first Bullet.
+  let section: "description" | "keywords" | "notes" | "other" | null = null;
   let bullet: (Bullet & { lines: string[] }) | null = null;
   for (const raw of (m ? m[2] : text).split(/\r?\n/)) {
     const line = raw.trim();
@@ -124,29 +123,28 @@ export function parseProject(text: string): ProjectBody {
     if (h?.[1] === "#") { if (!name) name = h[2].trim(); continue; }
     if (h?.[1] === "##") {
       const title = h[2].trim();
-      section = title === "Description" ? "description" : title === "Notes" ? "notes" : "other";
-      group = []; bullet = null; continue;
+      section = title === "Description" ? "description" : title === "Keywords" ? "keywords" : title === "Notes" ? "notes" : "other";
+      bullet = null; continue;
     }
     if (section === "notes") { if (line) notes.push(raw.trimEnd()); continue; }
     if (h) {
       const title = h[2].trim();
-      if (!group.length && bullets.length) groups++;
-      bullet = { anchor: anchorOf(title, anchors), title, text: "", keywords: [], group: groups, lines: [] };
-      bullets.push(bullet); group.push(bullet); continue;
+      if (section === "keywords") section = "other";
+      bullet = { anchor: anchorOf(title, anchors), title, text: "", lines: [] };
+      bullets.push(bullet); continue;
     }
-    if (KEYWORD_LINE.test(line)) {
-      const terms = [...line.matchAll(/`([^`]+)`/g)].map((t) => t[1].trim()).filter(Boolean);
-      for (const b of group) b.keywords.push(...terms);
-      keywords.push(...terms); bullet = null; continue;
+    if (section === "keywords" && KEYWORD_LINE.test(line)) {
+      keywords.push(...[...line.matchAll(/`([^`]+)`/g)].map((t) => t[1].trim()).filter(Boolean));
+      continue;
     }
-    if (line === "***") { group = []; bullet = null; continue; }
+    if (line === "***") { bullet = null; continue; }
     if (bullet) bullet.lines.push(line);
     else if (section === "description") description.push(line);
   }
   const prose = (lines: string[]) => lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
   return {
     name, meta, description: prose(description),
-    bullets: bullets.map(({ lines, ...b }) => ({ ...b, text: prose(lines), keywords: unique(b.keywords) })),
+    bullets: bullets.map(({ lines, ...b }) => ({ ...b, text: prose(lines) })),
     keywords: unique(keywords), notes,
   };
 }
@@ -206,7 +204,7 @@ export function readProfile(root = path.join(repoRoot(), "profile")): Profile {
   return { root, files, profile: meta && !errors.some((e) => e.startsWith("profile.md")) ? meta : null, voice: voiceArt?.frontmatter ?? null, projects, answers, errors };
 }
 
-// The Keywords of every Project's Bullet groups, once each, spelled as the first Project in filename order
+// The Keywords of every Project, once each, spelled as the first Project in filename order
 // spells them. A term names a Keyword by exact, case-insensitive equality; nothing else.
 export function keywords(profile: Pick<Profile, "projects">): string[] {
   return unique(profile.projects.flatMap((p) => p.keywords));
