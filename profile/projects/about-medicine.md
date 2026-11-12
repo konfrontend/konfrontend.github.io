@@ -2,8 +2,8 @@
 url: https://aboutmedicine.com.au
 role: Full Stack Developer
 employment: freelance
-start: 2018-03
-end: 2019-01
+start: Mar 2018
+end: Jan 2019
 ---
 # About Medicine
 

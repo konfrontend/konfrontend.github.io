@@ -5,25 +5,28 @@ employment: freelance
 start: Jun 2026
 end: Aug 2026
 ---
-# Nataliia Musikhina (hermit.tt)
+# hermit.tt
 
 ## Description
 Portfolio website for a tattoo artist.
 
-### Multilingual SSG Website
+## Keywords
 
-Eliminated hosting fees for the client by building a true multilingual SSG website in Nuxt 4 and Sanity Studio CMS, and serving it from Cloudflare Workers.
+`TypeScript`, `Nuxt 4`, `Sanity Studio CMS`, `Cloudflare Workers`, `Turborepo`, `Tailwind CSS`, `Google Search Console`, `i18n`
+
+*** 
+
+### Multilingual SSG Website
+Eliminated hosting fees for the client by building a multilingual SSG website in Nuxt 4 with Sanity Studio CMS, served from Cloudflare Workers.
 
 ### WCAG
-Reached a Core Web Vitals score of 100 and matched the WCAG AA standard.
+Met the WCAG 2.2 AA standard, with a Lighthouse accessibility score of 100.
 
 ### LCP
-Raised the mobile performance score from 85 to 99 and cut LCP from 3.6 s to 1.1 s with zero layout shift by introducing a Low-Quality Image Placeholder (LQIP).
+Raised the mobile Lighthouse performance score from 85 to 99 and cut LCP from 3.6 s to 1.1 s with zero layout shift (CLS 0) by introducing Low-Quality Image Placeholders (LQIP).
 
 ### Tally
-Built zero-backend lead capture in a static website, using a Tally forms integration.
-
-`Sanity Studio CMS`, `Nuxt 4`, `Cloudflare Workers`, `Turborepo`, `TypeScript`, `Tailwind CSS`, `Google Search Console`, `Search Engine Optimization (SEO)`, `Web Content Accessibility Guidelines (WCAG)`, `Core Web Vitals`, `Static Site Generation (SSG)`, `Content Delivery Network (CDN)`, `Low-Quality Image Placeholder (LQIP)`, `GitHub Actions`, `i18n`
+Built backend-free booking requests for the static website through a Tally forms integration.
 
 ***
 

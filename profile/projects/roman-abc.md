@@ -1,7 +1,7 @@
 ---
 role: Full Stack Developer
-employment: independent
-start: 2026-07
+employment: freelance
+start: Jul 2026
 ---
 # Roman ABC
 

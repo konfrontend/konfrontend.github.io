@@ -1,8 +1,8 @@
 ---
 role: Frontend Developer
 employment: full-time
-start: 2015-02
-end: 2018-11
+start: Feb 2015
+end: Nov 2018
 ---
 # Galaxy Labs
 

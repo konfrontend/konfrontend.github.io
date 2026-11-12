@@ -1,7 +1,7 @@
 ---
 role: Author & Sole Developer
 employment: independent
-start: 2025-05
+start: May 2025
 ---
 # straight-skeleton
 

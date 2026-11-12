@@ -1,7 +1,8 @@
 ---
 role: Author & Sole Developer
 employment: independent
-start: 2026-06
+start: Jun 2026
+end: Present
 ---
 # Portfolio
 

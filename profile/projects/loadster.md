@@ -10,54 +10,40 @@ end: Present
 ## Description
 Cloud SaaS for load testing and uptime monitoring of websites and APIs.
 
-### Agentic Workflow
-Authored a Human-in-the-Loop AI-assisted engineering workflow, increasing the monthly average number of pull requests by 11.9 times. Shipping features from triage to code review within hours instead of days.
-
-`Claude Code`, `AI Skills`, `Prompt Engineering`, `Token Optimization`, `Domain-driven Design (DDD)`, `Architecture Decision Records (ADR)`, `Test-driven Development (TDD)`, `Specification-driven Development (SDD)`
-
-***
-
-### Free Speed Test Funnel
-Optimized UI/UX in a free-trial flow, increasing sign-up conversion by 20%.
-
-***
-
-### MCP Server
-Built the MCP server in the Spring AI framework with role-based access control (RBAC) levels, from read-only to executing. The MCP client got approved by public marketplaces and is supported in Claude Code, Codex, ChatGPT, and Cursor.
-
-### MCP Testing
-Introduced a deterministic approach to MCP development, reducing the time to release new versions from weeks to days.
+## Keywords
+`TypeScript`, `JavaScript`, `Java`, `Vue`, `Vuex`, `Tailwind CSS`, `Canvas API`, `Stripe`, `Spring Boot`, `Spring Data JPA`, `Spring AI`, `MariaDB`, `WebSockets`, `Service Worker API`, `Playwright`, `Docker`, `WebExtension API`, `Chrome DevTools Protocol (CDP)`, `Manifest V3`, `Shadow DOM`, `i18n`
 
 ***
 
 ### Frontend Architecture
 Shipped 300+ Vue 3 components, shared by 3 user-facing products and following the brand design system.
 
+### Agentic Workflow
+Authored a Human-in-the-Loop AI-assisted engineering workflow, increasing the monthly average number of pull requests by 11.9 times.
+
+### Free Speed Test Funnel
+Optimized UI/UX in a free-trial flow, increasing sign-up conversion by 20%.
+
+### MCP Server
+Built an MCP server with Spring AI and role-based access control (RBAC) that limits what an AI agent can do, from read-only access up to launching cloud load tests that spend the customer's money.
+
+### MCP Testing
+Introduced a deterministic approach to MCP development, reducing the time to release new versions from weeks to days.
+
 ### Load Test Scripting
 Built the script editor's GUI with revision history and an undo/redo stack.
 
 ### Pusher Worker
-Moved the Pusher client into a SharedWorker, so all tabs in a browser share one WebSocket and get the same events from the backend. This brings conflict resolution, a notification system, and update delivery to the user-facing product.
+Resolved conflicting edits and out-of-sync tabs in the web dashboard by moving the Pusher client into a SharedWorker, so every tab shares one WebSocket.
 
 ### Vue 3 Migration
-Performed the progressive migration from JavaScript/Webpack/Vue 2 to TypeScript/Vite/Vitest/Vue 3, introducing type safety and unit testing, and reducing build time to seconds.
-
-`Vue 3`, `Composition API`, `Tailwind CSS 4`, `npm workspaces`
-
-***
+Performed the progressive migration from JavaScript/Webpack/Vue 2 to TypeScript/Vite/Vue 3, introducing type safety and unit testing, and reducing build time to seconds.
 
 ### Data Visualization
-Built interactive 2D data-visualization components for real-time metrics rendering, featuring live updates, filters, zoom, aggregation, and public sharing (CSV, PDF, public URL) for business purposes.
-
-`IntersectionObserver`, `requestAnimationFrame (rAF)`, `Canvas API`, `SVG`
-
-***
+Built interactive Canvas charts that render load test metrics in real time, with filters, zoom, and aggregation, plus CSV and PDF export and sharing by public URL.
 
 ### Browser Extension
-<https://chromewebstore.google.com/detail/bkhfnmahbfjemfpgehoolkhhdhbidaan>
-Co-authored the public Loadster Recorder Extension, used by 4,000 users and rated 4.9/5.0 stars in the Chrome Web Store. Complementing the load-testing product with live browser recording (HTTP or Playwright).
-
-`TypeScript`, `WebExtension API`, `Service Worker API`, `Shadow DOM`, `Chrome DevTools Protocol (CDP)`, `Playwright`, `ARIA`, `Vue 3`, `Manifest V3`
+Co-authored the public Loadster Recorder Extension, used by 4,000 users and rated 4.9/5.0 stars in the Chrome Web Store.
 
 ***
 

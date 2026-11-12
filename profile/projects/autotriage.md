@@ -2,7 +2,7 @@
 url: https://github.com/konfrontend/autotriage
 role: Author & Sole Developer
 employment: independent
-start: 2026-09
+start: Sep 2026
 ---
 # autotriage
 
