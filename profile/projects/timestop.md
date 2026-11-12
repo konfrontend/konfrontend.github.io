@@ -11,12 +11,12 @@ end: Present
 A local-first time tracker and report generator app for macOS and Windows.
 
 ## Keywords
-`Electron`, `React`, `TanStack Query`, `TanStack Router`, `Tailwind CSS`, `shadcn/ui`, `Vitest`, `Zod`, `Drizzle ORM`, `SQLite`, `PostgreSQL`, `Playwright`, `Docker`, `Turborepo`, `Cloudflare Tunnel`
+`Electron`, `React`, `TanStack Query`, `shadcn/ui`, `Vitest`, `Zod`, `Drizzle ORM`, `SQLite`, `PostgreSQL`, `Playwright`, `Docker`, `Cloudflare Tunnel`
 
 *** 
 
 ### Replacement
-Replaced a paid time-tracker subscription, saving about $200 a year, by building a local-first time tracker and report generator for macOS and Windows in Electron, React, and SQLite.
+Replaced a paid time-tracker subscription, saving about $200 a year.
 
 ### Optional Sync Server
 Complemented a local-first app with an optional sync server, unlocking a teamwork capability for the product.

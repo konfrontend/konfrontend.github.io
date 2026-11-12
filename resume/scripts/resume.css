@@ -2,15 +2,15 @@
    Everything a parser should read is text in the layer: the name alone on line one, list bullets as ::before glyphs
    rather than drawn markers, hyphenated words kept whole with .nb. The page is plain Markdown HTML without classes,
    so the parts are styled by position: the two paragraphs after the h1 are the headline and the contact line, the
-   paragraph after an h4 the Description, a paragraph after a list the Keyword line. A Project header is two rows:
-   an h3 with the role and an h4 with the Project name and its url. Each row ends in a <span>, set flush right on
-   the same line: the dates on the h3, the employment on the h4. */
+   paragraph after an h3 the Description, a paragraph after a list the Keyword line. A Project header is one row,
+   an h3: the role, the Project name as a link to its url, and a <span> with the employment and the dates, set
+   flush right on the same line. */
 @page { size: A4; margin: 0; }
 * { box-sizing: border-box; }
 html { --sans: "Helvetica Neue", Helvetica, Arial, sans-serif; --serif: Georgia, serif; }
 body { margin: 0; background: #fff; color: #1a1a1a; font-family: var(--serif); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-/* Sans: the headings, the headline, the contact line, the Skills paragraph and the Keyword line. */
-h1, h2, h3, h4, h1 + p, h1 + p + p, h2 + p, ul + p { font-family: var(--sans); }
+/* Sans: the headings, the headline, the contact line, the Skills paragraph, the Description and the Keyword line. */
+h1, h2, h3, h1 + p, h1 + p + p, h2 + p, h3 + p, ul + p { font-family: var(--sans); }
 a { color: inherit; }
 p { margin: 0; }
 /* Bullets are text in ::before, not list markers: Chrome draws markers as paths, which the text layer lacks. */
@@ -19,7 +19,7 @@ ul { list-style: none; margin: 0; padding-left: 0; }
 .nb { white-space: nowrap; }
 
 /* Page margins live here, not on @page, so nothing lands in Chrome's margin boxes. At least 12.7mm. */
-/* Body 10pt at line-height 1.15 and section headers at 12pt follow upstream resume-formatter: body 10-12pt, spacing 1.0-1.15, headers 12-14pt. */
+/* Body 10pt at line-height 1.15 follows upstream resume-formatter: body 10-12pt, spacing 1.0-1.15. Section headers at 11pt sit just under its 12-14pt. */
 main { padding: 12.7mm 16mm; font-size: 10pt; line-height: 1.15; }
 @media screen { html { background: #e6e6e6; } main { width: 210mm; min-height: 297mm; margin: 24px auto; background: #fff; box-shadow: 0 2px 16px #0002; } }
 
@@ -28,19 +28,25 @@ h1 + p { font-size: 12pt; color: #666; }
 h1 + p + p { margin-top: 3pt; font-size: 9pt; color: #555; white-space: nowrap; }
 h1 + p + p + p { margin-top: 6pt; }
 
-h2 { font-size: 12pt; text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid #222; padding-bottom: 2pt; margin: 12pt 0 5pt; }
-h3, h4 { display: flex; align-items: baseline; gap: .3em; }
-h3 { font-size: 11pt; margin: 9pt 0 0; }
-h4 { font-size: 10pt; color: #333; margin: 1pt 0 1pt; }
-/* The right end of a row: a direct span other than a .nb one, pushed to the right edge. */
-h3 > span:not(.nb), h4 > span:not(.nb) { margin-left: auto; white-space: nowrap; font-size: 9.5pt; font-weight: 400; color: #555; }
-h4 a { text-decoration: none; font-weight: 400; color: #555; font-size: 9.5pt; }
+h2 { font-size: 9pt; text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid #222; padding-bottom: 2pt; margin: 12pt 0 5pt; }
+/* The Skills paragraph: the Keyword line's size. */
+h2 + p { font-size: 9pt; }
+h3 { display: flex; align-items: baseline; gap: .4em; font-size: 11pt; margin: 9pt 0 1pt; }
+/* The right end of the row: a direct span other than a .nb one, pushed to the right edge. */
+h3 > span:not(.nb) { margin-left: auto; white-space: nowrap; font-size: 9.5pt; font-weight: 400; color: #555; }
+/* The Project name: a link marked by a chain icon. The icon is a drawn SVG, not a glyph, so it needs no font
+   and stays out of the text layer. */
+h3 a { text-decoration: none; font-weight: 400; color: #333; white-space: nowrap; }
+h3 a::before { content: ""; display: inline-block; width: .8em; height: .8em; margin-right: .25em; vertical-align: -.08em; background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23555" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>') center / contain no-repeat; }
 
-h4 + p + ul { margin-top: 3pt; }
+/* The Description: 1pt under the body, italic. */
+h3 + p { font-size: 9pt; font-style: italic; }
+h3 + p + ul { margin-top: 3pt; }
 /* The Keyword line: backtick Keywords as plain small text. */
 ul + p { margin-top: 3pt; font-size: 9pt; color: #555; }
 code { font-family: inherit; font-size: inherit; }
-hr { border: 0; border-top: 1px solid #ddd; margin: 6pt 0 0; }
+/* The *** between Projects in a Version: not printed. */
+hr { display: none; }
 /* Hanging indent: the glyph box takes the 1.1em the ul padding used to give the marker. Centered, the gap to the text
    stays under the 0.7em at which pdftotext splits the glyphs off into a column of their own. */
 li { margin: 1pt 0; padding-left: 1.1em; text-indent: -1.1em; }
