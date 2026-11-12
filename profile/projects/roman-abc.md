@@ -8,6 +8,7 @@ start: Jul 2026
 ## Description
 Personal website of tattoo artist Roman Melnikov.
 
+## Keywords
 `TypeScript`, `Vue.js`, `Nuxt`, `Sanity`, `Cloudflare Workers`
 
 ***

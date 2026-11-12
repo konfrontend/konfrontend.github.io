@@ -9,6 +9,11 @@ start: Sep 2026
 ## Description
 Claude Code plugin that triages a freelance job posting and writes the proposal letter inside hook-enforced rails.
 
+## Keywords
+`Claude Code`, `Node.js`, `JSON Schema`, `Agentic Workflows`, `Prompt Engineering`, `Domain Modeling`, `Architecture Decision Records`, `Ajv`
+
+***
+
 ### Plugin
 Built a public Claude Code plugin that triages a freelance job posting and writes a ready-to-paste proposal letter in 1–2 minutes instead of 30–60; 17 postings triaged, 11 letters written.
 
@@ -32,8 +37,6 @@ Required the model to trace each letter fact to a past job, profile field, posti
 
 ### Verification Fixes
 Built letter verification that applies its own fixes in place: 12 model-judged checks run only after 28 scripted checks pass, and each run ends passed or stopped on one user question.
-
-`Claude Code`, `Node.js`, `JSON Schema`, `Agentic Workflows`, `Prompt Engineering`, `Domain Modeling`, `Architecture Decision Records`, `Ajv`
 
 ***
 

@@ -18,14 +18,17 @@ end: Present
 ## Description
 Load testing for websites.
 
+## Keywords
+\`TypeScript\`, \`Canvas\`
+
+***
+
 ### Charts
 Built live charts.
 
 ### Recorder
 <https://store.test/recorder>
 Co-authored the recorder.
-
-\`TypeScript\`, \`Canvas\`
 
 ***
 `;
@@ -36,6 +39,7 @@ function version(text: string): string {
   fs.mkdirSync(path.join(root, "projects"));
   fs.mkdirSync(path.join(root, "versions"));
   fs.writeFileSync(path.join(root, "projects", "acme.md"), ACME);
+  fs.writeFileSync(path.join(root, "projects", "bare.md"), "# Bare\n\n## Description\nNo Keywords section.\n\n### Only\nOne Bullet.\n\n\`Stray\`\n");
   const file = path.join(root, "versions", "frontend.md");
   fs.writeFileSync(file, text);
   return file;
@@ -79,7 +83,7 @@ Load testing for websites.
   });
 });
 
-test("a slot or link it cannot fill is a problem and a marker with nothing to offer a warning, each named with its line", () => {
+test("a slot or link it cannot fill is a problem and a marker under a Project with no Keywords a warning, each named with its line", () => {
   const file = version(`{{role}}
 
 ### [Acme](../projects/acme.md)
@@ -87,6 +91,8 @@ test("a slot or link it cannot fill is a problem and a marker with nothing to of
 
 * [Gone](../projects/acme.md#gone)
 * [Elsewhere](../projects/other.md#charts)
+
+### [Bare](../projects/bare.md)
 
 {{keywords}}
 
@@ -98,10 +104,10 @@ test("a slot or link it cannot fill is a problem and a marker with nothing to of
     "line 4: {{title}} has no value in the Project file",
     "line 6: Bullet link ../projects/acme.md#gone names no Bullet of that Project",
     "line 7: Bullet link ../projects/other.md#charts points outside ../projects/acme.md",
-    "line 11: Project heading links ../projects/ghost.md, which does not exist",
-    "line 11: {{url}} reads ../projects/ghost.md, which does not exist",
+    "line 13: Project heading links ../projects/ghost.md, which does not exist",
+    "line 13: {{url}} reads ../projects/ghost.md, which does not exist",
   ]);
-  assert.deepEqual(warnings, ["line 9: {{keywords}} marker has no Keywords to print"]);
+  assert.deepEqual(warnings, ["line 11: {{keywords}} marker prints nothing: the Project has no Keywords"]);
   assert.doesNotMatch(markdown, /\{\{keywords\}\}/);
 });
 
@@ -112,7 +118,7 @@ test("a lone link to another site or to an anchor on the page prints as written"
   assert.equal(markdown, text.replace("[Acme](../projects/acme.md)", "Acme"));
 });
 
-test("a marker prints its Project's ranked Keywords; a marker with nothing to offer prints nothing and warns", () => {
+test("a marker in either case prints its Project's Keywords in file order, whichever Bullets are picked; a written Keyword line prints as written", () => {
   const file = version(`### [Acme](../projects/acme.md)
 
 * [Charts](../projects/acme.md#charts)
@@ -121,10 +127,15 @@ test("a marker prints its Project's ranked Keywords; a marker with nothing to of
 
 ### [Acme](../projects/acme.md)
 
-{{keywords}}
+{{ Keywords }}
+
+### [Acme](../projects/acme.md)
+
+\`Canvas\`, \`By hand\`
 `);
-  const { markdown, problems, warnings } = resolveVersion(file);
-  assert.deepEqual(problems, []);
-  assert.deepEqual(warnings, ["line 9: {{keywords}} marker has no Keywords to print"]);
-  assert.equal(markdown, "### Acme\n\n* Built live charts.\n\n`TypeScript`, `Canvas`\n\n### Acme\n\n");
+  assert.deepEqual(resolveVersion(file), {
+    problems: [],
+    warnings: [],
+    markdown: "### Acme\n\n* Built live charts.\n\n`TypeScript`, `Canvas`\n\n### Acme\n\n`TypeScript`, `Canvas`\n\n### Acme\n\n`Canvas`, `By hand`\n",
+  });
 });

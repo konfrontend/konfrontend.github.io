@@ -7,7 +7,7 @@ The gaps print derives from every dated Candidate's `requirements` in `job.md` u
 ## Steps
 
 1. **Requirements.** Read the frontmatter `requirements` of every `private/candidates/YYYY-MM-DD-<slug>/job.md`. Skip any folder that is not a dated Candidate, such as `archive/`. Count each item once per Candidate, matching case-insensitively.
-2. **Keywords.** Read the Keyword lines of every `profile/projects/*.md`: the lines of backticked items under a Bullet group.
+2. **Keywords.** Read the Keyword lines of every `profile/projects/*.md`: the lines of backticked items under `## Keywords`.
 3. **Print.** Two tables, `item | seen`, `seen` counting Candidates, most seen first, ties alphabetical:
    - Gaps: the items no Keyword names, spelled as the posting spelled them.
    - Keywords seen: the items a Keyword names, in the Keyword's spelling.

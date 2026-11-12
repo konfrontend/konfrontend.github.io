@@ -1,5 +1,5 @@
 // Keyword matching for triage: which Keywords a Job item names, whole words, case-insensitive.
-// The Keywords are the Projects' Bullet groups', read through profile/lib; nothing is stored here.
+// The Keywords are the Projects', read through profile/lib; nothing is stored here.
 // CLI: node scripts/skills.ts match <item>...
 import { profile, keywords } from "./lib.ts";
 
