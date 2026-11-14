@@ -18,19 +18,7 @@ Gijon, Spain (CET, UTC+1) | [cossamedia@gmail.com](mailto:cossamedia@gmail.com) 
 
 ## Professional Experience
 
-### [{{role}}](../projects/jigawatt.md) [Jigawatt Solar]({{url}}) <span>{{employment}} {{start}} – {{end}}</span>
-{{Description}}
-
-* [CAD Engine](../projects/jigawatt.md#cad-engine)
-* [Shade Simulation](../projects/jigawatt.md#shade-simulation)
-* [Public Wiz](../projects/jigawatt.md#public-wiz)
-* [AI and Contribution](../projects/jigawatt.md#ai-and-contribution)
-
-{{keywords}}
-
-*** 
-
-### [{{role}}](../projects/loadster.md) [Loadster]({{url}}) <span>{{employment}} {{start}} – {{end}}</span>
+### [{{role}}](../projects/loadster.md) [Loadster]({{url}}) <span> {{start}} – {{end}}</span>
 {{Description}}
 
 * [Frontend Architecture](../projects/loadster.md#frontend-architecture)
@@ -44,7 +32,19 @@ Gijon, Spain (CET, UTC+1) | [cossamedia@gmail.com](mailto:cossamedia@gmail.com) 
 
 ***
 
-### [{{role}}](../projects/hermit.md) [hermit.tt]({{url}}) <span>{{employment}} {{start}} – {{end}}</span>
+### [{{role}}](../projects/jigawatt.md) [Jigawatt Solar]({{url}}) <span> {{start}} – {{end}}</span>
+{{Description}}
+
+* [CAD Engine](../projects/jigawatt.md#cad-engine)
+* [Shade Simulation](../projects/jigawatt.md#shade-simulation)
+* [Public Wiz](../projects/jigawatt.md#public-wiz)
+* [AI and Contribution](../projects/jigawatt.md#ai-and-contribution)
+
+{{keywords}}
+
+***
+
+### [{{role}}](../projects/hermit.md) [hermit.tt]({{url}}) <span> {{start}} – {{end}}</span>
 {{Description}}
 
 * [LCP](../projects/hermit.md#lcp)
