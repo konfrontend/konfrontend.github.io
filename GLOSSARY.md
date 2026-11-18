@@ -7,7 +7,7 @@ One person's Profile, the resumes made from it, and the triage of the Jobs it is
 ### Profile
 
 **Profile**:
-The person's data every Version and Letter derives from: the Projects with their descriptions, Keywords, Bullets and notes, the answers to recurring questions, the contact facts, the voice and the Route's settings.
+The person's data every Version and Letter derives from: the Projects with their descriptions, Keywords, Bullets and notes, the answers to recurring questions, the contact facts and the terms.
 _Avoid_: user profile, persona, data folder, master
 
 **Version**:
@@ -26,25 +26,13 @@ _Avoid_: highlight, point, achievement, lead, lead line
 The one spelling of a technology or practice the person holds, as a posting or an ATS would match it: the same in a Project, in a Version and in a Job's requirements. A required item no Keyword matches keeps the posting's spelling.
 _Avoid_: tag, tech name, alias, term
 
-**Gap**:
-An item a Job required that no Keyword names, named as the posting spells it. Exists only because a Job required it; never declared and never written into a Letter or a Version.
-_Avoid_: missing skill, weakness, hole, target
-
 ### Jobs
 
 **Job**:
-One posting, freelance or employment: its free-form text plus the parameters its Route requires.
+One posting: its text, plus what Upwork returns about it when read through `find_jobs`.
 _Avoid_: posting, listing, gig, opportunity
 
-### Route
-
-**Route**:
-A fixed sequence of steps for one kind of work: the freelance route or the employment route.
-_Avoid_: pipeline, flow, workflow, state machine
-
-**Guard**:
-The condition a step of a Route needs before it runs: the previous step ran in the same sitting, and the Route's preconditions hold.
-_Avoid_: gate, precondition check, validation step
+### Triage
 
 **Checkpoint**:
 The pause after triage where the person reads the scores and Flags and answers go or no-go; the Verdict is made then and nothing before.
@@ -59,9 +47,5 @@ One named risk signal in a Job, with a level 1–5; a green Flag lowers the risk
 _Avoid_: red flag, warning, concern
 
 **Letter**:
-The pasteable text a Route writes: a proposal on the freelance route, a cover letter on the employment route.
+The cover letter of a proposal for a Job: drafted by `write-proposal`, rewritten by `refine-proposal`.
 _Avoid_: bid, application, pitch
-
-**Slot**:
-One named part of a Letter template, called by its name plus Slot.
-_Avoid_: section, block, fragment

@@ -1,66 +1,21 @@
-// Shared helpers for the Guard, the hooks and the State scripts: refusals, the Routes, route inference,
-// the Flags and the catalogue. The Profile is read through profile/lib, never parsed here.
+// Shared helpers for the triage scripts and the write hook: the Flags, the catalogue, the Profile schema of a
+// path. The Profile is read through profile/lib, never parsed here.
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readArtifact, readProfile, repoRoot, type Frontmatter, type Profile } from "../../profile/lib/index.ts";
 
 // The catalogue ships with this module; the Profile resolves from the repo root.
-export const AUTOTRIAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const AUTOTRIAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 export { readArtifact, keywords } from "../../profile/lib/index.ts";
 
-export class Refusal extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "Refusal";
-  }
-}
-
-export function refuse(state: string, reason: string, next?: string | null): never {
-  const lines = [`autotriage: ${state} refused. ${reason}`];
-  if (next) lines.push(next);
-  throw new Refusal(lines.join("\n"));
-}
-
 export type Route = "freelance" | "employment";
-export const ROUTES: Route[] = ["freelance", "employment"];
-
-// The freelancer's parameter line: a short comma list with a money figure (`UK, $600`), or the figure alone.
-const FIGURE_ALONE = /^\s*(?:\$|USD\s?)\d[\d,.]*(?:\s*[-–]\s*\$?\d[\d,.]*)?\s*$/i;
-const isParameterLine = (line: string) => /^[^\n]{0,80}$/.test(line) && /(?:^|[,\s])(?:\$|USD\s?)\d/i.test(line) && (/,/.test(line) || FIGURE_ALONE.test(line));
-// The lines a paste closes on, the URL and link lines skipped: a parameter line may come there too.
-function closingLines(lines: string[]): string[] {
-  const text = lines.map((l) => l.trim()).filter((l) => l && !/^(?:https?:\/\/\S+|\[[^\]]*\]\([^)]*\))$/.test(l));
-  return text.slice(-4);
-}
-
-// Route inference for intake, the way it infers the timezone: a paste that opens or closes on the
-// freelancer's parameter line is freelance; a posting that reads as a job ad (employment type, salary, remote
-// policy, benefits) is employment. Returns the route and whether it
-// was inferred, or null when the text decides nothing and intake must ask.
-export function inferRoute(text: string): { route: Route; inferred: boolean } | null {
-  const t = String(text ?? "");
-  const stated = /^\s*route:\s*(freelance|employment)\s*$/im.exec(t);
-  if (stated) return { route: stated[1] as Route, inferred: false };
-  const lines = t.split(/\r?\n/);
-  if ([lines.find((l) => l.trim()) ?? "", ...closingLines(lines)].some(isParameterLine)) return { route: "freelance", inferred: true };
-  const freelanceCues = /\b(upwork|hourly rate|fixed[- ]price|proposal|bid|freelancer|per hour|\/h(?:r|our)?\b)/i;
-  const employmentCues = /\b(full[- ]time|part[- ]time|permanent|salary|compensation|benefits|b2b|remote-first|on-site|hybrid|paid vacation|vacation days|health insurance|probation|requirements:?|we offer|what we offer|about the role|about the position|apply)\b/i;
-  const f = (t.match(new RegExp(freelanceCues.source, "gi")) ?? []).length;
-  const e = (t.match(new RegExp(employmentCues.source, "gi")) ?? []).length;
-  if (e > f) return { route: "employment", inferred: true };
-  if (f > e) return { route: "freelance", inferred: true };
-  return null;
-}
 
 // Which Profile schema a path validates against, or null when the path is not one. A Project file has
 // none.
-export function schemaForPath(file: string): "profile" | "voice" | null {
+export function schemaForPath(file: string): "profile" | null {
   const rel = path.relative(path.join(repoRoot(), "profile"), path.resolve(file)).split(path.sep).join("/");
-  if (rel.startsWith("..") || path.isAbsolute(rel)) return null;
-  if (rel === "profile.md") return "profile";
-  if (rel === "voice.md") return "voice";
-  return null;
+  return rel === "profile.md" ? "profile" : null;
 }
 
 export function loadCatalogue(name: string): Frontmatter {
@@ -70,7 +25,7 @@ export function loadCatalogue(name: string): Frontmatter {
   return art.frontmatter;
 }
 
-export interface Flag { id: string; level?: number; kind?: "risk" | "green" | "stop"; routes?: Route[]; slot?: string; safeguard?: string }
+export interface Flag { id: string; level?: number; kind?: "risk" | "green" | "stop"; routes?: Route[] }
 
 // The Flags of one route (catalogue/flags.md `routes`). A missing or unknown route reads as freelance.
 export function flagsFor(route: unknown): Flag[] {

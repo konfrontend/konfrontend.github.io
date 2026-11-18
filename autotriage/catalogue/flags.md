@@ -335,14 +335,7 @@ A Flag is one named risk signal in a Job. Green Flags are signals the client or 
 
 ## Routes
 
-Every Flag names its routes in `routes`. The Job's route, read at intake, selects the Flag set: `triage` judges only those Flags, `verdict.ts` counts only those ids, and `verify` recomputes the Safeguards and the Alert Level only from them. `vague-posting` and the stop Flag are on both routes; every other Flag is on one. An employment Flag has no Safeguard Slot: a 500-character cover letter carries none, and the Flag is read by the person at the Checkpoint, so employment Flags are not passed to the Letter steps.
-
-## How `triage` uses this file
-
-1. Read the Job. For every Flag of the Job's route whose cues match, hold its id and show the human a verbatim quote from the Job as evidence. Model judgment, guided by cues; postings are unstructured, so no keyword matching. Green and stop Flags are detected in the same pass: the stop Flag's evidence is the Job quote plus the Profile constraint it collides with (`identity.constraints: remote only` against `hybrid, three days in the office`). Only ids are passed to the Letter steps, on the freelance route only; evidence stays on the summary screen.
-2. Judge the two soft scores against the rubric in `scores` (`value` has one rubric per route), one line of reason each in the session. Neither is stored.
-3. A script, not the model, computes the Alert Level (steps in `alert_level_steps`), the hard stops (rules in `hard_stops`) and its recommendation (order in `verdict_mapping`) from the ids and the score, all passed as arguments: `node scripts/verdict.ts --route <route> --skill-fit <n> --flags <ids>`.
-4. The human answers go or no-go at the Checkpoint. Nothing is written: the Verdict, the required items and, on the freelance route, the triggered ids stay in the session for the Letter steps. The recommendation is session output; the Verdict is what the human confirmed.
+Every Flag names its routes in `routes`. The Job's route, read at intake, selects the Flag set: `triage` judges only those Flags and `verdict.ts` counts only those ids. `vague-posting` and the stop Flag are on both routes; every other Flag is on one.
 
 ## Levels
 
@@ -359,18 +352,3 @@ Risk Flags carry a Level; green Flags are Level 0; the stop Flag carries none. T
 Ambitious scope on a small budget means the client does not know what software costs. `budget-scope-mismatch` is level 1 and never escalates on its own: it is excluded from the "three or more level 2/3 Flags" step. It makes the `milestones` Slot price its own plan. A low fixed budget is never a hard stop on its own; the human sees the budget at the Checkpoint. The same holds for a posted hourly rate below the Profile rate: the person bids their own rate, so the Checkpoint shows the posted rate against the Profile rate and no money hard stop exists on either route.
 
 Client-priced test: a paid work trial whose price the client sets and pays (`$800 for completing the test`), usually with `paid-first-milestone`. The price is the client's hiring instrument, not a bid, so the Letter does not reprice it: the milestone lines carry no prices, no bid follows them, and `fact/arithmetic` has nothing to check. The rest of `budget-scope-mismatch` holds: the plan is ours, scoped to what the test period can carry.
-
-## Safeguards become Letter content
-
-On the freelance route `proposal` reads the `safeguard` string of every triggered risk Flag from this catalogue and states it in the Slot named by `slot` (the Slot catalogue, `catalogue/templates/letter-slots.md`; `plan` is the plan Slot the Letter carries). At Alert Level 3 and 4 the Letter must state them. Flags whose safeguard is `none` contribute nothing. Safeguards are not passed on; `verify` recomputes them from the triggered Flag ids and this catalogue and checks that the target Slot states each one (`flag/safeguard-missing`, fail at Alert Level 3–4, warn at 1–2; see the Verify catalogue, `catalogue/verify.md`). The human also sees them at the Letter review.
-
-## What the human sees first
-
-`triage` prints this in the session, in this order, so the go/no-go call takes under a minute. None of it is stored.
-
-1. One line: the recommendation, the Alert Level, the two scores.
-2. Hard stops, if any.
-3. Triggered Flags, one line each: id, level, verbatim evidence.
-4. Green Flags.
-5. Safeguards to state (freelance route).
-6. Why `ask`, or one line on why not the other recommendation.

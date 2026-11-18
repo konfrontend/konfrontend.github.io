@@ -8,7 +8,7 @@ The professional profile of Konstantin Dolbilov, web developer, and the two thin
 
 ## Rules
 
-- `profile/lib/` is the one Profile reader. `autotriage/` reads the Profile through it and writes only a confirmed fact to a Project's `## Notes`; nothing of a Job is kept: the Job, its Verdict and its Letter live only in the session. `private/` is gitignored and read by nothing.
+- `profile/lib/` is the one Profile reader. `autotriage/` reads the Profile through it and writes nothing: the Job and its Verdict live only in the session. `private/` is gitignored and read by nothing.
 
 ### Triage labels
 

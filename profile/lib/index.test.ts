@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import YAML from "yaml";
-import { readProfile, parseProject, keywords, repoRoot } from "./index.ts";
+import { readProfile, parseProject, keywords, repoRoot, validate } from "./index.ts";
 
 const ENGINE = `---
 url: https://example.com/engine
@@ -52,7 +52,6 @@ function fixture(): string {
     contact: { email: "ada@example.com", github: "https://github.com/ada" },
     terms: { rate: 60 },
   });
-  writeArtifact(path.join(root, "voice.md"), { language: "en-US", greeting: { freelance: "Hi,", employment: "Hello," }, sign_off: "Ada", banned_phrases: [] });
   fs.mkdirSync(path.join(root, "projects"));
   fs.writeFileSync(path.join(root, "projects", "engine.md"), ENGINE);
   fs.writeFileSync(path.join(root, "projects", "notes.md"), "---\nrole: Author\n---\n# Notes\n\n## Description\nTranslation notes.\n\n## Keywords\n\`Quill pens\`, \`writing\`\n\n***\n");
@@ -108,4 +107,14 @@ test("repoRoot is CLAUDE_PROJECT_DIR when set, else the repo this module sits in
   } finally {
     if (prev === undefined) delete process.env.CLAUDE_PROJECT_DIR; else process.env.CLAUDE_PROJECT_DIR = prev;
   }
+});
+
+test("the Profile may state a salary_floor with its period and currency", () => {
+  const profile = {
+    identity: { name: "A", timezone: "Europe/Berlin", constraints: [] }, contact: { email: "a@b.de" },
+    terms: { rate: 50 },
+  };
+  assert.deepEqual(validate("profile", profile), [], "salary_floor is optional");
+  assert.deepEqual(validate("profile", { ...profile, terms: { ...profile.terms, salary_floor: { type: "annual", amount: 60000, currency: "EUR" } } }), []);
+  assert.ok(validate("profile", { ...profile, terms: { ...profile.terms, salary_floor: 60000 } }).length, "salary_floor names period and currency");
 });

@@ -1,6 +1,6 @@
-// The Profile reader: the one implementation that parses the authored Markdown (profile.md, voice.md,
-// answers/, projects/), collects the Keywords from the Projects' Keywords sections, and runs the Profile check
-// on profile.md, voice.md and the Answers. A Project file is read as written and never invalid.
+// The Profile reader: the one implementation that parses the authored Markdown (profile.md, answers/,
+// projects/), collects the Keywords from the Projects' Keywords sections, and runs the Profile check on
+// profile.md and the Answers. A Project file is read as written and never invalid.
 // Every consumer (the autotriage scripts, the resume scripts) imports from here and never parses a
 // Profile file itself. This module reads the Profile only, never resume/.
 import fs from "node:fs";
@@ -35,8 +35,8 @@ export function readArtifact(file: string): Artifact | null {
   return { file, ...splitFrontmatter(fs.readFileSync(file, "utf8")) };
 }
 
-// Schemas: profile and voice live in profile/schemas.
-export type SchemaName = "profile" | "voice";
+// Schemas live in profile/schemas.
+export type SchemaName = "profile";
 const ajv = new Ajv({ allErrors: true, strict: false, useDefaults: false });
 const compiled = new Map<string, ValidateFunction & { body: string | null }>();
 
@@ -148,7 +148,6 @@ export interface Profile {
   root: string;
   files: ReturnType<typeof profilePaths>;
   profile: ProfileMeta | null;
-  voice: Frontmatter | null;
   projects: Project[];
   answers: Answer[];
   errors: string[];
@@ -158,7 +157,6 @@ export function profilePaths(root: string) {
   return {
     root,
     profile: path.join(root, "profile.md"),
-    voice: path.join(root, "voice.md"),
     answers: path.join(root, "answers"),
     projects: path.join(root, "projects"),
   };
@@ -174,9 +172,6 @@ export function readProfile(root = path.join(repoRoot(), "profile")): Profile {
   const profileArt = readArtifact(files.profile);
   if (!profileArt) errors.push("profile.md: missing");
   else errors.push(...validateArtifact("profile", profileArt).map((e) => `profile.md: ${e}`));
-  const voiceArt = readArtifact(files.voice);
-  if (!voiceArt) errors.push("voice.md: missing");
-  else errors.push(...validateArtifact("voice", voiceArt).map((e) => `voice.md: ${e}`));
   const projectFiles = fs.existsSync(files.projects) ? fs.readdirSync(files.projects).filter((f) => f.endsWith(".md")).sort().map((f) => path.join(files.projects, f)) : [];
   const projects = projectFiles.map(readProject);
   const answers: Answer[] = fs.existsSync(files.answers)
@@ -188,7 +183,7 @@ export function readProfile(root = path.join(repoRoot(), "profile")): Profile {
       })
     : [];
   const meta = profileArt?.frontmatter as unknown as ProfileMeta | null;
-  return { root, files, profile: meta && !errors.some((e) => e.startsWith("profile.md")) ? meta : null, voice: voiceArt?.frontmatter ?? null, projects, answers, errors };
+  return { root, files, profile: meta && !errors.some((e) => e.startsWith("profile.md")) ? meta : null, projects, answers, errors };
 }
 
 // The Keywords of every Project, once each, spelled as the first Project in filename order

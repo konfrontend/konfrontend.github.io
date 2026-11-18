@@ -1,5 +1,4 @@
-// PostToolUse hook on Write|Edit: validate profile.md and voice.md against their schemas (a Project file has
-// none). The write has already landed; a failing file returns the errors to the model so it fixes them.
+// PostToolUse hook on Write|Edit: validate profile.md against its schema (a Project file has none). The write has already landed; a failing file returns the errors to the model so it fixes them.
 import { readArtifact, schemaForPath } from "../lib.ts";
 import { validateArtifact } from "../../../profile/lib/index.ts";
 

@@ -1,4 +1,4 @@
-// Profile command. `check` runs the Profile check on profile.md, voice.md and the Answers: every error
+// Profile command. `check` runs the Profile check on profile.md and the Answers: every error
 // printed, exit 1 when there is one. A Project file is read as written and never fails it.
 // CLI: node lib/cli.ts check [--root <profile dir>]
 import path from "node:path";
