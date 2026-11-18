@@ -1,9 +1,4 @@
 {
-  "hooks": {
-    "PostToolUse": [
-      { "matcher": "Write|Edit", "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/autotriage/scripts/hooks/post-tool-use.ts\"" }] }
-    ]
-  },
   "permissions": {
     "allow": [
       "Bash(node */scripts/*.ts *)",

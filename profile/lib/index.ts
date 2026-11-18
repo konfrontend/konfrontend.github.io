@@ -1,7 +1,7 @@
 // The Profile reader: the one implementation that parses the authored Markdown (profile.md, answers/,
 // projects/), collects the Keywords from the Projects' Keywords sections, and runs the Profile check on
 // profile.md and the Answers. A Project file is read as written and never invalid.
-// Every consumer (the autotriage scripts, the resume scripts) imports from here and never parses a
+// Every consumer (the resume scripts) imports from here and never parses a
 // Profile file itself. This module reads the Profile only, never resume/.
 import fs from "node:fs";
 import path from "node:path";
@@ -14,7 +14,7 @@ export const SCHEMAS_DIR = path.resolve(LIB_ROOT, "..", "schemas");
 
 // The one repo root: CLAUDE_PROJECT_DIR when set (the session's project, or a test fixture), else the repo
 // this module sits in; read on each call. Data (the Profile, the Versions) resolves from it;
-// code and what ships with it (the catalogue, the schemas, the templates, resume.css) from its own module.
+// code and what ships with it (the schemas, the templates, resume.css) from its own module.
 export function repoRoot(): string {
   return path.resolve(process.env.CLAUDE_PROJECT_DIR || path.join(LIB_ROOT, "..", ".."));
 }
