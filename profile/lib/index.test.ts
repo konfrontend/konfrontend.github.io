@@ -4,7 +4,8 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { readProfile, parseProject, keywords, writeArtifact, repoRoot } from "./index.ts";
+import YAML from "yaml";
+import { readProfile, parseProject, keywords, repoRoot } from "./index.ts";
 
 const ENGINE = `---
 url: https://example.com/engine
@@ -40,6 +41,9 @@ Translated Menabrea's memoir.
 [published] Published in 1843.
 - A raw line.
 `;
+
+const writeArtifact = (file: string, frontmatter: object, body = "") =>
+  fs.writeFileSync(file, `---\n${YAML.stringify(frontmatter)}---\n${body}`);
 
 function fixture(): string {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "profile-"));

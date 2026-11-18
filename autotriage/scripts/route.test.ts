@@ -1,56 +1,11 @@
-// Fixtures for the Candidate record and the Route split: one job.md schema for both routes, intake's
-// route inference, the Verdict arithmetic from arguments, and the Flag sets per route. Run: npm test
+// The Route split: intake's route inference, the Verdict arithmetic from arguments, and the Flag sets per
+// route. Run: npm test
 import test from "node:test";
 import assert from "node:assert/strict";
-import { validate, inferRoute, flagsFor, loadCatalogue, templateFor } from "./lib.ts";
+import { inferRoute, flagsFor, loadCatalogue } from "./lib.ts";
+import { validate } from "../../profile/lib/index.ts";
 import { compute } from "./verdict.ts";
 import { fixture, run, pipe } from "./fixture.ts";
-
-const freelance = { title: "Full-Stack Developer - Clinic Booking MVP", route: "freelance", timezone: "America/New_York", location: "US" };
-const employment = { title: "Senior Frontend Developer", route: "employment", company: "Heymondo", employment: "full-time", location: "Barcelona", timezone: "Europe/Madrid" };
-const without = <T extends object>(obj: T, key: keyof T) => { const { [key]: _, ...rest } = obj; return rest; };
-
-test("one job.md schema: the identity fields per route, no field the body carries", () => {
-  assert.deepEqual(validate("job", freelance), []);
-  assert.deepEqual(validate("job", employment), []);
-  assert.deepEqual(validate("job", without(freelance, "location")), [], "location is optional");
-  for (const k of ["title", "route", "timezone"] as const) assert.ok(validate("job", without(freelance, k)).some((e) => e.includes(k)), `${k} is required`);
-  for (const k of ["company", "employment"] as const) assert.ok(validate("job", without(employment, k)).some((e) => e.includes(k)), `${k} is required on employment`);
-  assert.ok(validate("job", { ...employment, company: null }).length, "company is never null");
-  assert.ok(validate("job", { ...freelance, company: "Acme" }).length, "no company on the freelance route");
-  assert.ok(validate("job", { ...employment, employment: "freelance" }).length, "employment enum is closed");
-  for (const [k, v] of Object.entries({ slug: "x", date: "2026-10-14", budget: { type: "hourly", min: 1, max: 2 }, remote: "remote", salary: { type: "annual", min: 1, currency: "EUR" }, source: "linkedin", extras: {} })) {
-    assert.ok(validate("job", { ...employment, [k]: v }).length, `${k} is not a field; the folder name or the body carries it`);
-  }
-});
-
-test("the Checkpoint fields: verdict go or no-go, requirements in Keyword spelling, flags on freelance only", () => {
-  assert.deepEqual(validate("job", { ...freelance, verdict: "go", requirements: ["React"], flags: ["regulated-domain", "paid-first-milestone"] }), []);
-  assert.deepEqual(validate("job", { ...employment, verdict: "no-go", requirements: ["Vue 3", "Nuxt 4"] }), []);
-  assert.ok(validate("job", { ...freelance, verdict: "ask" }).length, "ask is a recommendation, never a Verdict");
-  assert.ok(validate("job", { ...freelance, verdict: null }).length, "no pending Verdict: the field is absent until the Checkpoint");
-  assert.ok(validate("job", { ...freelance, requirements: ["React"] }).length, "requirements are written with the Verdict");
-  assert.ok(validate("job", { ...employment, verdict: "go", flags: ["role-sprawl"] }).length, "no flags on the employment route");
-  assert.ok(validate("job", { ...employment, verdict: "go", requirements: [""] }).length, "no empty requirement");
-  assert.ok(validate("job", { ...freelance, decision: "go" }).length, "decision is gone");
-});
-
-test("outcome is sent, interview or offer, only on verdict go", () => {
-  for (const job of [freelance, employment]) {
-    assert.deepEqual(validate("job", { ...job, verdict: "go", outcome: "sent" }), []);
-    assert.deepEqual(validate("job", { ...job, verdict: "go", outcome: "offer" }), []);
-    assert.ok(validate("job", { ...job, verdict: "go", outcome: "hired" }).length, "a win is a Project file, not an outcome");
-    assert.ok(validate("job", { ...job, verdict: "go", outcome: "replied" }).length, "no reply field: a missing next step is the negative outcome");
-    assert.ok(validate("job", { ...job, verdict: "go", outcome: null }).length, "absent, never null");
-    assert.ok(validate("job", { ...job, verdict: "no-go", outcome: "sent" }).length, "no outcome on no-go");
-    assert.ok(validate("job", { ...job, outcome: "sent" }).length, "no outcome without a Verdict");
-  }
-});
-
-test("each route fills its own Letter template", () => {
-  assert.equal(templateFor("freelance"), "letter-freelance");
-  assert.equal(templateFor("employment"), "letter-employment");
-});
 
 test("intake infers the route from the paste and marks it; a stated route is taken as given", () => {
   assert.deepEqual(inferRoute("USA, $25-100, <30h/week, 1-3 months\nNeed a full-stack dev for a clinic booking MVP."), { route: "freelance", inferred: true });
@@ -80,7 +35,7 @@ test("verdict arithmetic from arguments: no money hard stop on either route, no 
   assert.equal(compute({ route: "freelance", flags: ["refused-stack"], skill_fit: 4 }).verdict, "go", "refused-stack is gone: an unknown id counts for nothing");
 });
 
-test("the verdict CLI takes its inputs as arguments and reads no Candidate file", () => {
+test("the verdict CLI takes its inputs as arguments", () => {
   const { root } = fixture();
   const r = run(root, "verdict.ts", "--route", "freelance", "--skill-fit", "4", "--flags", "regulated-domain,paid-first-milestone");
   assert.equal(r.status, 0, r.stderr);
@@ -88,7 +43,6 @@ test("the verdict CLI takes its inputs as arguments and reads no Candidate file"
   const ok = run(root, "verdict.ts", "--route", "employment", "--skill-fit", "3", "--flags", "role-sprawl,codebase-handover,unpaid-assignment");
   assert.deepEqual(JSON.parse(ok.stdout), { alert_level: 4, hard_stops: [], verdict: "ask" });
   assert.equal(run(root, "verdict.ts", "--route", "freelance").status, 2, "skill-fit is required");
-  assert.equal(run(root, "verdict.ts", "2026-10-16-acme-fix").status, 2, "no Candidate argument any more");
 });
 
 test("Flags by route: each route reads only its own Flags; vague-posting and the stop Flag are on both; no employment Safeguard Slot", () => {
@@ -111,7 +65,7 @@ test("Flags by route: each route reads only its own Flags; vague-posting and the
   assert.ok(!JSON.stringify(cat).match(/\bFamily\b|\bdecision\b/), "no Family, no decision in the catalogue");
 });
 
-test("verdict arithmetic counts only the Flags of the Candidate's route", () => {
+test("verdict arithmetic counts only the Flags of the Job's route", () => {
   // hostile-tone is freelance only: on employment it adds no level and no compound step
   assert.equal(compute({ route: "employment", flags: ["hostile-tone"], skill_fit: 4 }).alert_level, 1);
   assert.equal(compute({ route: "freelance", flags: ["hostile-tone"], skill_fit: 4 }).alert_level, 4);

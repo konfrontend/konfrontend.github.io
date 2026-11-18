@@ -16,7 +16,7 @@ slots:
 
 # Letter template: freelance
 
-The proposal pasted into Upwork, selected by `route: freelance` in `job.md`. One template for every Job: `proposal` picks exactly one plan Slot from what the Job asks, and `verify` checks that exactly one is present (`slot/plan-count`). Order and the filling rules are in the Slot catalogue `letter-slots.md`, `Freelance route`.
+The proposal pasted into Upwork, selected by the Job's route `freelance`. One template for every Job: `proposal` picks exactly one plan Slot from what the Job asks, and `verify` checks that exactly one is present (`slot/plan-count`). Order and the filling rules are in the Slot catalogue `letter-slots.md`, `Freelance route`.
 
 Caps: 4,500 characters for the whole Letter body, greeting to sign-off, 350 prose words (header, list and `answers` lines excluded), 700 words in all. The milestone lines and the bid after the sign-off are not counted.
 

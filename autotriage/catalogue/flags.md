@@ -2,7 +2,7 @@
 scale: 1-5
 flags:
   # kind: risk (default), green, or stop. green = level 0, lowers the Alert Level. stop = Profile-fit failure: no level, no Alert Level effect, forces the hard stop of the same id.
-  # routes: the routes the Flag is judged on, [freelance], [employment], or both. triage and verify read only the Flags of the Candidate's route.
+  # routes: the routes the Flag is judged on, [freelance], [employment], or both. triage and verify read only the Flags of the Job's route.
   # slot: where the safeguard is stated. Freelance: hook | plan | answers | terms | rate | none; `plan` is the plan Slot the Letter carries, the milestone lines after the sign-off included (see the Slot catalogue); `rate` is the rate the person sets at proposal's batched question, shown there next to the Safeguard, never in the Letter. Every employment Flag is `none`: a 500-character cover letter carries no Safeguard, and the person reads the Flag at the Checkpoint.
   - id: budget-scope-mismatch
     routes: [freelance]
@@ -279,7 +279,7 @@ flags:
     cues: ["interview stages listed", "a hiring timeline", "who you will talk to and when"]
 
 alert_level_steps:
-  # Both routes, over the Flags of the Candidate's route. The hostile-tone step is freelance only: neither Flag is on the employment route.
+  # Both routes, over the Flags of the Job's route. The hostile-tone step is freelance only: neither Flag is on the employment route.
   - "start = max level among triggered risk Flags (1 if none); stop Flags carry no level and are ignored here"
   - "+1 if three or more distinct Flags of level 2 or 3 triggered"
   - "+1 if hostile-tone or burned-before triggered together with any other Flag of level >= 2 (freelance route)"
@@ -327,12 +327,6 @@ verdict_mapping:
   - "Alert Level 3 -> go; safeguards must be non-empty"
   - "Alert Level 4 -> ask; go only when skill_fit is 5, safeguards non-empty"
   - "Alert Level 5 -> no-go"
-
-checkpoint_fields:
-  # written into job.md at the Checkpoint, once the human has answered; see catalogue/candidate-artifacts.md
-  verdict: go | no-go, the human's answer
-  requirements: the Job's required skill-shaped items, Keyword spelling where a Project matches
-  flags: freelance only; list of triggered Flag ids, green and stop Flags included
 ---
 
 # Flag catalogue
@@ -341,14 +335,14 @@ A Flag is one named risk signal in a Job. Green Flags are signals the client or 
 
 ## Routes
 
-Every Flag names its routes in `routes`. The Candidate's `route` (`job.md`) selects the Flag set: `triage` judges only those Flags, `verdict.ts` counts only those ids, and `verify` recomputes the Safeguards and the Alert Level only from them. `vague-posting` and the stop Flag are on both routes; every other Flag is on one. An employment Flag has no Safeguard Slot: a 500-character cover letter carries none, and the Flag is read by the person at the Checkpoint, so employment Flags are not stored.
+Every Flag names its routes in `routes`. The Job's route, read at intake, selects the Flag set: `triage` judges only those Flags, `verdict.ts` counts only those ids, and `verify` recomputes the Safeguards and the Alert Level only from them. `vague-posting` and the stop Flag are on both routes; every other Flag is on one. An employment Flag has no Safeguard Slot: a 500-character cover letter carries none, and the Flag is read by the person at the Checkpoint, so employment Flags are not passed to the Letter steps.
 
 ## How `triage` uses this file
 
-1. Read the Job. For every Flag of the Candidate's route whose cues match, hold its id and show the human a verbatim quote from the Job as evidence. Model judgment, guided by cues; postings are unstructured, so no keyword matching. Green and stop Flags are detected in the same pass: the stop Flag's evidence is the Job quote plus the Profile constraint it collides with (`identity.constraints: remote only` against `hybrid, three days in the office`). Only ids are stored, on the freelance route only; evidence stays in the session.
+1. Read the Job. For every Flag of the Job's route whose cues match, hold its id and show the human a verbatim quote from the Job as evidence. Model judgment, guided by cues; postings are unstructured, so no keyword matching. Green and stop Flags are detected in the same pass: the stop Flag's evidence is the Job quote plus the Profile constraint it collides with (`identity.constraints: remote only` against `hybrid, three days in the office`). Only ids are passed to the Letter steps, on the freelance route only; evidence stays on the summary screen.
 2. Judge the two soft scores against the rubric in `scores` (`value` has one rubric per route), one line of reason each in the session. Neither is stored.
-3. A script, not the model, computes the Alert Level (steps in `alert_level_steps`), the hard stops (rules in `hard_stops`) and its recommendation (order in `verdict_mapping`) from the ids and the score, all passed as arguments: `node scripts/verdict.ts --route <route> --skill-fit <n> --flags <ids>`. It reads no Candidate file.
-4. The human answers go or no-go at the Checkpoint. Only then does `triage` write `job.md`: `verdict`, `requirements` and, on the freelance route, `flags` (`checkpoint_fields`). The recommendation is session output; the Verdict is what the human confirmed.
+3. A script, not the model, computes the Alert Level (steps in `alert_level_steps`), the hard stops (rules in `hard_stops`) and its recommendation (order in `verdict_mapping`) from the ids and the score, all passed as arguments: `node scripts/verdict.ts --route <route> --skill-fit <n> --flags <ids>`.
+4. The human answers go or no-go at the Checkpoint. Nothing is written: the Verdict, the required items and, on the freelance route, the triggered ids stay in the session for the Letter steps. The recommendation is session output; the Verdict is what the human confirmed.
 
 ## Levels
 
@@ -368,7 +362,7 @@ Client-priced test: a paid work trial whose price the client sets and pays (`$80
 
 ## Safeguards become Letter content
 
-On the freelance route `proposal` reads the `safeguard` string of every triggered risk Flag from this catalogue and states it in the Slot named by `slot` (the Slot catalogue, `catalogue/templates/letter-slots.md`; `plan` is the plan Slot the Letter carries). At Alert Level 3 and 4 the Letter must state them. Flags whose safeguard is `none` contribute nothing. Safeguards are not stored on the Candidate; `verify` recomputes them from `flags` in `job.md` and this catalogue and checks that the target Slot states each one (`flag/safeguard-missing`, fail at Alert Level 3–4, warn at 1–2; see the Verify catalogue, `catalogue/verify.md`). The human also sees them at the Letter review.
+On the freelance route `proposal` reads the `safeguard` string of every triggered risk Flag from this catalogue and states it in the Slot named by `slot` (the Slot catalogue, `catalogue/templates/letter-slots.md`; `plan` is the plan Slot the Letter carries). At Alert Level 3 and 4 the Letter must state them. Flags whose safeguard is `none` contribute nothing. Safeguards are not passed on; `verify` recomputes them from the triggered Flag ids and this catalogue and checks that the target Slot states each one (`flag/safeguard-missing`, fail at Alert Level 3–4, warn at 1–2; see the Verify catalogue, `catalogue/verify.md`). The human also sees them at the Letter review.
 
 ## What the human sees first
 

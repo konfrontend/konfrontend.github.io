@@ -1,12 +1,7 @@
-// The proposal State's scripts. `milestones` derives each milestone's price from its hours and the rate,
+// The proposal State's script. `milestones` derives each milestone's price from its hours and the rate,
 // and its due date from the start date and the hours per day: the next milestone starts where the last
 // ended, with no review gap, and Saturday and Sunday carry no hours, so no due date falls on a weekend.
-// `write-rate` writes the rate the person set into job.md through the Candidate contract, once, after the
-// batched question; a refusal is printed on stdout with exit 0.
 // CLI: node scripts/proposal.ts milestones --rate <n> --start <YYYY-MM-DD> --per-day <n> --hours <h,h,...>
-//      node scripts/proposal.ts write-rate <candidate> --rate <n>
-import { Refusal } from "./lib.ts";
-import { writeRate } from "./candidate.ts";
 
 export interface MilestoneInput { rate: number; start: string; perDay: number; hours: number[] }
 export interface Milestone { n: number; hours: number; price: number; due: string }
@@ -48,21 +43,12 @@ export function render({ milestones, total }: ReturnType<typeof derive>): string
 if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
   const [command, ...args] = process.argv.slice(2);
   const opt = (name: string) => { const i = args.indexOf(`--${name}`); return i >= 0 ? args[i + 1] : undefined; };
-  const usage = "usage: proposal.ts milestones --rate <n> --start <YYYY-MM-DD> --per-day <n> --hours <h,h,...> | proposal.ts write-rate <candidate> --rate <n>";
+  const usage = "usage: proposal.ts milestones --rate <n> --start <YYYY-MM-DD> --per-day <n> --hours <h,h,...>";
   if (command === "milestones") {
     const rate = opt("rate"), start = opt("start"), perDay = opt("per-day"), hours = opt("hours");
     if (!rate || !start || !perDay || !hours) { console.error(usage); process.exit(2); }
     try {
       console.log(render(derive({ rate: Number(rate), start, perDay: Number(perDay), hours: hours.split(",").map((h) => Number(h.trim())) })));
     } catch (e) { console.error(`autotriage: proposal milestones: ${(e as Error).message}`); process.exit(2); }
-  } else if (command === "write-rate") {
-    const rate = opt("rate");
-    if (!args[0] || args[0].startsWith("--") || rate === undefined) { console.error(usage); process.exit(2); }
-    try {
-      console.log(writeRate(args[0], Number(rate)));
-    } catch (e) {
-      if (e instanceof Refusal) { console.log(e.message); process.exit(0); }
-      throw e;
-    }
   } else { console.error(usage); process.exit(2); }
 }

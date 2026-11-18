@@ -12,7 +12,7 @@ slots:
 
 # Letter template: employment
 
-The cover letter of the employment route, selected by `route: employment` in `job.md`; `letter-freelance.md` serves the freelance route. It goes out with the application form and the resume PDF, so it says who is writing and what they work in, and leaves the roles, the dates and the contact details to the PDF. `proposal` writes it into `letter.md` from the Projects only; `verify` checks it against this template. A resume-only application leaves `letter.md` empty. Order and the rules for every route are in the Slot catalogue `letter-slots.md`, `Employment route`.
+The cover letter of the employment route, selected by the Job's route `employment`; `letter-freelance.md` serves the freelance route. It goes out with the application form and the resume PDF, so it says who is writing and what they work in, and leaves the roles, the dates and the contact details to the PDF. `proposal` writes it from the Projects only; `verify` checks it against this template. Order and the rules for every route are in the Slot catalogue `letter-slots.md`, `Employment route`.
 
 Cap: 500 characters for the whole Letter, greeting and sign-off included (`cap.chars`). No word cap, no Hook Slot, no `answers`, no headers, no lists.
 

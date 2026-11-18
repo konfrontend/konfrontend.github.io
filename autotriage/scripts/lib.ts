@@ -1,17 +1,13 @@
 // Shared helpers for the Guard, the hooks and the State scripts: refusals, the Routes, route inference,
-// the Flags and the catalogue. The Profile is read through profile/lib, never parsed here; the Candidates
-// through candidate.ts.
+// the Flags and the catalogue. The Profile is read through profile/lib, never parsed here.
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { registerSchemaDir, readArtifact, readProfile, repoRoot, validate as validateSchema, type Frontmatter, type Profile } from "../../profile/lib/index.ts";
+import { readArtifact, readProfile, repoRoot, type Frontmatter, type Profile } from "../../profile/lib/index.ts";
 
-// The catalogue and the schemas ship with this module; the data resolves from the repo root.
+// The catalogue ships with this module; the Profile resolves from the repo root.
 export const AUTOTRIAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-registerSchemaDir(path.join(AUTOTRIAGE_ROOT, "schemas"));
-
-export { readArtifact, writeArtifact, splitFrontmatter, readProfile, keywords } from "../../profile/lib/index.ts";
-export type { Artifact, Frontmatter, Profile, Project, Bullet } from "../../profile/lib/index.ts";
+export { readArtifact, keywords } from "../../profile/lib/index.ts";
 
 export class Refusal extends Error {
   constructor(message: string) {
@@ -28,16 +24,6 @@ export function refuse(state: string, reason: string, next?: string | null): nev
 
 export type Route = "freelance" | "employment";
 export const ROUTES: Route[] = ["freelance", "employment"];
-
-// The Letter template a route fills.
-export function templateFor(route: unknown): "letter-freelance" | "letter-employment" {
-  return route === "employment" ? "letter-employment" : "letter-freelance";
-}
-
-// Returns [] when valid, else human-readable error lines.
-export function validate(name: string, data: unknown): string[] {
-  return validateSchema(name, data);
-}
 
 // The freelancer's parameter line: a short comma list with a money figure (`UK, $600`), or the figure alone.
 const FIGURE_ALONE = /^\s*(?:\$|USD\s?)\d[\d,.]*(?:\s*[-–]\s*\$?\d[\d,.]*)?\s*$/i;
@@ -68,7 +54,7 @@ export function inferRoute(text: string): { route: Route; inferred: boolean } | 
 }
 
 // Which Profile schema a path validates against, or null when the path is not one. A Project file has
-// none. The Candidate half is candidateSchemaForPath in candidate.ts.
+// none.
 export function schemaForPath(file: string): "profile" | "voice" | null {
   const rel = path.relative(path.join(repoRoot(), "profile"), path.resolve(file)).split(path.sep).join("/");
   if (rel.startsWith("..") || path.isAbsolute(rel)) return null;

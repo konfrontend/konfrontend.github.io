@@ -1,115 +1,31 @@
-// Route guard: the transition table. Runs as the injected command at the top of each State's SKILL.md
-// and from the PreToolUse hook. The CLI always exits 0 and prints either the context the State starts
-// from or a refusal line (`autotriage: <state> refused. ...`), so the model and the human read it either
-// way; the hook turns the same Refusal into a deny.
-// CLI: node scripts/guard.ts <state> [candidate]
-import fs from "node:fs";
-import { refuse, Refusal, profile, type Profile, type Artifact } from "./lib.ts";
-import { candidateDir, candidateFiles, listCandidates, readJob, readLetter, type Job } from "./candidate.ts";
+// Route guard. Runs as the injected command at the top of the Route's SKILL.md files and from the
+// PreToolUse hook. The CLI always exits 0 and prints either `Profile gate passed.` or a refusal
+// line (`autotriage: <state> refused. ...`), so the model and the human read it either way; the hook turns
+// the same Refusal into a deny. A Job lives only in the session, so the one thing a guard checks is the
+// Profile.
+// CLI: node scripts/guard.ts <state>
+import { refuse, Refusal, profile } from "./lib.ts";
 
-export const STATES = ["route", "intake", "triage", "proposal", "verify"] as const;
+// The States that cite the Profile's Projects: the Route itself and the two Letter steps.
+export const STATES = ["route", "proposal", "verify"] as const;
 export type State = (typeof STATES)[number];
-export const ORDER: State[] = ["intake", "triage", "proposal", "verify"];
-
-interface Ctx { state: State; candidate?: string; out: string[] }
-type Guard = (ctx: Ctx) => void;
-
-// The Letter States need one Project at least (they cite the Descriptions and the Bullets). A Profile
-// error refuses nothing: a script that cannot use a Profile file reports its own problem.
-function profileGate(state: State): Profile {
-  const p = profile();
-  if (!p.projects.length) refuse(state, "no Project file under profile/projects/.", "Add at least one Project file.");
-  return p;
-}
-
-interface Gate { dir: string; files: ReturnType<typeof candidateFiles>; job: Job; route: string; fm: Record<string, any> }
-
-function candidateGate(state: State, candidate?: string): Gate {
-  const dir = candidateDir(candidate);
-  if (!dir) {
-    const known = listCandidates();
-    refuse(state, `needs a Candidate folder name as argument${candidate ? ` (got "${candidate}")` : ""}.`,
-      known.length ? `Known Candidates:\n  ${known.join("\n  ")}\nUsage: /route-${state} <YYYY-MM-DD-slug>` : "No Candidates yet. Run /route-intake first.");
-  }
-  if (!fs.existsSync(dir)) refuse(state, `no Candidate folder private/candidates/${candidate}.`, "Run /route-intake first.");
-  const job = readJob(dir);
-  if (!job) refuse(state, `private/candidates/${candidate}/job.md is missing.`, "Run /route-intake first.");
-  if (job.errors.length) refuse(state, `private/candidates/${candidate}/job.md is invalid:\n  ${job.errors.join("\n  ")}`, "Run /route-intake again or fix the file by hand.");
-  const fm = job.frontmatter as Record<string, any>;
-  return { dir, files: candidateFiles(dir), job, route: String(fm.route), fm };
-}
-
-// The Verdict the human confirmed at the Checkpoint. Nothing is recomputed: the scores and the
-// recommendation were session output.
-function verdictGate(state: State, candidate: string, fm: Record<string, any>): void {
-  if (fm.verdict === "go") return;
-  if (fm.verdict === "no-go") refuse(state, "the Verdict is no-go. Route ended.", null);
-  refuse(state, "no Verdict yet.", `Run /route-triage ${candidate} and answer go or no-go at the Checkpoint.`);
-}
-
-function letterGate(state: State, candidate: string, dir: string, next: string): Artifact {
-  const letter = readLetter(dir);
-  if (!letter) refuse(state, `private/candidates/${candidate}/letter.md is missing.`, next);
-  if (letter.errors.length) refuse(state, `private/candidates/${candidate}/letter.md is invalid:\n  ${letter.errors.join("\n  ")}`, "Drop the frontmatter.");
-  return letter;
-}
-
-const GUARDS: Record<State, Guard> = {
-  intake: ({ out }) => {
-    const d = new Date();
-    const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    const known = listCandidates();
-    out.push(`Today: ${today}`, known.length ? `Known Candidates:\n  ${known.join("\n  ")}` : "No Candidates yet.");
-  },
-  route: ({ state, out }) => {
-    profileGate(state);
-    out.push("Profile gate passed.");
-  },
-  triage: ({ state, candidate, out }) => {
-    const { files, route, fm } = candidateGate(state, candidate);
-    if (fs.existsSync(files.letter)) refuse(state, `private/candidates/${candidate}/letter.md already exists; the Route has passed triage.`, `Run /route-verify ${candidate} or start a new Candidate.`);
-    out.push(`Candidate: private/candidates/${candidate}`, `Route: ${route}`, `Title: ${fm.title}`);
-    if (route === "employment") out.push(`Company: ${fm.company}`, `Employment: ${fm.employment}`);
-    out.push(`Timezone: ${fm.timezone}`);
-    if (fm.location) out.push(`Location: ${fm.location}`);
-    if (fm.verdict) out.push(`Note: the Verdict is already ${fm.verdict}; the Checkpoint rewrites it.`);
-    if (fm.requirements?.length) out.push(`Note: requirements already recorded (${fm.requirements.length}); the Checkpoint rewrites them.`);
-  },
-  proposal: ({ state, candidate, out }) => {
-    profileGate(state);
-    const { files, route, fm } = candidateGate(state, candidate);
-    verdictGate(state, candidate!, fm);
-    if (fs.existsSync(files.letter)) out.push("Note: letter.md exists; this run rewrites it.");
-    out.push(`Candidate: private/candidates/${candidate}`, `Route: ${route}`, `Title: ${fm.title}`, `Requirements: ${(fm.requirements ?? []).join(", ") || "none recorded"}`);
-    if (route === "freelance") out.push(`Flags: ${(fm.flags ?? []).join(", ") || "none"}`);
-  },
-  verify: ({ state, candidate, out }) => {
-    profileGate(state);
-    const { dir, route, fm } = candidateGate(state, candidate);
-    verdictGate(state, candidate!, fm);
-    letterGate(state, candidate!, dir, `Run /route-proposal ${candidate} first.`);
-    out.push(`Candidate: private/candidates/${candidate}`, `Route: ${route}`, `Letter: letter.md`, `Template: ${route === "employment" ? "letter-employment" : "letter-freelance"}`);
-  },
-};
 
 export function isState(s: string): s is State {
   return (STATES as readonly string[]).includes(s);
 }
 
-// The context a State starts from, or a Refusal.
-export function guard(state: string, candidate?: string): string {
+// A Refusal when the Profile has no Project. A Profile error refuses nothing: a script that cannot use
+// a Profile file reports its own problem.
+export function guard(state: string): string {
   if (!isState(state)) refuse(state || "(none)", `unknown State. Known: ${STATES.join(", ")}.`, null);
-  const ctx: Ctx = { state, candidate, out: [] };
-  GUARDS[state](ctx);
-  return ctx.out.join("\n");
+  if (!profile().projects.length) refuse(state, "no Project file under profile/projects/.", "Add at least one Project file.");
+  return "Profile gate passed.";
 }
 
-
 if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
-  const [state, candidate] = process.argv.slice(2);
+  const state = process.argv[2] ?? "";
   try {
-    const ctx = guard(state ?? "", candidate || undefined);
-    if (ctx) console.log(ctx);
+    console.log(guard(state));
   } catch (e) {
     console.log(e instanceof Refusal ? e.message : `autotriage: ${state} refused. guard crashed: ${(e as Error).stack}`);
   }
