@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "skills": {
+    "upwork-workflows": {
+      "source": "upwork/upwork-agent-plugin",
+      "commit": "7908a7e68f4a3c462b4eb5bc884ee69c82ecff59",
+      "sourceType": "github",
+      "skillPath": "skills/upwork-workflows/SKILL.md",
+      "computedHash": "9d75d19691ad7e40d19507bdac59475c544efa7bcd70821b0a4a451fcee9c3da"
+    },
+    "write-proposal": {
+      "source": "upwork/upwork-agent-plugin",
+      "commit": "7908a7e68f4a3c462b4eb5bc884ee69c82ecff59",
+      "sourceType": "github",
+      "skillPath": "skills/write-proposal/SKILL.md",
+      "computedHash": "17e99ed9ff0d97e5ff7fef8eb7b5ffa8dcfaec3f84c47ea9467db273cf26c8da"
+    }
+  }
+}
