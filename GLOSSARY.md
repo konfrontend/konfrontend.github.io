@@ -23,7 +23,7 @@ One achievement of a Project: a heading that names it and the claim in the perso
 _Avoid_: highlight, point, achievement, lead, lead line
 
 **Keyword**:
-The one spelling of a technology or practice the person holds, as a posting or an ATS would match it: the same in a Project, in a Version and in a Candidate's requirements. A required item no Keyword matches keeps the posting's spelling.
+The one spelling of a technology or practice the person holds, as a posting or an ATS would match it: the same in a Project, in a Version and in a Job's requirements. A required item no Keyword matches keeps the posting's spelling.
 _Avoid_: tag, tech name, alias, term
 
 **Gap**:
@@ -36,14 +36,6 @@ _Avoid_: missing skill, weakness, hole, target
 One posting, freelance or employment: its free-form text plus the parameters its Route requires.
 _Avoid_: posting, listing, gig, opportunity
 
-**Candidate**:
-A Job being pursued through a Route, recorded as one folder: the Job and the Letter. Becomes a Project when won.
-_Avoid_: application, lead, intake
-
-**Outcome**:
-The furthest point a pursued Candidate reached: sent, interview or offer, set by the person. A missing next step is the negative outcome.
-_Avoid_: status, stage, result
-
 ### Route
 
 **Route**:
@@ -51,11 +43,11 @@ A fixed sequence of steps for one kind of work: the freelance route or the emplo
 _Avoid_: pipeline, flow, workflow, state machine
 
 **Guard**:
-The condition a step of a Route needs before it runs: the previous step's output exists and is valid, and the Route's preconditions hold.
+The condition a step of a Route needs before it runs: the previous step ran in the same sitting, and the Route's preconditions hold.
 _Avoid_: gate, precondition check, validation step
 
 **Checkpoint**:
-The pause after triage where the person reads the scores and Flags and answers go or no-go; the Verdict is written then and nothing before.
+The pause after triage where the person reads the scores and Flags and answers go or no-go; the Verdict is made then and nothing before.
 _Avoid_: approval, review step, gate
 
 **Verdict**:

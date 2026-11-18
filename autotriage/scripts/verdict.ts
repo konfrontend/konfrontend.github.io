@@ -1,19 +1,14 @@
-// Verdict arithmetic and the Checkpoint's write. The model detects Flags and scores; this script computes
-// the Alert Level, the hard stops and its recommendation (go, no-go, ask) from arguments alone, reading no
-// Candidate file: triage holds the result in the session. Once the human has answered, `write` sets the
-// Checkpoint fields in job.md through the Candidate contract, refusing before it writes when the result
-// would not validate; the refusal is printed on stdout with exit 0.
+// Verdict arithmetic. The model detects Flags and scores; this script computes the Alert Level, the hard
+// stops and its recommendation (go, no-go, ask) from arguments alone: triage holds the result in the session.
 // CLI: node scripts/verdict.ts --route <freelance|employment> --skill-fit <1-5> [--flags id,id]
 //   prints {"alert_level","hard_stops","verdict"}.
-//      node scripts/verdict.ts write <candidate> --verdict <go|no-go> --requirements <item,item> [--flags id,id]
-import { flagsFor, Refusal, type Route } from "./lib.ts";
-import { writeCheckpoint } from "./candidate.ts";
+import { flagsFor, type Route } from "./lib.ts";
 
 export interface VerdictInput { route: Route | string; flags?: string[]; skill_fit?: number }
 export interface Computed { alert_level: number; hard_stops: string[]; verdict: "go" | "no-go" | "ask" }
 
 export function compute({ route, flags = [], skill_fit }: VerdictInput): Computed {
-  // Only the Flags of the Candidate's route count; an id from the other route is ignored.
+  // Only the Flags of the Job's route count; an id from the other route is ignored.
   const byId = new Map(flagsFor(route).map((f) => [f.id, f]));
   const triggered = flags.map((id) => byId.get(id)).filter((f) => f !== undefined);
   const risk = triggered.filter((f) => !f.kind || f.kind === "risk");
@@ -53,17 +48,6 @@ if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).
   const args = process.argv.slice(2);
   const opt = (name: string) => { const i = args.indexOf(`--${name}`); return i >= 0 ? args[i + 1] : undefined; };
   const list = (v: string | undefined) => (v ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-  if (args[0] === "write") {
-    const verdict = opt("verdict"), requirements = opt("requirements");
-    if (!args[1] || args[1].startsWith("--") || verdict === undefined || requirements === undefined) { console.error("usage: verdict.ts write <candidate> --verdict <go|no-go> --requirements <item,item> [--flags id,id]"); process.exit(2); }
-    try {
-      console.log(writeCheckpoint(args[1], { verdict, requirements: list(requirements), flags: opt("flags") === undefined ? undefined : list(opt("flags")) }));
-    } catch (e) {
-      if (e instanceof Refusal) { console.log(e.message); process.exit(0); }
-      throw e;
-    }
-    process.exit(0);
-  }
   const route = opt("route"), skill = opt("skill-fit");
   const usage = "usage: verdict.ts --route <freelance|employment> --skill-fit <1-5> [--flags id,id]";
   if (!route || !["freelance", "employment"].includes(route) || !skill || !/^[1-5]$/.test(skill)) { console.error(usage); process.exit(2); }

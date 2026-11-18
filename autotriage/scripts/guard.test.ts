@@ -1,13 +1,13 @@
-// The Guard as a transition table: the Profile gate reads the Profile through profile/lib, a
-// refusal is printed on stdout with exit 0 so the model always sees it, the PreToolUse hook turns the
-// same Refusal into a deny, and the write hook validates profile.md, voice.md and the Candidate files.
+// The Guard: the Profile gate reads the Profile through profile/lib, a refusal is printed on stdout with
+// exit 0 so the model always sees it, the PreToolUse hook turns the same Refusal into a deny, and the write
+// hook validates profile.md and voice.md.
 // Run: npm test
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
-import { fixture, run, hook, project, VOICE, PROFILE, employmentJob, freelanceJob } from "./fixture.ts";
+import { fixture, run, hook, VOICE, PROFILE } from "./fixture.ts";
 
 test("the route gate passes on a valid Profile", () => {
   const { root } = fixture();
@@ -18,9 +18,9 @@ test("the route gate passes on a valid Profile", () => {
 
 test("no Profile error refuses a State: a Project file in any shape and a broken voice.md pass the gate", () => {
   const bad = VOICE.replace(/greeting: .*/, 'greeting: "Hi,"');
-  const { root } = fixture({ voice: bad, project: "- [old] An old-shape Bullet.\n", candidates: { "2026-10-16-acme-fix": { "job.md": freelanceJob({ verdict: "go" }), "letter.md": "Hi,\n" } } });
+  const { root } = fixture({ voice: bad, project: "- [old] An old-shape Bullet.\n" });
   assert.equal(run(root, "guard.ts", "route").stdout.trim(), "Profile gate passed.");
-  assert.match(run(root, "guard.ts", "verify", "2026-10-16-acme-fix").stdout, /^Candidate: private\/candidates\/2026-10-16-acme-fix\n/);
+  assert.equal(run(root, "guard.ts", "verify").stdout.trim(), "Profile gate passed.");
 });
 
 test("a refusal is printed on stdout with exit 0: the Letter States need one Project file", () => {
@@ -32,75 +32,32 @@ test("a refusal is printed on stdout with exit 0: the Letter States need one Pro
   assert.match(r.stdout, /^autotriage: route refused\. no Project file under profile\/projects\/\.\nAdd at least one Project file\./);
 });
 
-test("an unknown State and a missing Candidate argument refuse with the fix named", () => {
-  const { root } = fixture({ candidates: { "2026-10-16-acme-fix": { "job.md": freelanceJob() } } });
-  assert.match(run(root, "guard.ts", "bogus").stdout, /^autotriage: bogus refused\. unknown State\. Known: route, intake, triage, proposal, verify\./);
-  assert.match(run(root, "guard.ts", "triage").stdout, /triage refused\. needs a Candidate folder name as argument\.\nKnown Candidates:\n  2026-10-16-acme-fix\nUsage: \/route-triage <YYYY-MM-DD-slug>/);
-  assert.match(run(root, "guard.ts", "triage", "2026-10-16-nope").stdout, /no Candidate folder private\/candidates\/2026-10-16-nope\./);
-});
-
-test("intake prints today and the known Candidates; triage prints the Job's identity and notes a Verdict", () => {
-  const { root } = fixture({ candidates: { "2026-10-17-acme-frontend": { "job.md": employmentJob() }, "2026-10-16-acme-fix": { "job.md": freelanceJob() } } });
-  assert.match(run(root, "guard.ts", "intake").stdout.trim(), /^Today: \d{4}-\d{2}-\d{2}\nKnown Candidates:\n  2026-10-16-acme-fix\n  2026-10-17-acme-frontend$/);
-  const t = run(root, "guard.ts", "triage", "2026-10-17-acme-frontend");
-  assert.match(t.stdout, /^Candidate: private\/candidates\/2026-10-17-acme-frontend\nRoute: employment\nTitle: Senior Frontend Developer\nCompany: Acme\nEmployment: full-time\nTimezone: Europe\/Madrid\nNote: the Verdict is already go; the Checkpoint rewrites it\./, t.stdout);
-  const f = run(root, "guard.ts", "triage", "2026-10-16-acme-fix");
-  assert.match(f.stdout.trim(), /^Candidate: private\/candidates\/2026-10-16-acme-fix\nRoute: freelance\nTitle: Fix the admin\nTimezone: America\/New_York$/, f.stdout);
-});
-
-test("the Letter States check the Verdict the human confirmed and recompute nothing", () => {
-  const go = fixture({ candidates: { "2026-10-16-acme-fix": { "job.md": freelanceJob({ verdict: "go", flags: ["regulated-domain"] }) } } });
-  const p = run(go.root, "guard.ts", "proposal", "2026-10-16-acme-fix");
-  assert.match(p.stdout.trim(), /^Candidate: private\/candidates\/2026-10-16-acme-fix\nRoute: freelance\nTitle: Fix the admin\nRequirements: none recorded\nFlags: regulated-domain$/, p.stdout);
-  const noGo = fixture({ candidates: { "2026-10-16-acme-fix": { "job.md": freelanceJob({ verdict: "no-go" }) } } });
-  assert.match(run(noGo.root, "guard.ts", "proposal", "2026-10-16-acme-fix").stdout, /^autotriage: proposal refused\. the Verdict is no-go\. Route ended\.\n?$/);
-  const none = fixture({ candidates: { "2026-10-16-acme-fix": { "job.md": freelanceJob() } } });
-  assert.match(run(none.root, "guard.ts", "proposal", "2026-10-16-acme-fix").stdout, /proposal refused\. no Verdict yet\.\nRun \/route-triage 2026-10-16-acme-fix and answer go or no-go at the Checkpoint\./);
-  assert.match(run(none.root, "guard.ts", "verify", "2026-10-16-acme-fix").stdout, /verify refused\. no Verdict yet\./);
-  assert.match(run(go.root, "guard.ts", "verify", "2026-10-16-acme-fix").stdout, /verify refused\. .*letter\.md is missing\.\nRun \/route-proposal 2026-10-16-acme-fix first\./);
-  fs.writeFileSync(path.join(go.candidate("2026-10-16-acme-fix"), "letter.md"), "---\nslug: x\n---\nHi,\n");
-  assert.match(run(go.root, "guard.ts", "verify", "2026-10-16-acme-fix").stdout, /letter\.md is invalid:\n  letter\.md carries frontmatter; a Letter is body only\nDrop the frontmatter/);
-  fs.writeFileSync(path.join(go.candidate("2026-10-16-acme-fix"), "letter.md"), "Hi,\n");
-  assert.match(run(go.root, "guard.ts", "verify", "2026-10-16-acme-fix").stdout.trim(), /^Candidate: .*\nRoute: freelance\nLetter: letter\.md\nTemplate: letter-freelance$/);
-});
-
-test("employment goes from triage straight to the Letter: proposal and verify read no Version", () => {
-  const c = "2026-10-17-acme-frontend";
-  const { root, candidate } = fixture({ candidates: { [c]: { "job.md": employmentJob({ requirements: ["React"] }) } } });
-  const p = run(root, "guard.ts", "proposal", c);
-  assert.equal(p.stdout.trim(), `Candidate: private/candidates/${c}\nRoute: employment\nTitle: Senior Frontend Developer\nRequirements: React`, "no letter.md needed, no Version named");
-  fs.writeFileSync(path.join(candidate(c), "letter.md"), "Hello,\n");
-  assert.match(run(root, "guard.ts", "proposal", c).stdout, /^Note: letter\.md exists; this run rewrites it\./);
-  const v = run(root, "guard.ts", "verify", c);
-  assert.equal(v.stdout.trim(), `Candidate: private/candidates/${c}\nRoute: employment\nLetter: letter.md\nTemplate: letter-employment`);
-  assert.match(run(root, "guard.ts", "version", c).stdout, /version refused\. unknown State/);
+test("an unknown State refuses with the known ones named", () => {
+  const { root } = fixture();
+  assert.match(run(root, "guard.ts", "bogus").stdout, /^autotriage: bogus refused\. unknown State\. Known: /);
 });
 
 test("the PreToolUse hook denies a refused State and stays silent on a passing one", () => {
   const { root } = fixture();
-  const deny = hook(root, "pre-tool-use.ts", { tool_input: { skill: "route-triage", args: "" } });
+  fs.rmSync(path.join(root, "profile", "projects", "acme.md"));
+  const deny = hook(root, "pre-tool-use.ts", { tool_input: { skill: "route-proposal", args: "" } });
   assert.equal(deny.status, 0, deny.stderr);
   const out = JSON.parse(deny.stdout);
   assert.equal(out.hookSpecificOutput.permissionDecision, "deny");
-  assert.match(out.hookSpecificOutput.permissionDecisionReason, /triage refused\. needs a Candidate folder name/);
-  assert.equal(hook(root, "pre-tool-use.ts", { tool_input: { skill: "route", args: "" } }).stdout, "");
+  assert.match(out.hookSpecificOutput.permissionDecisionReason, /proposal refused\. no Project file/);
+  assert.equal(hook(fixture().root, "pre-tool-use.ts", { tool_input: { skill: "route", args: "" } }).stdout, "");
+  assert.equal(hook(root, "pre-tool-use.ts", { tool_input: { skill: "route-triage", args: "" } }).stdout, "", "triage cites no Project: no gate");
   assert.equal(hook(root, "pre-tool-use.ts", { tool_input: { skill: "other:thing" } }).stdout, "");
 });
 
-test("the write hook validates Profile and Candidate files by their path and ignores the rest", () => {
-  const { root, candidate } = fixture({ candidates: { "2026-10-17-acme-frontend": { "job.md": employmentJob(), "letter.md": "Hello,\n" } } });
+test("the write hook validates Profile files by their path and ignores the rest", () => {
+  const { root } = fixture();
   const write = (file: string) => hook(root, "post-tool-use.ts", { tool_input: { file_path: file } });
   assert.equal(write(path.join(root, "profile", "profile.md")).stdout, "", "a valid file passes");
   fs.writeFileSync(path.join(root, "profile", "profile.md"), PROFILE.replace("terms: { rate: 60 }\n", ""));
   const blocked = JSON.parse(write(path.join(root, "profile", "profile.md")).stdout);
   assert.equal(blocked.decision, "block");
   assert.match(blocked.reason, /does not match the profile schema:\n  \/ must have required property 'terms'/);
-  const dir = candidate("2026-10-17-acme-frontend");
-  fs.writeFileSync(path.join(dir, "job.md"), employmentJob().replace("company: Acme\n", ""));
-  assert.match(JSON.parse(write(path.join(dir, "job.md")).stdout).reason, /the Candidate contract:\n  \/ must have required property 'company'/);
-  assert.equal(write(path.join(dir, "letter.md")).stdout, "", "a body-only Letter passes");
-  fs.writeFileSync(path.join(dir, "letter.md"), "---\nfamily: audit\n---\nHello,\n");
-  assert.match(JSON.parse(write(path.join(dir, "letter.md")).stdout).reason, /the Candidate contract:\n  letter\.md carries frontmatter; a Letter is body only/);
   assert.equal(write(path.join(root, "resume", "versions", "frontend.md")).stdout, "", "a Version is the person's prose, with no schema");
   assert.equal(write(path.join(root, "README.md")).stdout, "");
   fs.writeFileSync(path.join(root, "profile", "projects", "acme.md"), "No frontmatter, no sections.\n");
@@ -114,12 +71,12 @@ test("every State's guard line runs with CLAUDE_PROJECT_DIR unset, from a subfol
   delete env.CLAUDE_PROJECT_DIR;
   const lines = fs.readdirSync(skills).flatMap((s) => {
     const file = path.join(skills, s, "SKILL.md");
-    return fs.existsSync(file) ? (fs.readFileSync(file, "utf8").match(/^!`(.+)`$/gm) ?? []).map((l) => [s, l.slice(2, -1).replace("$ARGUMENTS", "")]) : [];
+    return fs.existsSync(file) ? (fs.readFileSync(file, "utf8").match(/^!`(.+)`$/gm) ?? []).map((l) => [s, l.slice(2, -1)]) : [];
   });
-  assert.ok(lines.length >= 5, "the route, intake and three State guard lines");
+  assert.ok(lines.length >= 3, "the route, proposal and verify guard lines");
   for (const [skill, line] of lines) {
     const r = spawnSync("sh", ["-c", line], { cwd: path.join(repo, "autotriage"), env, encoding: "utf8" });
     assert.equal(r.stderr, "", `${skill}: ${line}`);
-    assert.match(r.stdout, /^(?:Today: |Profile gate passed\.|autotriage: \w+ refused\. )/, `${skill}: ${r.stdout}`);
+    assert.match(r.stdout, /^(?:Profile gate passed\.|autotriage: \w+ refused\. )/, `${skill}: ${r.stdout}`);
   }
 });

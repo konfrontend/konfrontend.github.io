@@ -1,5 +1,4 @@
-// Test fixture: a temp project with a valid Profile and the Candidates a case adds. Scripts run
-// against it through CLAUDE_PROJECT_DIR.
+// Test fixture: a temp project with a valid Profile. Scripts run against it through CLAUDE_PROJECT_DIR.
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -50,36 +49,13 @@ ${body}
 ## Notes
 - Collaborator and admin roles.
 `;
-// A job.md: the identity fields, then the Checkpoint fields when a verdict is given.
-export const employmentJob = ({ title = "Senior Frontend Developer", verdict = "go" as string | "absent", requirements = [] as string[] } = {}) => `---
-title: "${title}"
-route: employment
-company: Acme
-employment: full-time
-timezone: Europe/Madrid
-${verdict === "absent" ? "" : `verdict: ${verdict}\nrequirements: [${requirements.join(", ")}]\n`}---
-Posting text.
-`;
-export const freelanceJob = ({ verdict = "absent" as string, flags = [] as string[] } = {}) => `---
-title: Fix the admin
-route: freelance
-timezone: America/New_York
-${verdict === "absent" ? "" : `verdict: ${verdict}\nrequirements: []\nflags: [${flags.join(", ")}]\n`}---
-Posting text.
-`;
+export interface Options { profile?: string; voice?: string; project?: string }
 
-export interface Options { profile?: string; voice?: string; project?: string; candidates?: Record<string, Record<string, string>> }
-
-export function fixture({ profile = PROFILE, voice = VOICE, project: proj = project(["React", "TypeScript", "Postgres"]), candidates = {} }: Options = {}) {
+export function fixture({ profile = PROFILE, voice = VOICE, project: proj = project(["React", "TypeScript", "Postgres"]) }: Options = {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "autotriage-"));
   fs.mkdirSync(path.join(root, "profile", "projects"), { recursive: true });
   fs.writeFileSync(path.join(root, "profile", "profile.md"), profile);
   fs.writeFileSync(path.join(root, "profile", "voice.md"), voice);
   fs.writeFileSync(path.join(root, "profile", "projects", "acme.md"), proj);
-  for (const [folder, files] of Object.entries(candidates)) {
-    const dir = path.join(root, "private", "candidates", folder);
-    fs.mkdirSync(dir, { recursive: true });
-    for (const [name, text] of Object.entries(files)) fs.writeFileSync(path.join(dir, name), text);
-  }
-  return { root, candidate: (folder: string) => path.join(root, "private", "candidates", folder) };
+  return { root };
 }

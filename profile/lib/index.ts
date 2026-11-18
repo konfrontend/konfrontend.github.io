@@ -2,7 +2,7 @@
 // answers/, projects/), collects the Keywords from the Projects' Keywords sections, and runs the Profile check
 // on profile.md, voice.md and the Answers. A Project file is read as written and never invalid.
 // Every consumer (the autotriage scripts, the resume scripts) imports from here and never parses a
-// Profile file itself. This module reads the Profile only: never private/, never resume/.
+// Profile file itself. This module reads the Profile only, never resume/.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,7 +13,7 @@ export const LIB_ROOT = path.dirname(fileURLToPath(import.meta.url));
 export const SCHEMAS_DIR = path.resolve(LIB_ROOT, "..", "schemas");
 
 // The one repo root: CLAUDE_PROJECT_DIR when set (the session's project, or a test fixture), else the repo
-// this module sits in; read on each call. Data (the Profile, the Candidates, the Versions) resolves from it;
+// this module sits in; read on each call. Data (the Profile, the Versions) resolves from it;
 // code and what ships with it (the catalogue, the schemas, the templates, resume.css) from its own module.
 export function repoRoot(): string {
   return path.resolve(process.env.CLAUDE_PROJECT_DIR || path.join(LIB_ROOT, "..", ".."));
@@ -35,28 +35,15 @@ export function readArtifact(file: string): Artifact | null {
   return { file, ...splitFrontmatter(fs.readFileSync(file, "utf8")) };
 }
 
-export function writeArtifact(file: string, frontmatter: Frontmatter, body = ""): void {
-  const fm = YAML.stringify(frontmatter, { lineWidth: 0 }).trimEnd();
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, `---\n${fm}\n---\n${body}`);
-}
-
-// Schemas: profile and voice live in profile/schemas; a consumer registers its own directory.
-export type SchemaName = "profile" | "voice" | (string & {});
+// Schemas: profile and voice live in profile/schemas.
+export type SchemaName = "profile" | "voice";
 const ajv = new Ajv({ allErrors: true, strict: false, useDefaults: false });
 const compiled = new Map<string, ValidateFunction & { body: string | null }>();
-const schemaDirs = [SCHEMAS_DIR];
-
-export function registerSchemaDir(dir: string): void {
-  if (!schemaDirs.includes(dir)) schemaDirs.unshift(dir);
-}
 
 export function schemaFor(name: SchemaName): ValidateFunction & { body: string | null } {
   let check = compiled.get(name);
   if (!check) {
-    const dir = schemaDirs.find((d) => fs.existsSync(path.join(d, `${name}.schema.json`)));
-    if (!dir) throw new Error(`no schema ${name} in ${schemaDirs.join(", ")}`);
-    const json = JSON.parse(fs.readFileSync(path.join(dir, `${name}.schema.json`), "utf8"));
+    const json = JSON.parse(fs.readFileSync(path.join(SCHEMAS_DIR, `${name}.schema.json`), "utf8"));
     check = Object.assign(ajv.compile(json), { body: (json["x-body"] as string | undefined) ?? null });
     compiled.set(name, check);
   }

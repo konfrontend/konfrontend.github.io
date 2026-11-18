@@ -17,4 +17,4 @@ If the concept you need isn't in the glossary yet, that's a signal: either you'r
 
 If your output contradicts a rule in `AGENTS.md`, surface it explicitly rather than silently overriding:
 
-> _Contradicts the rule "`autotriage/` writes only Candidates", but worth reopening because…_
+> _Contradicts the rule "nothing of a Job is kept", but worth reopening because…_

@@ -1,10 +1,8 @@
-// The proposal State's scripts: milestone prices and due dates derived from the person's answers, and the
-// one write of `rate` into job.md. Run: npm test
+// The proposal State's script: milestone prices and due dates derived from the person's answers. Run: npm test
 import test from "node:test";
 import assert from "node:assert/strict";
-import fs from "node:fs";
 import { derive } from "./proposal.ts";
-import { fixture, run, freelanceJob } from "./fixture.ts";
+import { fixture, run } from "./fixture.ts";
 
 test("prices are hours times the rate; the total sums them", () => {
   const r = derive({ rate: 30, start: "2026-10-27", perDay: 6, hours: [10, 9, 3, 4] });
@@ -42,17 +40,4 @@ test("the milestones CLI prints one line per milestone and the total", () => {
   const r = run(root, "proposal.ts", "milestones", "--rate", "30", "--start", "2026-10-27", "--per-day", "6", "--hours", "10,9");
   assert.equal(r.status, 0, r.stderr);
   assert.equal(r.stdout, "1. 10 hours, $300, due Wed Oct 28 (2026-10-28)\n2. 9 hours, $270, due Fri Oct 30 (2026-10-30)\ntotal: 19 hours, $570\n");
-});
-
-test("write-rate sets rate in job.md once, keeps the body, and refuses an invalid rate", () => {
-  const C = "2026-10-26-acme-fix";
-  const { root, candidate } = fixture({ candidates: { [C]: { "job.md": freelanceJob({ verdict: "go" }) } } });
-  const ok = run(root, "proposal.ts", "write-rate", C, "--rate", "35");
-  assert.equal(ok.status, 0, ok.stderr);
-  const text = fs.readFileSync(`${candidate(C)}/job.md`, "utf8");
-  assert.match(text, /\nrate: 35\n/);
-  assert.match(text, /Posting text\.\n$/);
-  const bad = run(root, "proposal.ts", "write-rate", C, "--rate", "-1");
-  assert.match(bad.stdout, /proposal refused\. job\.md would be invalid/);
-  assert.match(fs.readFileSync(`${candidate(C)}/job.md`, "utf8"), /\nrate: 35\n/, "nothing written on a refusal");
 });

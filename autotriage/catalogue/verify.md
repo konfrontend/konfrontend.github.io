@@ -18,14 +18,14 @@ checks:
 
 # Verify catalogue
 
-`verify` is the last step. It reviews the Letter the way a code review reviews a diff, then applies the Fixes itself: `letter.md` after `verify` is the corrected Letter, never a report. The route's template (`templates/letter-freelance.md` or `templates/letter-employment.md`) sets its Slots and its caps. A Check is one named rule, judged by reading. A Finding is one violation of a Check in one Slot, `fail` or `warn`. A Fix is the change `verify` applies for a Finding. Each Check names the routes it runs on (`routes`); a Check whose `routes` lack the Candidate's route is skipped.
+`verify` is the last step. It reviews the Letter the way a code review reviews a diff, then applies the Fixes itself: its output is the corrected Letter, never a report. The route's template (`templates/letter-freelance.md` or `templates/letter-employment.md`) sets its Slots and its caps. A Check is one named rule, judged by reading. A Finding is one violation of a Check in one Slot, `fail` or `warn`. A Fix is the change `verify` applies for a Finding. Each Check names the routes it runs on (`routes`); a Check whose `routes` lack the Job's route is skipped.
 
 Portable across Profiles. Personal inputs (the banned phrases, terms) come from the Profile at run time.
 
 ## Inputs
 
-- `letter.md` of the current Candidate: body only, no frontmatter. The Letter ends at the sign-off line; the milestone lines and the bid after it are not part of it, and an optional fenced `Sent` block is skipped. An empty `letter.md` on the employment route is a resume-only application: valid, with no Letter in it, and nothing is checked.
-- `job.md`: `route`, `title`, `requirements`, the posting body (client facts, Job demands), and on the freelance route `flags`, from which the Alert Level and the Safeguards are read in the Flag catalogue, and `rate` when the person set one.
+- The Letter `proposal` held in the session. The Letter ends at the sign-off line; the milestone lines and the bid after it are not part of it.
+- The Job in the session: `route` and `title` from intake, the required items from triage, the paste (client facts, Job demands), and on the freelance route the triggered Flag ids, from which the Alert Level and the Safeguards are read in the Flag catalogue, and the rate when the person set one.
 - Profile: `profile/profile.md` (`terms`), `profile/projects/<slug>.md` (traceability source: the frontmatter meta, the name, the Description, the Bullets by heading and the Notes), `profile/answers/<slug>.md` (a Letter source, cited as `answer <slug>`), `voice.md` (`banned_phrases`).
 - Catalogues: voice rules, Slot catalogue, the route's template, Flag catalogue.
 
@@ -45,8 +45,8 @@ Nothing is stored. The report is session output; a Letter is final only after `v
 
 ### fact
 
-- `untraceable`: a fact with no source. List every fact in the Letter (product name, URL, role, period, stack item, number, client quote) with its Slot and source: a Project's frontmatter field, its name, its Description, a Bullet by its heading or a Notes line, `answer <slug>` for an answer cited or tailored, a `profile.md` field, the `job.md` body for client facts, or `derived` for prices and due dates `scripts/proposal.ts milestones` computed from the person's answers and for timezone overlap. `derived` never covers a claim about the person (availability, willingness, a thing done) that no Profile line states. Fix: ask the human once whether the fact is true. True: append it as one line under `## Notes` of the matching `profile/projects/<slug>.md`, then regenerate the Slot. False or unknown: regenerate the Slot without it. No step edits a Description.
-- `arithmetic`: a milestone price that is not its hours times the rate (`job.md` `rate`, else Profile `terms.rate`), or a bid that does not sum the funded milestones. Warn.
+- `untraceable`: a fact with no source. List every fact in the Letter (product name, URL, role, period, stack item, number, client quote) with its Slot and source: a Project's frontmatter field, its name, its Description, a Bullet by its heading or a Notes line, `answer <slug>` for an answer cited or tailored, a `profile.md` field, the Job for client facts, or `derived` for prices and due dates `scripts/proposal.ts milestones` computed from the person's answers and for timezone overlap. `derived` never covers a claim about the person (availability, willingness, a thing done) that no Profile line states. Fix: ask the human once whether the fact is true. True: append it as one line under `## Notes` of the matching `profile/projects/<slug>.md`, then regenerate the Slot. False or unknown: regenerate the Slot without it. No step edits a Description.
+- `arithmetic`: a milestone price that is not its hours times the rate (the rate the person set, else Profile `terms.rate`), or a bid that does not sum the funded milestones. Warn.
 
 ### terms
 
@@ -55,11 +55,11 @@ Nothing is stored. The report is session output; a Letter is final only after `v
 ### job
 
 - `demand-unanswered`: an explicit request in the Job (examples, stack, approach, availability, subcontracting, a specific question) that no Slot answers. Fix: regenerate `answers`, or the Slot the demand maps to. A demand that needs a fact the Profile lacks goes to the human as in `fact/untraceable`. On the employment route it counts only the demands a cover letter can carry (`intro`, `relevant_work`, `terms`); screening questions are form fields answered from the answers, never Findings.
-- `mandatory-keyword`: Flag `mandatory-keyword` is in `flags` and the keyword appears anywhere in the Letter. Fix: patch the sentence to drop it. The Letter never complies with a keyword demand.
+- `mandatory-keyword`: Flag `mandatory-keyword` triggered and the keyword appears anywhere in the Letter. Fix: patch the sentence to drop it. The Letter never complies with a keyword demand.
 
 ### flag
 
-- `safeguard-missing`: a triggered risk Flag in `flags` with `slot` other than `none` whose Safeguard the target Slot does not state. `fail` at Alert Level 3 or 4, `warn` at 1 or 2. `plan` resolves to the plan Slot the Letter carries. Freelance only: no employment Flag has a Slot.
+- `safeguard-missing`: a triggered risk Flag with `slot` other than `none` whose Safeguard the target Slot does not state. `fail` at Alert Level 3 or 4, `warn` at 1 or 2. `plan` resolves to the plan Slot the Letter carries. Freelance only: no employment Flag has a Slot.
 
 ## Fixes
 
