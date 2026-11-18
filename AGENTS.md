@@ -1,6 +1,6 @@
 # Professional profile
 
-The professional profile of Konstantin Dolbilov, web developer, and the two things made from it: resumes and the triage of Jobs. The Profile is the source of truth; a Version and a Letter are written from it, never the other way round.
+The professional profile of Konstantin Dolbilov, web developer, and the two things made from it: resumes and the triage of Jobs. The Profile is the source of truth.
 
 ## Documentation
 

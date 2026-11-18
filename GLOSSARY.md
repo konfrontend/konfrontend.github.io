@@ -1,7 +1,5 @@
 # Professional profile
 
-One person's Profile, the resumes made from it, and the triage of the Jobs it is sent for. The Profile is the source of truth; a Version and a Letter derive from it, never the other way round. Say resume, never CV.
-
 ## Language
 
 ### Profile
@@ -34,18 +32,6 @@ _Avoid_: posting, listing, gig, opportunity
 
 ### Triage
 
-**Checkpoint**:
-The pause after triage where the person reads the Flags and the Keyword map and answers go or no-go; the Verdict is made then and nothing before.
-_Avoid_: approval, review step, gate
-
-**Verdict**:
-Whether a Job is pursued: the go or no-go the person confirmed at the Checkpoint. The Flags and the recommendation behind it are session output.
-_Avoid_: decision, recommendation, result, assessment
-
 **Flag**:
 One named signal in a Job: red for a risk, green for a good sign.
 _Avoid_: red flag, warning, concern
-
-**Letter**:
-The cover letter of a proposal for a Job: drafted by `write-proposal`, rewritten by `refine-proposal`.
-_Avoid_: bid, application, pitch
