@@ -3,6 +3,10 @@
     "linear": {
       "type": "http",
       "url": "https://mcp.linear.app/mcp"
+    },
+    "upwork": {
+      "type": "http",
+      "url": "https://mcp.upwork.com/mcp"
     }
   }
 }
