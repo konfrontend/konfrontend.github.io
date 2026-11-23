@@ -1,7 +1,7 @@
 ---
 name: triage
 description: Triage one Upwork Job against the Profile and the Flags, then ask go or no-go before write-proposal.
-disable-model-invocation: true
+disable-model-invocation: false
 argument-hint: "<Upwork job URL or id, or the pasted posting>"
 ---
 
