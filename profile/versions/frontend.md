@@ -8,7 +8,7 @@ Gijon, Spain (CET, UTC+1) | [cossamedia@gmail.com](mailto:cossamedia@gmail.com) 
 
 ## Skills
 **Frontend:** TypeScript, React, Electron, Vue.js, Vite, Nuxt, Zustand, TanStack Query, Tailwind CSS, Motion, Web Workers, WebSockets, Progressive Web Application (PWA)
-**Graphics:** React Three Fiber (R3F), three.js, WebGL, GLSL, Canvas API, SVG API
+**Graphics:** React Three Fiber (R3F), three.js, WebGL, WebGPU, GLSL, Canvas API, SVG API
 **Backend:** REST API, Node.js, Express, Hono, Java, Spring Boot
 **Data:** Drizzle ORM, SQLite, PostgreSQL, MariaDB, MongoDB
 **Cloud & DevOps:** Cloudflare, AWS, Docker, GitHub Actions
